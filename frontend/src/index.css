@@ -786,10 +786,26 @@ img {
 
 .footer-brand p {
   max-width: 250px;
-  margin-top: 14px;
+  margin-top: 12px;
   color: #382c26;
   font-size: 13px;
   line-height: 1.45;
+}
+
+.admin-link {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.admin-link img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  display: block;
 }
 
 .footer-logo {
@@ -817,7 +833,7 @@ img {
   align-items: center;
 }
 
-.social-icons span {
+.social-icons a {
   width: 32px;
   height: 32px;
   display: grid;
@@ -876,6 +892,94 @@ img {
   color: #8b7b69;
   text-align: center;
   font-size: 12px;
+}
+
+.admin-page {
+  min-height: 560px;
+  padding: 48px clamp(22px, 6vw, 112px);
+  background: #fff1cf;
+}
+
+.admin-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 34px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--purple), var(--lilac));
+  border-radius: 10px;
+}
+
+.admin-kicker {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.admin-panel h1,
+.admin-panel p,
+.admin-grid strong,
+.admin-grid span {
+  margin: 0;
+}
+
+.admin-panel h1 {
+  font-family: var(--display-font);
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1;
+}
+
+.admin-panel p {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.admin-actions button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  color: #171211;
+  background: #fff9ed;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.admin-grid article {
+  min-height: 126px;
+  padding: 22px;
+  background: rgba(255, 250, 240, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.admin-grid strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 1000;
+}
+
+.admin-grid span {
+  display: block;
+  margin-top: 10px;
+  color: #40342e;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .p-10 { padding: 2.5rem; }
@@ -1071,6 +1175,15 @@ img {
   .community-card {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .admin-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
   }
 
   .footer-main {
@@ -1450,6 +1563,19 @@ img {
 
   .newsletter {
     max-width: none;
+  }
+
+  .admin-page {
+    padding: 28px 18px;
+  }
+
+  .admin-panel {
+    padding: 24px;
+  }
+
+  .admin-actions {
+    width: 100%;
+    flex-direction: column;
   }
 
   .text-3xl {

@@ -1,4 +1,5 @@
 import logo from "../assets/logo.png";
+import adminIcon from "../assets/icons/admin.png";
 import compraIcon from "../assets/icons/compra.png";
 import envioIcon from "../assets/icons/envio.png";
 import instagramIcon from "../assets/icons/instagram.png";
@@ -18,6 +19,9 @@ export default function Footer() {
       <div className="footer-main">
         <div className="footer-brand">
           <img src={logo} alt="My Favorite Rug" className="footer-logo" />
+          <a href="/admin" className="admin-link" aria-label="Entrar como superadmin">
+            <img src={adminIcon} alt="" />
+          </a>
           <p>Alfombras personalizadas hechas a mano, con estilo.</p>
         </div>
 
@@ -39,9 +43,15 @@ export default function Footer() {
         <div>
           <h3>SIGUENOS</h3>
           <div className="social-icons">
-            <span><img src={instagramIcon} alt="Instagram" /></span>
-            <span><img src={tiktokIcon} alt="TikTok" /></span>
-            <span><img src={webIcon} alt="Sitio web" /></span>
+            <a href="https://www.instagram.com/myfavoriterug" target="_blank" rel="noreferrer" aria-label="Instagram">
+              <img src={instagramIcon} alt="" />
+            </a>
+            <a href="https://www.tiktok.com/@myfavoriterug" target="_blank" rel="noreferrer" aria-label="TikTok">
+              <img src={tiktokIcon} alt="" />
+            </a>
+            <a href="https://www.etsy.com/shop/myfavoriterug/" target="_blank" rel="noreferrer" aria-label="Etsy">
+              <img src={webIcon} alt="" />
+            </a>
           </div>
         </div>
 
