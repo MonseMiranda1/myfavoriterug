@@ -736,7 +736,17 @@ img {
 
 .footer-benefits span {
   grid-area: icon;
-  font-size: 32px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+}
+
+.footer-benefits span img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  display: block;
 }
 
 .footer-benefits strong {
@@ -791,7 +801,21 @@ img {
 .social-icons {
   display: flex;
   gap: 18px;
-  font-size: 28px;
+  align-items: center;
+}
+
+.social-icons span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+
+.social-icons img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
 }
 
 .newsletter {
@@ -1260,10 +1284,11 @@ img {
     height: 34px;
     display: grid;
     place-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.42);
-    border-radius: 50%;
-    font-size: 10px;
-    font-weight: 1000;
+  }
+
+  .footer-benefits span img {
+    width: 32px;
+    height: 32px;
   }
 
   .flex {

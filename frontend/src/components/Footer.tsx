@@ -1,12 +1,18 @@
 import logo from "../assets/logo.png";
+import compraIcon from "../assets/icons/compra.png";
+import envioIcon from "../assets/icons/envio.png";
+import instagramIcon from "../assets/icons/instagram.png";
+import pagoIcon from "../assets/icons/pago.png";
+import tiktokIcon from "../assets/icons/tiktok.png";
+import webIcon from "../assets/icons/web.png";
 
 export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-benefits">
-        <article><span>MSI</span><strong>PAGA EN 3 MSI</strong><small>Con tarjetas participantes</small></article>
-        <article><span>MX</span><strong>ENVIOS A TODO MEXICO</strong><small>Rapidos y seguros</small></article>
-        <article><span>OK</span><strong>COMPRA 100% SEGURA</strong><small>Tus datos estan protegidos</small></article>
+        <article><span><img src={pagoIcon} alt="" /></span><strong>PAGA CON TARJETA</strong><small>o transferencias</small></article>
+        <article><span><img src={envioIcon} alt="" /></span><strong>ENVIOS A TODO CHILE E INTERNACIONAL</strong><small>Rapidos y seguros</small></article>
+        <article><span><img src={compraIcon} alt="" /></span><strong>COMPRA 100% SEGURA</strong><small>Tus datos están protegidos</small></article>
       </div>
 
       <div className="footer-main">
@@ -33,9 +39,9 @@ export default function Footer() {
         <div>
           <h3>SIGUENOS</h3>
           <div className="social-icons">
-            <span>IG</span>
-            <span>TK</span>
-            <span>YT</span>
+            <span><img src={instagramIcon} alt="Instagram" /></span>
+            <span><img src={tiktokIcon} alt="TikTok" /></span>
+            <span><img src={webIcon} alt="Sitio web" /></span>
           </div>
         </div>
 
