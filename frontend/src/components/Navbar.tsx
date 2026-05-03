@@ -15,7 +15,7 @@ function BrandLogo() {
 export default function Navbar() {
   return (
     <header className="site-header">
-      <div className="shipping-bar">ENVIO GRATIS EN PEDIDOS +$ <span>TRUCK</span></div>
+      <div className="shipping-bar">ALGO DEBE IR AQUI <span>ICONO</span></div>
 
       <nav className="main-nav">
         <BrandLogo />

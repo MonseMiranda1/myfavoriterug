@@ -13,7 +13,7 @@ export default function Categories() {
     <section className="categories-section">
       <div className="section-heading">
         <h2>EXPLORA NUESTRAS CATEGORIAS</h2>
-        <a href="/tienda">VER TODAS <span>-&gt;</span></a>
+        <a href="/tienda">VER TODAS <span aria-hidden="true">&rarr;</span></a>
       </div>
 
       <div className="category-grid">
@@ -24,7 +24,7 @@ export default function Categories() {
               style={{ backgroundImage: `url(${banner})`, backgroundPosition: category.pos }}
             />
             <h3>{category.title}</h3>
-            <a href="/tienda">VER MAS <span>-&gt;</span></a>
+            <a href="/tienda">VER MAS <span aria-hidden="true">&rarr;</span></a>
           </article>
         ))}
       </div>
@@ -44,7 +44,7 @@ export default function Categories() {
         <article className="review-card">
           <div className="review-avatar">MG</div>
           <div>
-            <strong>*****</strong>
+            <strong>★★★★★</strong>
             <p>"Mi alfombra quedo mejor de lo que imagine, la calidad esta increible."</p>
             <span>- Mariana G.</span>
           </div>

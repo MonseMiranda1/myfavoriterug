@@ -270,6 +270,16 @@ img {
   box-shadow: 0 14px 24px rgba(255, 106, 0, 0.25);
 }
 
+.btn-primary span,
+.section-heading a span,
+.category-card a span {
+  display: inline-block;
+  font-family: var(--body-font);
+  font-size: 1.18em;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
 .btn-secondary {
   color: #171211;
   background: rgba(255, 252, 243, 0.72);
@@ -470,13 +480,16 @@ img {
 }
 
 .step-card:not(:last-child)::after {
-  content: "->";
+  content: "\2192";
   position: absolute;
   right: -43px;
   top: 50%;
   color: #111;
-  font-size: 24px;
+  font-family: var(--body-font);
+  font-size: 28px;
   font-weight: 900;
+  line-height: 1;
+  transform: translateY(-50%);
 }
 
 .step-yellow { background: linear-gradient(135deg, var(--yellow), #f5b000); }
@@ -842,12 +855,20 @@ img {
 }
 
 .newsletter button {
+  display: grid;
+  place-items: center;
   border: 0;
   color: #fff;
   background: var(--purple);
-  font-size: 22px;
+  font-family: var(--body-font);
+  font-size: 24px;
   font-weight: 900;
+  line-height: 1;
   cursor: pointer;
+}
+
+.newsletter button span {
+  transform: translateY(-1px);
 }
 
 .copyright {

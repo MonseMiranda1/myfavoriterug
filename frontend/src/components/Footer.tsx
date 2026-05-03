@@ -18,7 +18,7 @@ export default function Footer() {
       <div className="footer-main">
         <div className="footer-brand">
           <img src={logo} alt="My Favorite Rug" className="footer-logo" />
-          <p>Alfombras personalizadas hechas a mano con amor.</p>
+          <p>Alfombras personalizadas hechas a mano, con estilo.</p>
         </div>
 
         <div>
@@ -50,7 +50,7 @@ export default function Footer() {
           <p>Recibe novedades y promociones.</p>
           <form className="newsletter">
             <input type="email" placeholder="Tu correo electronico" aria-label="Tu correo electronico" />
-            <button type="submit" aria-label="Enviar">-&gt;</button>
+            <button type="submit" aria-label="Enviar"><span aria-hidden="true">&rarr;</span></button>
           </form>
         </div>
       </div>

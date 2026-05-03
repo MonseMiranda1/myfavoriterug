@@ -23,10 +23,10 @@ export default function Hero() {
             TU DISE&Ntilde;O,
             <span>TU ALFOMBRA.</span>
           </h1>
-          <p>Alfombras personalizadas hechas a mano con amor y mucho estilo.</p>
+          <p>Alfombras personalizadas hechas a mano  y con mucho estilo.</p>
 
           <div className="hero-buttons">
-            <a href="#personaliza" className="btn btn-primary">PERSONALIZA LA TUYA <span>-&gt;</span></a>
+            <a href="#personaliza" className="btn btn-primary">PERSONALIZA LA TUYA <span aria-hidden="true">&rarr;</span></a>
             <a href="/tienda" className="btn btn-secondary">VER TIENDA</a>
           </div>
 
@@ -39,7 +39,7 @@ export default function Hero() {
               <span>R</span>
             </div>
             <div>
-              <strong>*****</strong>
+              <strong>★★★★★</strong>
               <small>+2,500 clientes felices</small>
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function Hero() {
         <div className="handmade-badge" aria-label="Hecho a mano con amor">
           <span>HECHO A MANO</span>
           <strong><img src={corazonIcon} alt="" /></strong>
-          <span>CON AMOR</span>
+          <span>CON ESTILO</span>
         </div>
       </div>
 
