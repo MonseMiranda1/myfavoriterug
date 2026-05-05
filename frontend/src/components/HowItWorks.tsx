@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import bordadoIcon from "../assets/icons/bordado.png";
 import cajaIcon from "../assets/icons/caja.png";
 import imagenIcon from "../assets/icons/imagen.png";
@@ -48,7 +49,7 @@ export default function HowItWorks() {
         ))}
       </div>
 
-      <a href="#personaliza" className="btn btn-dark">PERSONALIZAR AHORA</a>
+      <Link to="/personaliza" className="btn btn-dark">PERSONALIZAR AHORA</Link>
     </section>
   );
 }

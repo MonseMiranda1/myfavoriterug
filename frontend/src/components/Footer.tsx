@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 import adminIcon from "../assets/icons/admin.png";
 import compraIcon from "../assets/icons/compra.png";
@@ -27,7 +28,7 @@ export default function Footer() {
 
         <div>
           <h3>INFORMACION</h3>
-          <a href="/">Sobre nosotros</a>
+          <Link to="/sobre-nosotros">Sobre nosotros</Link>
           <a href="/">Preguntas frecuentes</a>
           <a href="/">Politicas de envio</a>
           <a href="/">Cambios y devoluciones</a>

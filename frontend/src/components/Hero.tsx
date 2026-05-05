@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import banner from "../assets/banner.png";
 import corazonIcon from "../assets/icons/corazon.png";
 import envioIcon from "../assets/icons/envio.png";
@@ -8,7 +9,7 @@ import paletaIcon from "../assets/icons/paleta.png";
 const benefits = [
   [paletaIcon, "100% PERSONALIZADO", "Tu lo imaginas, nosotros lo creamos."],
   [manoIcon, "HECHO A MANO", "Cada alfombra es unica, hecha con amor."],
-  [envioIcon, "ENVIO SEGURO", "Enviamos a todo Mexico de forma segura."],
+  [envioIcon, "ENVIO SEGURO", "Enviamos a todo chile y al extranjero de forma segura."],
   [pagarIcon, "PAGA SEGURO", "Tu compra esta protegida con pagos seguros."],
 ];
 
@@ -26,8 +27,8 @@ export default function Hero() {
           <p>Alfombras personalizadas hechas a mano  y con mucho estilo.</p>
 
           <div className="hero-buttons">
-            <a href="#personaliza" className="btn btn-primary">PERSONALIZA LA TUYA <span aria-hidden="true">&rarr;</span></a>
-            <a href="/tienda" className="btn btn-secondary">VER TIENDA</a>
+            <Link to="/personaliza" className="btn btn-primary">PERSONALIZA LA TUYA <span aria-hidden="true">&rarr;</span></Link>
+            <Link to="/tienda" className="btn btn-secondary">VER TIENDA</Link>
           </div>
 
           <div className="social-proof">
