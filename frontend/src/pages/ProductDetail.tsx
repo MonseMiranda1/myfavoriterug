@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProducts, type Product } from "../services/api";
 import Navbar from "../components/Navbar";
+import { addCartItem } from "../services/cart";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function ProductDetail() {
             ${product.price}
           </p>
 
-          <button className="mt-6 bg-orange-500 text-white px-6 py-3 rounded">
+          <button className="mt-6 bg-orange-500 text-white px-6 py-3 rounded" onClick={() => addCartItem(product)}>
             Agregar al carrito
           </button>
         </div>

@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import buscarIcon from "../assets/icons/buscar.png";
 import carritoIcon from "../assets/icons/carrito.png";
 import userIcon from "../assets/icons/user.png";
 import logo from "../assets/logo.png";
+import { CART_UPDATED_EVENT, getCartQuantity } from "../services/cart";
 
 function BrandLogo() {
   return (
@@ -16,7 +17,21 @@ function BrandLogo() {
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [cartQuantity, setCartQuantity] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const updateCartQuantity = () => setCartQuantity(getCartQuantity());
+
+    updateCartQuantity();
+    window.addEventListener(CART_UPDATED_EVENT, updateCartQuantity);
+    window.addEventListener("storage", updateCartQuantity);
+
+    return () => {
+      window.removeEventListener(CART_UPDATED_EVENT, updateCartQuantity);
+      window.removeEventListener("storage", updateCartQuantity);
+    };
+  }, []);
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,12 +76,12 @@ export default function Navbar() {
               <img src={buscarIcon} alt="" />
             </button>
           </form>
-          <button type="button" aria-label="Cuenta">
+          <Link to="/cuenta" aria-label="Cuenta">
             <img src={userIcon} alt="" />
-          </button>
+          </Link>
           <Link to="/carrito" className="cart-link" aria-label="Carrito">
             <img src={carritoIcon} alt="" />
-            <span>2</span>
+            {cartQuantity > 0 && <span>{cartQuantity}</span>}
           </Link>
         </div>
       </nav>

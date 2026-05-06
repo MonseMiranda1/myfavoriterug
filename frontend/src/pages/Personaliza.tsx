@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import imagenIcon from "../assets/icons/imagen.png";
 import paletaIcon from "../assets/icons/paleta.png";
 import subirIcon from "../assets/icons/subir.png";
+import { saveQuoteRequest } from "../services/quotes";
 
 type Currency = "CLP" | "USD" | "EUR";
 
@@ -54,6 +55,9 @@ export default function Personaliza() {
   const [selectedWoolId, setSelectedWoolId] = useState(woolOptions[0].id);
   const [selectedColorId, setSelectedColorId] = useState(colorOptions[0].id);
   const [currency, setCurrency] = useState<Currency>("CLP");
+  const [comments, setComments] = useState("");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [submitMessage, setSubmitMessage] = useState("");
 
   const selectedSize = sizeOptions.find((option) => option.id === selectedSizeId) ?? sizeOptions[0];
   const selectedWool = woolOptions.find((option) => option.id === selectedWoolId) ?? woolOptions[0];
@@ -75,10 +79,41 @@ export default function Personaliza() {
 
     setPreview(URL.createObjectURL(file));
     setFileName(file.name);
+    setSubmitMessage("");
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!fileName) {
+      setSubmitStatus("error");
+      setSubmitMessage("Sube una imagen de referencia antes de enviar la solicitud.");
+      return;
+    }
+
+    const request = saveQuoteRequest({
+      imageName: fileName,
+      size: selectedSize.label,
+      wool: selectedWool.label,
+      colors: selectedColors.label,
+      currency,
+      comments,
+      totalClp,
+    });
+
+    setSubmitStatus("success");
+    setSubmitMessage(`Solicitud ${request.id} enviada. La puedes revisar en Mis Cotizaciones.`);
+    setSelectedSizeId(sizeOptions[0].id);
+    setSelectedWoolId(woolOptions[0].id);
+    setSelectedColorId(colorOptions[0].id);
+    setCurrency("CLP");
+    setComments("");
+    setFileName("");
+
+    if (preview) {
+      URL.revokeObjectURL(preview);
+      setPreview(null);
+    }
   }
 
   return (
@@ -197,6 +232,8 @@ export default function Personaliza() {
               <span>Comentarios</span>
               <textarea
                 rows={5}
+                value={comments}
+                onChange={(event) => setComments(event.target.value)}
                 placeholder="Cuéntanos colores, forma, texto o cualquier detalle importante."
               />
             </label>
@@ -210,6 +247,12 @@ export default function Personaliza() {
             <button type="submit" className="btn btn-primary custom-submit">
               ENVIAR SOLICITUD <span aria-hidden="true">&rarr;</span>
             </button>
+
+            {submitMessage && (
+              <p className={`custom-submit-message ${submitStatus}`}>
+                {submitMessage}
+              </p>
+            )}
           </section>
         </form>
       </main>
