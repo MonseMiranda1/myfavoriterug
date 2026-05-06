@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import corazonIcon from "../assets/icons/corazon.png";
 import manoIcon from "../assets/icons/mano.png";
 import paletaIcon from "../assets/icons/paleta.png";
-import logo from "../assets/logo.png";
+import monse from "../assets/monse.jpg";
 
 export default function About() {
   return (
@@ -22,9 +22,8 @@ export default function About() {
             </p>
           </div>
 
-          <div className="about-logo-card" aria-hidden="true">
-            <img src={logo} alt="" />
-            <strong>Hecho a mano</strong>
+          <div className="about-logo-card">
+            <img src={monse} alt="Monse, creadora de My Favorite Rug" />
           </div>
         </section>
 
