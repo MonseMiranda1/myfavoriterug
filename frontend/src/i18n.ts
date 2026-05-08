@@ -266,6 +266,7 @@ const translations = {
     "terms.p1": "Las alfombras personalizadas se fabrican a pedido, por lo que los cambios se revisan segun avance de produccion.",
     "terms.p2": "Antes de confeccionar confirmamos medidas, colores y diseno. Si un producto llega con dano de transporte, contactanos con fotos dentro de las primeras 48 horas.",
     "product.addToCart": "Agregar al carrito",
+    "product.size": "Medidas",
 
     "order.kicker": "Pedido confirmado",
     "order.title": "Gracias por tu compra",
@@ -567,6 +568,7 @@ const translations = {
     "terms.p1": "Custom rugs are made to order, so changes are reviewed according to production progress.",
     "terms.p2": "Before production, we confirm measurements, colors, and design. If a product arrives with shipping damage, contact us with photos within the first 48 hours.",
     "product.addToCart": "Add to cart",
+    "product.size": "Size",
 
     "order.kicker": "Order confirmed",
     "order.title": "Thank you for your purchase",

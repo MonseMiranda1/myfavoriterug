@@ -3,16 +3,23 @@ import AccountSidebar from "../components/AccountSidebar";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useLanguage } from "../i18n";
-import { getOrders } from "../services/orders";
+import { getOrders, ORDERS_UPDATED_EVENT } from "../services/orders";
+import { useEffect, useState } from "react";
 
 export default function Tracking() {
   const { t } = useLanguage();
+  const [orders, setOrders] = useState(getOrders());
+
+  useEffect(() => {
+    const refreshOrders = () => setOrders(getOrders());
+
+    window.addEventListener(ORDERS_UPDATED_EVENT, refreshOrders);
+    return () => window.removeEventListener(ORDERS_UPDATED_EVENT, refreshOrders);
+  }, []);
 
   return (
     <AccountGate>
       {(user) => {
-        const orders = getOrders();
-
         return (
           <>
             <Navbar />
@@ -28,8 +35,9 @@ export default function Tracking() {
                       {orders.map((order) => (
                         <article key={order.id}>
                           <strong>{order.id}</strong>
-                          <span>{order.status}</span>
+                          <span>{order.shippingStatus || order.status}</span>
                           <p>{t("account.method")} {order.shippingMethod}</p>
+                          {order.trackingNumber && <p>Numero de seguimiento: <strong>{order.trackingNumber}</strong></p>}
                         </article>
                       ))}
                     </div>
