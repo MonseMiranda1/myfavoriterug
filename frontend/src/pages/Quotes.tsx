@@ -4,6 +4,7 @@ import AccountGate from "../components/AccountGate";
 import AccountSidebar, { QuoteIcon } from "../components/AccountSidebar";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import { useLanguage } from "../i18n";
 import { getQuoteRequests, type CustomQuoteRequest } from "../services/quotes";
 
 function formatPrice(amountClp: number) {
@@ -23,6 +24,8 @@ function formatDate(date: string) {
 }
 
 function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
+  const { t } = useLanguage();
+
   return (
     <article className="account-quote-card">
       <div>
@@ -32,15 +35,15 @@ function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
       </div>
       <dl>
         <div>
-          <dt>Lana</dt>
+          <dt>{t("account.yarn")}</dt>
           <dd>{quote.wool}</dd>
         </div>
         <div>
-          <dt>Colores</dt>
+          <dt>{t("account.colors")}</dt>
           <dd>{quote.colors}</dd>
         </div>
         <div>
-          <dt>Total referencial</dt>
+          <dt>{t("account.referenceTotal")}</dt>
           <dd>{formatPrice(quote.totalClp)}</dd>
         </div>
       </dl>
@@ -50,6 +53,7 @@ function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
 }
 
 export default function Quotes() {
+  const { t } = useLanguage();
   const quotes = useMemo(() => getQuoteRequests(), []);
 
   return (
@@ -64,9 +68,9 @@ export default function Quotes() {
 
               <section className="account-content">
                 <header className="account-list-heading">
-                  <span>Area cliente</span>
-                  <h1>Mis Cotizaciones</h1>
-                  <p>Historial de cotizaciones solicitadas.</p>
+                  <span>{t("account.area")}</span>
+                  <h1>{t("account.quotes")}</h1>
+                  <p>{t("account.quotesHistory")}</p>
                 </header>
 
                 {quotes.length > 0 ? (
@@ -80,9 +84,9 @@ export default function Quotes() {
                     <span>
                       <QuoteIcon />
                     </span>
-                    <h2>No tienes cotizaciones</h2>
-                    <p>Aun no has solicitado ninguna cotizacion.</p>
-                    <Link to="/personaliza">Solicitar cotizacion</Link>
+                    <h2>{t("account.noQuotes")}</h2>
+                    <p>{t("account.noQuotesText")}</p>
+                    <Link to="/personaliza">{t("account.requestQuote")}</Link>
                   </section>
                 )}
               </section>

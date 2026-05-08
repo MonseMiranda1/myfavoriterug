@@ -3,6 +3,7 @@ import AccountGate from "../components/AccountGate";
 import AccountSidebar, { BoxIcon } from "../components/AccountSidebar";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import { useLanguage } from "../i18n";
 
 function SearchIcon() {
   return (
@@ -14,6 +15,8 @@ function SearchIcon() {
 }
 
 export default function Orders() {
+  const { t } = useLanguage();
+
   return (
     <AccountGate>
       {(user) => (
@@ -26,13 +29,13 @@ export default function Orders() {
 
               <section className="account-content">
                 <header className="account-list-heading">
-                  <span>Area cliente</span>
-                  <h1>Mis Pedidos</h1>
-                  <p>Historial completo de tus pedidos.</p>
+                  <span>{t("account.area")}</span>
+                  <h1>{t("account.orders")}</h1>
+                  <p>{t("account.ordersHistory")}</p>
                 </header>
 
                 <label className="account-list-search">
-                  <input type="search" placeholder="Buscar por numero de pedido, estado o metodo de pago..." />
+                  <input type="search" placeholder={t("account.ordersSearch")} />
                   <SearchIcon />
                 </label>
 
@@ -40,9 +43,9 @@ export default function Orders() {
                   <span>
                     <BoxIcon />
                   </span>
-                  <h2>No tienes pedidos aun</h2>
-                  <p>Comienza a comprar en nuestra tienda.</p>
-                  <Link to="/tienda">Ir a la tienda</Link>
+                  <h2>{t("account.noOrders")}</h2>
+                  <p>{t("account.startShopping")}</p>
+                  <Link to="/tienda">{t("cart.goStore")}</Link>
                 </section>
               </section>
             </div>

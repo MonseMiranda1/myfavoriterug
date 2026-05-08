@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { useLanguage } from "../i18n";
 import { logoutAccount, type AccountUser } from "../services/accountAuth";
 
-type AccountSection = "profile" | "orders" | "quotes";
+type AccountSection = "profile" | "orders" | "quotes" | "wishlist" | "tracking";
 
 function AccountIcon() {
   return (
@@ -54,6 +55,8 @@ function ChevronIcon() {
 export { BoxIcon, QuoteIcon };
 
 export default function AccountSidebar({ activeSection, user }: { activeSection: AccountSection; user: AccountUser }) {
+  const { t, language } = useLanguage();
+
   return (
     <aside className="account-sidebar">
       <div className="account-user">
@@ -69,13 +72,13 @@ export default function AccountSidebar({ activeSection, user }: { activeSection:
           <span className="account-icon">
             <AccountIcon />
           </span>
-          Mi Perfil
+          {language === "en" ? "My Profile" : "Mi Perfil"}
         </Link>
         <Link to="/cuenta/pedidos" className={activeSection === "orders" ? "is-active" : ""}>
           <span className="account-icon">
             <BoxIcon />
           </span>
-          Mis Pedidos
+          {t("account.orders")}
           <strong className="account-chevron">
             <ChevronIcon />
           </strong>
@@ -84,7 +87,25 @@ export default function AccountSidebar({ activeSection, user }: { activeSection:
           <span className="account-icon">
             <QuoteIcon />
           </span>
-          Mis Cotizaciones
+          {t("account.quotes")}
+          <strong className="account-chevron">
+            <ChevronIcon />
+          </strong>
+        </Link>
+        <Link to="/cuenta/wishlist" className={activeSection === "wishlist" ? "is-active" : ""}>
+          <span className="account-icon">
+            <QuoteIcon />
+          </span>
+          Wishlist
+          <strong className="account-chevron">
+            <ChevronIcon />
+          </strong>
+        </Link>
+        <Link to="/cuenta/seguimiento" className={activeSection === "tracking" ? "is-active" : ""}>
+          <span className="account-icon">
+            <BoxIcon />
+          </span>
+          {t("account.tracking")}
           <strong className="account-chevron">
             <ChevronIcon />
           </strong>
@@ -93,7 +114,7 @@ export default function AccountSidebar({ activeSection, user }: { activeSection:
           <span className="account-icon">
             <LogoutIcon />
           </span>
-          Cerrar sesion
+          {language === "en" ? "Log out" : "Cerrar sesion"}
         </button>
       </nav>
     </aside>

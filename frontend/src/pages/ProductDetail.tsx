@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { getProducts, type Product } from "../services/api";
 import Navbar from "../components/Navbar";
 import { addCartItem } from "../services/cart";
+import { useLanguage } from "../i18n";
 
 export default function ProductDetail() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
 
@@ -15,7 +17,7 @@ export default function ProductDetail() {
     });
   }, [id]);
 
-  if (!product) return <p>Cargando...</p>;
+  if (!product) return <p>{t("common.loading")}</p>;
 
   return (
     <>
@@ -31,7 +33,7 @@ export default function ProductDetail() {
           </p>
 
           <button className="mt-6 bg-orange-500 text-white px-6 py-3 rounded" onClick={() => addCartItem(product)}>
-            Agregar al carrito
+            {t("product.addToCart")}
           </button>
         </div>
       </div>

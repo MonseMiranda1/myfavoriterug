@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import imagenIcon from "../assets/icons/imagen.png";
 import paletaIcon from "../assets/icons/paleta.png";
 import subirIcon from "../assets/icons/subir.png";
+import { useLanguage } from "../i18n";
 import { saveQuoteRequest } from "../services/quotes";
 
 type Currency = "CLP" | "USD" | "EUR";
@@ -49,6 +50,7 @@ function formatPrice(amountClp: number, currency: Currency) {
 }
 
 export default function Personaliza() {
+  const { t } = useLanguage();
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState("");
   const [selectedSizeId, setSelectedSizeId] = useState(sizeOptions[0].id);
@@ -87,7 +89,7 @@ export default function Personaliza() {
 
     if (!fileName) {
       setSubmitStatus("error");
-      setSubmitMessage("Sube una imagen de referencia antes de enviar la solicitud.");
+      setSubmitMessage(t("custom.errorImage"));
       return;
     }
 
@@ -102,7 +104,7 @@ export default function Personaliza() {
     });
 
     setSubmitStatus("success");
-    setSubmitMessage(`Solicitud ${request.id} enviada. La puedes revisar en Mis Cotizaciones.`);
+    setSubmitMessage(`${t("custom.successPrefix")} ${request.id} ${t("custom.successSuffix")}`);
     setSelectedSizeId(sizeOptions[0].id);
     setSelectedWoolId(woolOptions[0].id);
     setSelectedColorId(colorOptions[0].id);
@@ -123,16 +125,13 @@ export default function Personaliza() {
       <main className="custom-page">
         <section className="custom-hero">
           <div>
-            <span className="custom-kicker">Alfombra a pedido</span>
-            <h1>Personaliza tu alfombra</h1>
-            <p>
-              Sube tu imagen de referencia, define las medidas en centimetros y
-              prepararemos una vista previa antes de confeccionarla.
-            </p>
+            <span className="custom-kicker">{t("custom.kicker")}</span>
+            <h1>{t("custom.title")}</h1>
+            <p>{t("custom.subtitle")}</p>
           </div>
           <div className="custom-hero-badge" aria-hidden="true">
             <img src={paletaIcon} alt="" />
-            <span>100% a tu estilo</span>
+            <span>{t("custom.badge")}</span>
           </div>
         </section>
 
@@ -144,7 +143,7 @@ export default function Personaliza() {
               ) : (
                 <div className="upload-empty">
                   <img src={subirIcon} alt="" />
-                  <strong>Sube tu imagen</strong>
+                  <strong>{t("custom.uploadTitle")}</strong>
                   <span>PNG, JPG o WEBP</span>
                 </div>
               )}
@@ -152,24 +151,24 @@ export default function Personaliza() {
 
             <label className="upload-button">
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImageChange} />
-              <span>Elegir imagen</span>
+              <span>{t("custom.chooseImage")}</span>
             </label>
 
-            <p className="upload-name">{fileName || "Aun no has seleccionado una imagen."}</p>
+            <p className="upload-name">{fileName || t("custom.noImage")}</p>
           </section>
 
           <section className="custom-form-panel" aria-label="Detalles de la alfombra">
             <div className="form-heading">
               <img src={imagenIcon} alt="" />
               <div>
-                <h2>Medidas y detalles</h2>
-                <p>Elige una medida temporal, moneda y extras de confeccion.</p>
+                <h2>{t("custom.detailsTitle")}</h2>
+                <p>{t("custom.detailsText")}</p>
               </div>
             </div>
 
             <div className="custom-select-grid">
               <label>
-                <span>Medida</span>
+                <span>{t("custom.size")}</span>
                 <select value={selectedSizeId} onChange={(event) => setSelectedSizeId(event.target.value)}>
                   {sizeOptions.map((option) => (
                     <option key={option.id} value={option.id}>
@@ -180,7 +179,7 @@ export default function Personaliza() {
               </label>
 
               <label>
-                <span>Moneda</span>
+                <span>{t("custom.currency")}</span>
                 <select value={currency} onChange={(event) => setCurrency(event.target.value as Currency)}>
                   <option value="CLP">CLP</option>
                   <option value="USD">USD</option>
@@ -191,7 +190,7 @@ export default function Personaliza() {
 
             <div className="custom-select-grid extras-grid">
               <label>
-                <span>Lana usada</span>
+                <span>{t("custom.wool")}</span>
                 <select value={selectedWoolId} onChange={(event) => setSelectedWoolId(event.target.value)}>
                   {woolOptions.map((option) => (
                     <option key={option.id} value={option.id}>
@@ -202,7 +201,7 @@ export default function Personaliza() {
               </label>
 
               <label>
-                <span>Colores</span>
+                <span>{t("custom.colors")}</span>
                 <select value={selectedColorId} onChange={(event) => setSelectedColorId(event.target.value)}>
                   {colorOptions.map((option) => (
                     <option key={option.id} value={option.id}>
@@ -215,7 +214,7 @@ export default function Personaliza() {
 
             <div className="price-breakdown" aria-label="Detalle del precio">
               <div>
-                <span>Medida base</span>
+                <span>{t("custom.baseSize")}</span>
                 <strong>{formatPrice(selectedSize.priceClp, currency)}</strong>
               </div>
               <div>
@@ -229,23 +228,23 @@ export default function Personaliza() {
             </div>
 
             <label className="detail-field">
-              <span>Comentarios</span>
+              <span>{t("custom.comments")}</span>
               <textarea
                 rows={5}
                 value={comments}
                 onChange={(event) => setComments(event.target.value)}
-                placeholder="Cuéntanos colores, forma, texto o cualquier detalle importante."
+                placeholder={t("custom.commentsPlaceholder")}
               />
             </label>
 
             <div className="size-summary">
-              <span>Vista del pedido</span>
+              <span>{t("custom.orderPreview")}</span>
               <strong>{selectedSize.width} x {selectedSize.height} cm</strong>
               <em>{formatPrice(totalClp, currency)}</em>
             </div>
 
             <button type="submit" className="btn btn-primary custom-submit">
-              ENVIAR SOLICITUD <span aria-hidden="true">&rarr;</span>
+              {t("custom.submit")} <span aria-hidden="true">&rarr;</span>
             </button>
 
             {submitMessage && (
@@ -255,6 +254,21 @@ export default function Personaliza() {
             )}
           </section>
         </form>
+
+        <section className="custom-info-grid">
+          <article>
+            <h2>{t("custom.howTitle")}</h2>
+            <p>{t("custom.howText")}</p>
+          </article>
+          <article>
+            <h2>{t("custom.pricingTitle")}</h2>
+            <p>{t("custom.pricingText")}</p>
+          </article>
+          <article>
+            <h2>FAQ</h2>
+            <p>{t("custom.faqText")}</p>
+          </article>
+        </section>
       </main>
 
       <Footer />

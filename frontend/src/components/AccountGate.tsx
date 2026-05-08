@@ -1,13 +1,15 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useLanguage } from "../i18n";
+import { ACCOUNT_AUTH_EVENT, getAccountUser, loginAccount, type AccountUser } from "../services/accountAuth";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
-import { ACCOUNT_AUTH_EVENT, getAccountUser, loginAccount, type AccountUser } from "../services/accountAuth";
 
 type AccountGateProps = {
   children: (user: AccountUser) => ReactNode;
 };
 
 export default function AccountGate({ children }: AccountGateProps) {
+  const { language } = useLanguage();
   const [user, setUser] = useState<AccountUser | null>(() => getAccountUser());
   const [email, setEmail] = useState("miussette.alfaro@gmail.com");
   const [password, setPassword] = useState("");
@@ -29,7 +31,7 @@ export default function AccountGate({ children }: AccountGateProps) {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
-      setError("Ingresa tu correo y contrasena para continuar.");
+      setError(language === "en" ? "Enter your email and password to continue." : "Ingresa tu correo y contrasena para continuar.");
       return;
     }
 
@@ -47,13 +49,13 @@ export default function AccountGate({ children }: AccountGateProps) {
 
       <main className="account-login-page">
         <section className="account-login-card">
-          <span className="account-kicker">Area cliente</span>
-          <h1>Inicia sesión</h1>
-          <p>Accede para revisar tu perfil, pedidos y cotizaciones.</p>
+          <span className="account-kicker">{language === "en" ? "Customer area" : "Area cliente"}</span>
+          <h1>{language === "en" ? "Sign in" : "Inicia sesion"}</h1>
+          <p>{language === "en" ? "Access your profile, orders, and quotes." : "Accede para revisar tu perfil, pedidos y cotizaciones."}</p>
 
           <form onSubmit={handleLogin}>
             <label>
-              <span>Correo electronico</span>
+              <span>{language === "en" ? "Email" : "Correo electronico"}</span>
               <input
                 type="email"
                 value={email}
@@ -62,7 +64,7 @@ export default function AccountGate({ children }: AccountGateProps) {
               />
             </label>
             <label>
-              <span>Contrasena</span>
+              <span>{language === "en" ? "Password" : "Contrasena"}</span>
               <input
                 type="password"
                 value={password}
@@ -73,7 +75,7 @@ export default function AccountGate({ children }: AccountGateProps) {
 
             {error && <strong className="account-login-error">{error}</strong>}
 
-            <button type="submit">Entrar a mi cuenta</button>
+            <button type="submit">{language === "en" ? "Enter my account" : "Entrar a mi cuenta"}</button>
           </form>
         </section>
       </main>

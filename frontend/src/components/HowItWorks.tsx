@@ -3,38 +3,40 @@ import bordadoIcon from "../assets/icons/bordado.png";
 import cajaIcon from "../assets/icons/caja.png";
 import imagenIcon from "../assets/icons/imagen.png";
 import subirIcon from "../assets/icons/subir.png";
-
-const steps = [
-  {
-    title: "SUBE TU DISE\u00d1O",
-    text: "Envianos tu imagen o idea.",
-    icon: subirIcon,
-    className: "step-yellow",
-  },
-  {
-    title: "RECIBE TU VISTA PREVIA",
-    text: "Te mostramos como quedara tu alfombra.",
-    icon: imagenIcon,
-    className: "step-purple",
-  },
-  {
-    title: "LA HACEMOS REALIDAD",
-    text: "La confeccionamos a mano con los mejores materiales.",
-    icon: bordadoIcon,
-    className: "step-orange",
-  },
-  {
-    title: "LA RECIBES EN CASA",
-    text: "Enviamos tu alfombra lista para usarse.",
-    icon: cajaIcon,
-    className: "step-pink",
-  },
-];
+import { useLanguage } from "../i18n";
 
 export default function HowItWorks() {
+  const { t } = useLanguage();
+  const steps = [
+    {
+      title: t("how.step1Title"),
+      text: t("how.step1Text"),
+      icon: subirIcon,
+      className: "step-yellow",
+    },
+    {
+      title: t("how.step2Title"),
+      text: t("how.step2Text"),
+      icon: imagenIcon,
+      className: "step-purple",
+    },
+    {
+      title: t("how.step3Title"),
+      text: t("how.step3Text"),
+      icon: bordadoIcon,
+      className: "step-orange",
+    },
+    {
+      title: t("how.step4Title"),
+      text: t("how.step4Text"),
+      icon: cajaIcon,
+      className: "step-pink",
+    },
+  ];
+
   return (
     <section className="how-section" id="como-funciona">
-      <h2>&iquest;COMO FUNCIONA?</h2>
+      <h2>{t("how.title")}</h2>
 
       <div className="steps-grid">
         {steps.map((step, index) => (
@@ -49,7 +51,7 @@ export default function HowItWorks() {
         ))}
       </div>
 
-      <Link to="/personaliza" className="btn btn-dark">PERSONALIZAR AHORA</Link>
+      <Link to="/personaliza" className="btn btn-dark">{t("how.cta")}</Link>
     </section>
   );
 }

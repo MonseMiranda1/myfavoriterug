@@ -3,6 +3,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { type CartItem, getCartItems, saveCartItems } from "../services/cart";
 import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "../i18n";
 
 const MINIMUM_ORDER = 15000;
 const TAX_RATE = 0.19;
@@ -20,6 +21,7 @@ function getSubtotal(items: CartItem[]) {
 }
 
 export default function Cart() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<CartItem[]>([]);
   const subtotal = useMemo(() => getSubtotal(items), [items]);
   const tax = Math.round(subtotal * TAX_RATE);
@@ -54,21 +56,21 @@ export default function Cart() {
 
       <main className="cart-page">
         <header className="cart-heading">
-          <span className="cart-kicker">Tu seleccion</span>
-          <h1>Carrito</h1>
-          <p>Revisa tus alfombras antes de continuar con el pedido.</p>
+          <span className="cart-kicker">{t("cart.kicker")}</span>
+          <h1>{t("cart.title")}</h1>
+          <p>{t("cart.subtitle")}</p>
         </header>
 
         {items.length === 0 ? (
           <section className="cart-empty">
-            <h2>Tu carrito esta vacio</h2>
-            <p>Explora la tienda o crea una alfombra personalizada para agregar productos.</p>
+            <h2>{t("cart.emptyTitle")}</h2>
+            <p>{t("cart.emptyText")}</p>
             <div>
               <Link to="/tienda" className="cart-primary-link">
-                Ir a la tienda
+                {t("cart.goStore")}
               </Link>
               <Link to="/personaliza" className="cart-secondary-link">
-                Personalizar
+                {t("cart.customize")}
               </Link>
             </div>
           </section>
@@ -82,30 +84,30 @@ export default function Cart() {
                   <div className="cart-item-info">
                     <strong>{item.name}</strong>
                     <span>SKU: MFR-{item.id}</span>
-                    <span>Hecho a mano</span>
+                    <span>{t("cart.handmade")}</span>
 
                     <div className="cart-price-grid">
                       <div>
-                        <span>Precio</span>
+                        <span>{t("cart.price")}</span>
                         <strong>{formatPrice(item.price)}</strong>
                       </div>
                       <div>
-                        <span>IVA (19%)</span>
+                        <span>{t("cart.tax")}</span>
                         <strong>{formatPrice(Math.round(item.price * TAX_RATE))}</strong>
                       </div>
                       <div>
-                        <span>Total</span>
+                        <span>{t("common.total")}</span>
                         <strong>{formatPrice(Math.round(item.price * (1 + TAX_RATE)) * item.quantity)}</strong>
                       </div>
                     </div>
                   </div>
 
                   <div className="cart-item-actions">
-                    <button type="button" className="cart-remove-button" onClick={() => removeItem(item.id)} aria-label={`Eliminar ${item.name}`}>
+                    <button type="button" className="cart-remove-button" onClick={() => removeItem(item.id)} aria-label={`${t("cart.remove")} ${item.name}`}>
                       x
                     </button>
                     <div className="cart-quantity">
-                      <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label="Restar cantidad">
+                      <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={t("cart.subtract")}>
                         -
                       </button>
                       <input
@@ -115,7 +117,7 @@ export default function Cart() {
                         onChange={(event) => updateQuantity(item.id, Number(event.target.value))}
                         aria-label={`Cantidad de ${item.name}`}
                       />
-                      <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label="Sumar cantidad">
+                      <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={t("cart.add")}>
                         +
                       </button>
                     </div>
@@ -125,40 +127,40 @@ export default function Cart() {
 
               <div className="cart-links-row">
                 <button type="button" onClick={clearCart}>
-                  Vaciar carrito
+                  {t("cart.clear")}
                 </button>
-                <Link to="/tienda">Seguir comprando</Link>
+                <Link to="/tienda">{t("cart.keepShopping")}</Link>
               </div>
             </section>
 
             <aside className="cart-summary" aria-label="Resumen del carrito">
-              <h2>Resumen</h2>
+              <h2>{t("cart.summary")}</h2>
 
               <div className="cart-summary-line">
-                <span>Subtotal</span>
+                <span>{t("common.subtotal")}</span>
                 <strong>{formatPrice(subtotal)}</strong>
               </div>
               <div className="cart-summary-line">
-                <span>IVA (19%)</span>
+                <span>{t("cart.tax")}</span>
                 <strong>{formatPrice(tax)}</strong>
               </div>
               <div className="cart-summary-total">
-                <span>Total</span>
+                <span>{t("common.total")}</span>
                 <strong>{formatPrice(total)}</strong>
               </div>
 
               {missingAmount > 0 && (
                 <p className="cart-minimum-alert">
-                  <strong>Minimo de compra:</strong> Te faltan {formatPrice(missingAmount)} para continuar.
+                  <strong>{t("cart.minimum")}</strong> {t("cart.missing")} {formatPrice(missingAmount)} {t("cart.toContinue")}
                 </p>
               )}
 
               <Link to="/checkout" className={`cart-checkout-button${missingAmount > 0 ? " is-disabled" : ""}`} aria-disabled={missingAmount > 0}>
-                Continuar con el pedido
+                {t("cart.checkout")}
               </Link>
 
               <p className="cart-summary-note">
-                Los valores son referenciales. El total definitivo puede variar por despacho o detalles de personalizacion.
+                {t("cart.note")}
               </p>
             </aside>
           </div>
