@@ -11,6 +11,20 @@ import pagoIcon from "../assets/icons/pago.png";
 import paletaIcon from "../assets/icons/paleta.png";
 import subirIcon from "../assets/icons/subir.png";
 import webIcon from "../assets/icons/web.png";
+import {
+  deleteCategory,
+  deleteUploadedProduct,
+  getCategories,
+  getProducts,
+  getUploadedProducts,
+  saveCategory,
+  saveUploadedProduct,
+  updateCategory,
+  updateUploadedProduct,
+  type Category,
+  type Product,
+} from "../services/api";
+import { getOrders, updateOrderShipping, type Order } from "../services/orders";
 
 const adminUser = "admin";
 const adminPassword = "admin123";
@@ -99,6 +113,91 @@ const adminSections = [
 
 type AdminSection = (typeof adminSections)[number]["id"];
 
+const availabilityOptions = ["Disponible", "Agotado", "Oculto", "Personalizado"];
+
+const emptyProductForm = {
+  id: "",
+  name: "",
+  category: "Custom Rugs",
+  price: "",
+  size: "",
+  availability: availabilityOptions[0],
+  images: [] as string[],
+  imageNames: [] as string[],
+};
+
+const emptyCategoryForm = {
+  id: "",
+  name: "",
+  status: "Visible" as Category["status"],
+};
+
+type Project = {
+  id: string;
+  name: string;
+  client: string;
+  status: string;
+};
+
+const initialProjects: Project[] = [
+  { id: "project-1", name: "Logo corporativo", client: "constructora zero spa", status: "Diseno" },
+  { id: "project-2", name: "Mascota tufting", client: "My Favorite Rug", status: "Produccion" },
+];
+
+const projectStatusOptions = ["Diseno", "Produccion", "Pausado", "Terminado"];
+
+const emptyProjectForm = {
+  id: "",
+  name: "",
+  client: "",
+  status: projectStatusOptions[0],
+};
+
+const shippingStatusOptions = ["Preparando", "Enviado", "Entregado", "Retenido"];
+
+const emptyShippingForm = {
+  orderId: "",
+  trackingNumber: "",
+  shippingStatus: shippingStatusOptions[0],
+};
+
+function fileToProductImage(file: File) {
+  return new Promise<{ dataUrl: string; name: string }>((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      const maxSize = 2200;
+      const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("No se pudo procesar la imagen."));
+        return;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      context.fillStyle = "#fffaf0";
+      context.fillRect(0, 0, width, height);
+      context.drawImage(image, 0, 0, width, height);
+      URL.revokeObjectURL(objectUrl);
+      resolve({ dataUrl: canvas.toDataURL("image/jpeg", 0.9), name: file.name });
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("No se pudo leer la imagen."));
+    };
+
+    image.src = objectUrl;
+  });
+}
+
 function formatClp(value: number) {
   return new Intl.NumberFormat("es-CL", {
     style: "currency",
@@ -172,10 +271,34 @@ export default function Admin() {
   const [period, setPeriod] = useState("Todos");
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState("10");
+  const [uploadedProducts, setUploadedProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [productForm, setProductForm] = useState(emptyProductForm);
+  const [productFormMessage, setProductFormMessage] = useState("");
+  const [categoryForm, setCategoryForm] = useState(emptyCategoryForm);
+  const [categoryMessage, setCategoryMessage] = useState("");
+  const [projects, setProjects] = useState(initialProjects);
+  const [projectForm, setProjectForm] = useState(emptyProjectForm);
+  const [projectMessage, setProjectMessage] = useState("");
+  const [adminOrders, setAdminOrders] = useState<Order[]>([]);
+  const [shippingForm, setShippingForm] = useState(emptyShippingForm);
+  const [shippingMessage, setShippingMessage] = useState("");
 
   useEffect(() => {
     setIsLoggedIn(sessionStorage.getItem("admin-authenticated") === "true");
+    setCategories(getCategories());
+    setAdminOrders(getOrders());
+    refreshAdminProducts();
   }, []);
+
+  async function refreshAdminProducts() {
+    const response = await getProducts();
+    const uploadedIds = new Set(getUploadedProducts().map((product) => String(product.id)));
+
+    setAllProducts(response.data);
+    setUploadedProducts(response.data.filter((product) => uploadedIds.has(String(product.id))));
+  }
 
   function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -206,6 +329,259 @@ export default function Admin() {
     }
   }
 
+  function handleProductImageChange(files: FileList | null) {
+    const selectedFiles = Array.from(files ?? []);
+    if (selectedFiles.length === 0) return;
+
+    const invalidFile = selectedFiles.find((file) => !["image/png", "image/jpeg", "image/webp"].includes(file.type));
+    if (invalidFile) {
+      setProductFormMessage("Las imagenes deben ser PNG, JPG o WEBP.");
+      return;
+    }
+
+    setProductFormMessage("Procesando imagenes...");
+
+    Promise.all(selectedFiles.map(fileToProductImage))
+      .then((images) => {
+        setProductForm((currentForm) => ({
+          ...currentForm,
+          images: images.map((image) => image.dataUrl),
+          imageNames: images.map((image) => image.name),
+        }));
+        setProductFormMessage(`${images.length} imagen(es) listas para guardar.`);
+      })
+      .catch(() => setProductFormMessage("No se pudieron procesar las imagenes."));
+  }
+
+  async function handleUploadProduct(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const price = Number(productForm.price);
+
+    if (!productForm.name.trim()) {
+      setProductFormMessage("Ingresa el nombre del producto.");
+      return;
+    }
+
+    if (productForm.images.length === 0) {
+      setProductFormMessage("Sube al menos una imagen del producto.");
+      return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      setProductFormMessage("Ingresa un precio valido.");
+      return;
+    }
+
+    if (price === 0 && productForm.availability !== "Personalizado") {
+      setProductFormMessage("El precio 0 solo se permite para productos personalizados.");
+      return;
+    }
+
+    if (!productForm.size.trim()) {
+      setProductFormMessage("Ingresa las medidas de la alfombra.");
+      return;
+    }
+
+    try {
+      const productInput = {
+        name: productForm.name.trim(),
+        price,
+        image: productForm.images[0],
+        images: productForm.images,
+        size: productForm.size.trim(),
+        availability: productForm.availability,
+        category: productForm.category,
+        collection: productForm.category,
+        bestSeller: false,
+        newArrival: true,
+      };
+
+      if (productForm.id) {
+        const updatedProduct = await updateUploadedProduct(productForm.id, productInput);
+
+        if (updatedProduct) {
+          await refreshAdminProducts();
+        }
+
+        setProductForm(emptyProductForm);
+        setProductFormMessage("Producto actualizado.");
+        return;
+      }
+
+      await saveUploadedProduct(productInput);
+
+      await refreshAdminProducts();
+      setProductForm(emptyProductForm);
+      setProductFormMessage("Producto subido y disponible en la tienda.");
+    } catch {
+      setProductFormMessage("No se pudo guardar. Prueba con menos imagenes o imagenes mas livianas.");
+    }
+  }
+
+  function handleDeleteUploadedProduct(id: Product["id"]) {
+    deleteUploadedProduct(id);
+    refreshAdminProducts();
+
+    if (String(productForm.id) === String(id)) {
+      setProductForm(emptyProductForm);
+      setProductFormMessage("Edicion cancelada porque el producto fue eliminado.");
+    }
+  }
+
+  function handleEditUploadedProduct(product: Product) {
+    setProductForm({
+      id: String(product.id),
+      name: product.name,
+      category: product.category ?? product.collection ?? visibleCategories[0]?.name ?? "Custom Rugs",
+      price: String(product.price),
+      size: product.size ?? "",
+      availability: product.availability ?? availabilityOptions[0],
+      images: product.images && product.images.length > 0 ? product.images : [product.image],
+      imageNames: [],
+    });
+    setProductFormMessage("Editando producto. Puedes cambiar datos, estado o imagenes.");
+    setActiveSection("upload");
+  }
+
+  function countProductsByCategory(categoryName: string) {
+    return allProducts.filter((product) => product.category === categoryName || product.collection === categoryName).length;
+  }
+
+  function handleSaveCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const name = categoryForm.name.trim();
+
+    if (!name) {
+      setCategoryMessage("Ingresa el nombre de la categoria.");
+      return;
+    }
+
+    const duplicatedCategory = categories.find(
+      (category) => category.name.toLowerCase() === name.toLowerCase() && category.id !== categoryForm.id,
+    );
+
+    if (duplicatedCategory) {
+      setCategoryMessage("Ya existe una categoria con ese nombre.");
+      return;
+    }
+
+    if (categoryForm.id) {
+      const previousCategory = categories.find((category) => category.id === categoryForm.id);
+      updateCategory(categoryForm.id, { name, status: categoryForm.status });
+
+      if (previousCategory && previousCategory.name !== name && productForm.category === previousCategory.name) {
+        setProductForm((currentForm) => ({ ...currentForm, category: name }));
+      }
+
+      setCategoryMessage("Categoria actualizada.");
+    } else {
+      saveCategory({ name, status: categoryForm.status });
+      setCategoryMessage("Categoria creada.");
+    }
+
+    const nextCategories = getCategories();
+    setCategories(nextCategories);
+    setCategoryForm(emptyCategoryForm);
+  }
+
+  function handleEditCategory(category: Category) {
+    setCategoryForm(category);
+    setCategoryMessage("Editando categoria.");
+  }
+
+  function handleDeleteCategory(id: string) {
+    const category = categories.find((currentCategory) => currentCategory.id === id);
+
+    deleteCategory(id);
+    const nextCategories = getCategories();
+    setCategories(nextCategories);
+
+    if (category?.name === productForm.category) {
+      setProductForm((currentForm) => ({
+        ...currentForm,
+        category: nextCategories.find((nextCategory) => nextCategory.status === "Visible")?.name ?? "Custom Rugs",
+      }));
+    }
+
+    if (categoryForm.id === id) {
+      setCategoryForm(emptyCategoryForm);
+    }
+
+    setCategoryMessage("Categoria eliminada.");
+  }
+
+  function handleSaveProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const name = projectForm.name.trim();
+    const client = projectForm.client.trim();
+
+    if (!name || !client) {
+      setProjectMessage("Ingresa proyecto y cliente.");
+      return;
+    }
+
+    if (projectForm.id) {
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === projectForm.id ? { ...project, name, client, status: projectForm.status } : project,
+        ),
+      );
+      setProjectMessage("Proyecto actualizado.");
+    } else {
+      setProjects((currentProjects) => [
+        { id: `project-${Date.now()}`, name, client, status: projectForm.status },
+        ...currentProjects,
+      ]);
+      setProjectMessage("Proyecto creado.");
+    }
+
+    setProjectForm(emptyProjectForm);
+  }
+
+  function handleEditProject(project: Project) {
+    setProjectForm(project);
+    setProjectMessage("Editando proyecto.");
+  }
+
+  function handleDeleteProject(id: string) {
+    setProjects((currentProjects) => currentProjects.filter((project) => project.id !== id));
+
+    if (projectForm.id === id) {
+      setProjectForm(emptyProjectForm);
+    }
+
+    setProjectMessage("Proyecto eliminado.");
+  }
+
+  function handleViewShipping(order: Order) {
+    setShippingForm({
+      orderId: order.id,
+      trackingNumber: order.trackingNumber ?? "",
+      shippingStatus: order.shippingStatus ?? order.status ?? shippingStatusOptions[0],
+    });
+    setShippingMessage(`Editando envio ${order.id}.`);
+  }
+
+  function handleSaveShipping(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!shippingForm.orderId) {
+      setShippingMessage("Selecciona un pedido con Ver.");
+      return;
+    }
+
+    updateOrderShipping(shippingForm.orderId, {
+      trackingNumber: shippingForm.trackingNumber.trim(),
+      shippingStatus: shippingForm.shippingStatus,
+    });
+
+    setAdminOrders(getOrders());
+    setShippingMessage("Envio actualizado. El cliente ya puede verlo en seguimiento.");
+  }
+
   const filteredQuotes = quotes.filter((quote) => {
     const query = search.trim().toLowerCase();
     if (!query) return true;
@@ -221,6 +597,7 @@ export default function Admin() {
   const currentSection = sectionCopy[activeSection];
   const showQuoteTools = activeSection === "quotes";
   const selectedQuote = quotes.find((quote) => quote.id === selectedQuoteId);
+  const visibleCategories = categories.filter((category) => category.status === "Visible");
 
   return (
     <>
@@ -267,9 +644,37 @@ export default function Admin() {
                       </button>
                     </>
                   )}
-                  <button type="button" className="admin-add-button">
-                    {activeSection === "upload" ? "+ Subir producto" : "+ Nuevo"}
-                  </button>
+                  {activeSection === "upload" ? (
+                    <button type="submit" form="admin-product-form" className="admin-add-button">
+                      {productForm.id ? "Guardar cambios" : "+ Subir producto"}
+                    </button>
+                  ) : activeSection === "categories" ? (
+                    <button
+                      type="button"
+                      className="admin-add-button"
+                      onClick={() => {
+                        setCategoryForm(emptyCategoryForm);
+                        setCategoryMessage("Nueva categoria.");
+                      }}
+                    >
+                      + Nuevo
+                    </button>
+                  ) : activeSection === "shipping" ? null : activeSection === "projects" ? (
+                    <button
+                      type="button"
+                      className="admin-add-button"
+                      onClick={() => {
+                        setProjectForm(emptyProjectForm);
+                        setProjectMessage("Nuevo proyecto.");
+                      }}
+                    >
+                      + Nuevo
+                    </button>
+                  ) : activeSection === "products" ? null : (
+                    <button type="button" className="admin-add-button">
+                      + Nuevo
+                    </button>
+                  )}
                   <button type="button" onClick={handleLogout}>Salir</button>
                 </div>
               </header>
@@ -469,6 +874,393 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
+                  ) : activeSection === "shipping" ? (
+                    <div className="admin-shipping-section">
+                      <form className="admin-shipping-form" onSubmit={handleSaveShipping}>
+                        <label>
+                          <span>Pedido</span>
+                          <input type="text" value={shippingForm.orderId || "Selecciona Ver"} readOnly />
+                        </label>
+
+                        <label>
+                          <span>Numero de envio</span>
+                          <input
+                            type="text"
+                            value={shippingForm.trackingNumber}
+                            onChange={(event) => setShippingForm((currentForm) => ({ ...currentForm, trackingNumber: event.target.value }))}
+                            placeholder="Ej: CHX123456789"
+                          />
+                        </label>
+
+                        <label>
+                          <span>Estado</span>
+                          <select
+                            value={shippingForm.shippingStatus}
+                            onChange={(event) => setShippingForm((currentForm) => ({ ...currentForm, shippingStatus: event.target.value }))}
+                          >
+                            {shippingStatusOptions.map((status) => (
+                              <option key={status}>{status}</option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <div className="admin-shipping-form-actions">
+                          {shippingMessage && <p>{shippingMessage}</p>}
+                          <button type="submit" className="admin-add-button">Guardar envio</button>
+                        </div>
+                      </form>
+
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Pedido</th>
+                            <th>Destino</th>
+                            <th>Estado</th>
+                            <th>Numero envio</th>
+                            <th>Accion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {adminOrders.length > 0 ? (
+                            adminOrders.map((order) => (
+                              <tr key={order.id}>
+                                <td>{order.id}</td>
+                                <td>{order.address}</td>
+                                <td>{order.shippingStatus || order.status}</td>
+                                <td>{order.trackingNumber || "-"}</td>
+                                <td>
+                                  <button type="button" onClick={() => handleViewShipping(order)}>Ver</button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5}>Aun no hay pedidos para gestionar envios.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : activeSection === "projects" ? (
+                    <div className="admin-project-section">
+                      <form className="admin-project-form" onSubmit={handleSaveProject}>
+                        <label>
+                          <span>Proyecto</span>
+                          <input
+                            type="text"
+                            value={projectForm.name}
+                            onChange={(event) => setProjectForm((currentForm) => ({ ...currentForm, name: event.target.value }))}
+                            placeholder="Ej: Logo corporativo"
+                          />
+                        </label>
+
+                        <label>
+                          <span>Cliente</span>
+                          <input
+                            type="text"
+                            value={projectForm.client}
+                            onChange={(event) => setProjectForm((currentForm) => ({ ...currentForm, client: event.target.value }))}
+                            placeholder="Ej: Empresa o persona"
+                          />
+                        </label>
+
+                        <label>
+                          <span>Estado</span>
+                          <select
+                            value={projectForm.status}
+                            onChange={(event) => setProjectForm((currentForm) => ({ ...currentForm, status: event.target.value }))}
+                          >
+                            {projectStatusOptions.map((status) => (
+                              <option key={status}>{status}</option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <div className="admin-project-form-actions">
+                          {projectMessage && <p>{projectMessage}</p>}
+                          <button type="submit" className="admin-add-button">
+                            {projectForm.id ? "Guardar cambios" : "Crear proyecto"}
+                          </button>
+                          {projectForm.id && (
+                            <button
+                              type="button"
+                              className="admin-cancel-edit-button"
+                              onClick={() => {
+                                setProjectForm(emptyProjectForm);
+                                setProjectMessage("Edicion cancelada.");
+                              }}
+                            >
+                              Cancelar edicion
+                            </button>
+                          )}
+                        </div>
+                      </form>
+
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Proyecto</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Accion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {projects.map((project) => (
+                            <tr key={project.id}>
+                              <td>{project.name}</td>
+                              <td>{project.client}</td>
+                              <td>{project.status}</td>
+                              <td>
+                                <button type="button" onClick={() => handleEditProject(project)}>Editar</button>
+                                <button type="button" className="danger" onClick={() => handleDeleteProject(project.id)}>
+                                  Eliminar
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : activeSection === "products" ? (
+                    <table className="admin-table admin-products-table">
+                      <thead>
+                        <tr>
+                          <th>Imagen</th>
+                          <th>Producto</th>
+                          <th>Categoria</th>
+                          <th>Precio</th>
+                          <th>Medidas</th>
+                          <th>Disponibilidad</th>
+                          <th>Accion</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allProducts.length > 0 ? (
+                          allProducts.map((product) => (
+                            <tr key={product.id}>
+                              <td><img src={product.image} alt={product.name} /></td>
+                              <td>{product.name}</td>
+                              <td>{product.category ?? product.collection ?? "-"}</td>
+                              <td>{formatClp(product.price)}</td>
+                              <td>{product.size ?? "-"}</td>
+                              <td>{product.availability ?? "Disponible"}</td>
+                              <td>
+                                <button type="button" onClick={() => handleEditUploadedProduct(product)}>
+                                  Editar
+                                </button>
+                                <button type="button" className="danger" onClick={() => handleDeleteUploadedProduct(product.id)}>
+                                  Eliminar
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={7}>No hay productos en el catalogo.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  ) : activeSection === "categories" ? (
+                    <div className="admin-category-section">
+                      <form className="admin-category-form" id="admin-category-form" onSubmit={handleSaveCategory}>
+                        <label>
+                          <span>Nombre</span>
+                          <input
+                            type="text"
+                            value={categoryForm.name}
+                            onChange={(event) => setCategoryForm((currentForm) => ({ ...currentForm, name: event.target.value }))}
+                            placeholder="Ej: Anime Collection"
+                          />
+                        </label>
+
+                        <label>
+                          <span>Estado</span>
+                          <select
+                            value={categoryForm.status}
+                            onChange={(event) =>
+                              setCategoryForm((currentForm) => ({ ...currentForm, status: event.target.value as Category["status"] }))
+                            }
+                          >
+                            <option>Visible</option>
+                            <option>Oculta</option>
+                          </select>
+                        </label>
+
+                        <div className="admin-category-form-actions">
+                          {categoryMessage && <p>{categoryMessage}</p>}
+                          <button type="submit" className="admin-add-button">
+                            {categoryForm.id ? "Guardar cambios" : "Crear categoria"}
+                          </button>
+                        </div>
+                      </form>
+
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Categoria</th>
+                            <th>Productos</th>
+                            <th>Estado</th>
+                            <th>Accion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categories.map((category) => (
+                            <tr key={category.id}>
+                              <td>{category.name}</td>
+                              <td>{countProductsByCategory(category.name)}</td>
+                              <td>{category.status}</td>
+                              <td>
+                                <button type="button" onClick={() => handleEditCategory(category)}>Editar</button>
+                                <button type="button" className="danger" onClick={() => handleDeleteCategory(category.id)}>
+                                  Eliminar
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : activeSection === "upload" ? (
+                    <div className="admin-upload-section">
+                      <form className="admin-product-form" id="admin-product-form" onSubmit={handleUploadProduct}>
+                        <label className="admin-product-image-field">
+                          <span>Imagen</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            multiple
+                            onChange={(event) => handleProductImageChange(event.target.files)}
+                          />
+                          {productForm.images.length > 0 ? (
+                            <div className="admin-product-image-preview">
+                              {productForm.images.map((image, index) => (
+                                <img src={image} alt={`Vista previa ${index + 1}`} key={`${image}-${index}`} />
+                              ))}
+                            </div>
+                          ) : (
+                            <strong>PNG, JPG o WEBP<br />Puedes subir varias</strong>
+                          )}
+                          {productForm.imageNames.length > 0 && <small>{productForm.imageNames.join(", ")}</small>}
+                        </label>
+
+                        <label>
+                          <span>Nombre</span>
+                          <input
+                            type="text"
+                            value={productForm.name}
+                            onChange={(event) => setProductForm((currentForm) => ({ ...currentForm, name: event.target.value }))}
+                            placeholder="Ej: Anime Hero Rug"
+                          />
+                        </label>
+
+                        <label>
+                          <span>Categoria</span>
+                          <select
+                            value={productForm.category}
+                            onChange={(event) => setProductForm((currentForm) => ({ ...currentForm, category: event.target.value }))}
+                          >
+                            {visibleCategories.map((category) => (
+                              <option key={category.id}>{category.name}</option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          <span>Precio CLP</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={productForm.price}
+                            onChange={(event) => setProductForm((currentForm) => ({ ...currentForm, price: event.target.value }))}
+                            placeholder="99000"
+                          />
+                        </label>
+
+                        <label>
+                          <span>Medidas</span>
+                          <input
+                            type="text"
+                            value={productForm.size}
+                            onChange={(event) => setProductForm((currentForm) => ({ ...currentForm, size: event.target.value }))}
+                            placeholder="100 x 150 cm"
+                          />
+                        </label>
+
+                        <label>
+                          <span>Disponibilidad</span>
+                          <select
+                            value={productForm.availability}
+                            onChange={(event) => setProductForm((currentForm) => ({ ...currentForm, availability: event.target.value }))}
+                          >
+                            {availabilityOptions.map((availability) => (
+                              <option key={availability}>{availability}</option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <div className="admin-product-form-actions">
+                          {productFormMessage && <p>{productFormMessage}</p>}
+                          <button type="submit" className="admin-add-button">
+                            {productForm.id ? "Guardar cambios" : "Guardar producto"}
+                          </button>
+                          {productForm.id && (
+                            <button
+                              type="button"
+                              className="admin-cancel-edit-button"
+                              onClick={() => {
+                                setProductForm(emptyProductForm);
+                                setProductFormMessage("Edicion cancelada.");
+                              }}
+                            >
+                              Cancelar edicion
+                            </button>
+                          )}
+                        </div>
+                      </form>
+
+                      <table className="admin-table admin-products-table">
+                        <thead>
+                          <tr>
+                            <th>Imagen</th>
+                            <th>Producto</th>
+                            <th>Categoria</th>
+                            <th>Precio</th>
+                            <th>Medidas</th>
+                            <th>Disponibilidad</th>
+                            <th>Accion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {uploadedProducts.length > 0 ? (
+                            uploadedProducts.map((product) => (
+                              <tr key={product.id}>
+                                <td><img src={product.image} alt={product.name} /></td>
+                                <td>{product.name}</td>
+                                <td>{product.category}</td>
+                                <td>{formatClp(product.price)}</td>
+                                <td>{product.size}</td>
+                                <td>{product.availability}</td>
+                                <td>
+                                  <button type="button" onClick={() => handleEditUploadedProduct(product)}>
+                                    Editar
+                                  </button>
+                                  <button type="button" className="danger" onClick={() => handleDeleteUploadedProduct(product.id)}>
+                                    Eliminar
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={7}>Aun no hay productos subidos desde el panel.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   ) : (
                     <table className="admin-table">
                       <thead>

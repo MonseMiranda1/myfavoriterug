@@ -11,9 +11,12 @@ export type Order = {
   total: number;
   createdAt: string;
   status: string;
+  trackingNumber?: string;
+  shippingStatus?: string;
 };
 
 const ORDERS_STORAGE_KEY = "my-favorite-rug-orders";
+export const ORDERS_UPDATED_EVENT = "my-favorite-rug-orders-updated";
 
 export function getOrders(): Order[] {
   const raw = window.localStorage.getItem(ORDERS_STORAGE_KEY);
@@ -37,5 +40,24 @@ export function saveOrder(order: Omit<Order, "id" | "createdAt" | "status">) {
   };
 
   window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify([nextOrder, ...getOrders()]));
+  window.dispatchEvent(new Event(ORDERS_UPDATED_EVENT));
   return nextOrder;
+}
+
+export function updateOrderShipping(id: string, shipping: Pick<Order, "trackingNumber" | "shippingStatus">) {
+  const orders = getOrders();
+  const nextOrders = orders.map((order) =>
+    order.id === id
+      ? {
+          ...order,
+          trackingNumber: shipping.trackingNumber,
+          shippingStatus: shipping.shippingStatus,
+          status: shipping.shippingStatus || order.status,
+        }
+      : order,
+  );
+
+  window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(nextOrders));
+  window.dispatchEvent(new Event(ORDERS_UPDATED_EVENT));
+  return nextOrders.find((order) => order.id === id) ?? null;
 }

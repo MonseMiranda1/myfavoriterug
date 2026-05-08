@@ -1,20 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { getProducts, type Product } from "../services/api";
+import { CATEGORIES_UPDATED_EVENT, getCategories, getProducts, PRODUCTS_UPDATED_EVENT, type Category, type Product } from "../services/api";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n";
-
-const categories = [
-  "Todas",
-  "Custom Rugs",
-  "Anime Collection",
-  "Gaming Collection",
-  "Kawaii Collection",
-  "Minimal Collection",
-  "New Arrivals",
-  "Best Sellers",
-];
 
 const sortOptions = [
   { value: "name-asc", labelKey: "store.nameAsc" },
@@ -62,6 +51,7 @@ function getCategoryLabel(category: string, t: ReturnType<typeof useLanguage>["t
 export default function Store() {
   const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
@@ -71,10 +61,15 @@ export default function Store() {
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("buscar")?.trim().toLowerCase() ?? "";
   const query = activeSearch.trim().toLowerCase() || searchTerm;
+  const categoryOptions = useMemo(
+    () => ["Todas", ...categories.filter((category) => category.status === "Visible").map((category) => category.name), "New Arrivals", "Best Sellers"],
+    [categories],
+  );
 
   const filteredProducts = useMemo(() => {
     return products
       .filter((product) => {
+        const isVisible = product.availability !== "Oculto";
         const matchesSearch = query
           ? product.name.toLowerCase().includes(query) || String(product.id).toLowerCase().includes(query)
           : true;
@@ -83,9 +78,12 @@ export default function Store() {
           getProductCategory(product) === selectedCategory ||
           (selectedCategory === "New Arrivals" && product.newArrival) ||
           (selectedCategory === "Best Sellers" && product.bestSeller);
-        const matchesType = purchaseType === "Todos" || purchaseType === "Para cotizar" || product.price > 0;
+        const isQuoteProduct = product.availability === "Personalizado" || product.price === 0;
+        const matchesType =
+          purchaseType === "Todos" ||
+          (purchaseType === "Para cotizar" ? isQuoteProduct : !isQuoteProduct && product.price > 0);
 
-        return matchesSearch && matchesCategory && matchesType;
+        return isVisible && matchesSearch && matchesCategory && matchesType;
       })
       .sort((a, b) => {
         if (sortBy === "name-desc") return b.name.localeCompare(a.name);
@@ -96,7 +94,18 @@ export default function Store() {
   }, [products, purchaseType, query, selectedCategory, sortBy]);
 
   useEffect(() => {
-    getProducts().then((res) => setProducts(res.data));
+    const refreshProducts = () => getProducts().then((res) => setProducts(res.data));
+    const refreshCategories = () => setCategories(getCategories());
+
+    refreshProducts();
+    refreshCategories();
+    window.addEventListener(PRODUCTS_UPDATED_EVENT, refreshProducts);
+    window.addEventListener(CATEGORIES_UPDATED_EVENT, refreshCategories);
+
+    return () => {
+      window.removeEventListener(PRODUCTS_UPDATED_EVENT, refreshProducts);
+      window.removeEventListener(CATEGORIES_UPDATED_EVENT, refreshCategories);
+    };
   }, []);
 
   useEffect(() => {
@@ -150,7 +159,7 @@ export default function Store() {
               <section className="store-filter-card">
                 <h2>{t("store.categories")}</h2>
                 <div className="store-category-list">
-                  {categories.map((category) => (
+                  {categoryOptions.map((category) => (
                     <button
                       type="button"
                       key={category}
@@ -210,7 +219,10 @@ export default function Store() {
                   </span>
                   <span className="store-product-category">{getCategoryLabel(getProductCategory(product), t)}</span>
                   <strong>{product.name}</strong>
-                  <span className="store-product-price">{formatPrice(product.price)}</span>
+                  <span className="store-product-price">
+                    {product.availability === "Personalizado" || product.price === 0 ? t("store.quote") : formatPrice(product.price)}
+                  </span>
+                  {product.availability && <span className="store-product-availability">{product.availability}</span>}
                 </Link>
               ))}
             </div>
