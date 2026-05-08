@@ -5,51 +5,42 @@ import envioIcon from "../assets/icons/envio.png";
 import manoIcon from "../assets/icons/mano.png";
 import pagarIcon from "../assets/icons/pagar.png";
 import paletaIcon from "../assets/icons/paleta.png";
-
-const benefits = [
-  [paletaIcon, "100% PERSONALIZADO", "Tu lo imaginas, nosotros lo creamos."],
-  [manoIcon, "HECHO A MANO", "Cada alfombra es unica, hecha con amor."],
-  [envioIcon, "ENVIO SEGURO", "Enviamos a todo chile y al extranjero de forma segura."],
-  [pagarIcon, "PAGA SEGURO", "Tu compra esta protegida con pagos seguros."],
-];
+import { useLanguage } from "../i18n";
 
 export default function Hero() {
+  const { t } = useLanguage();
+  const benefits = [
+    [paletaIcon, t("hero.benefitCustomTitle"), t("hero.benefitCustomText")],
+    [manoIcon, t("hero.benefitHandmadeTitle"), t("hero.benefitHandmadeText")],
+    [envioIcon, t("hero.benefitShippingTitle"), t("hero.benefitShippingText")],
+    [pagarIcon, t("hero.benefitPaymentTitle"), t("hero.benefitPaymentText")],
+  ];
+
   return (
     <section className="hero-section" id="personaliza">
-      <img src={banner} alt="Alfombra My Favorite Rug sobre piso claro" className="hero-bg" />
+      <img src={banner} alt="My Favorite Rug custom rug" className="hero-bg" />
 
       <div className="hero-content">
         <div className="hero-copy">
           <h1>
-            TU DISE&Ntilde;O,
-            <span>TU ALFOMBRA.</span>
+            {t("hero.titleTop")}
+            <span>{t("hero.titleBottom")}</span>
           </h1>
-          <p>Alfombras personalizadas hechas a mano  y con mucho estilo.</p>
+          <p>{t("hero.subtitle")}</p>
 
           <div className="hero-buttons">
-            <Link to="/personaliza" className="btn btn-primary">PERSONALIZA LA TUYA <span aria-hidden="true">&rarr;</span></Link>
-            <Link to="/tienda" className="btn btn-secondary">VER TIENDA</Link>
+            <Link to="/personaliza" className="btn btn-primary">
+              {t("hero.customize")} <span aria-hidden="true">&rarr;</span>
+            </Link>
+            <Link to="/tienda" className="btn btn-secondary">{t("hero.shop")}</Link>
           </div>
 
-          <div className="social-proof">
-            <div className="avatars" aria-hidden="true">
-              <span>A</span>
-              <span>M</span>
-              <span>S</span>
-              <span>L</span>
-              <span>R</span>
-            </div>
-            <div>
-              <strong>★★★★★</strong>
-              <small>+2,500 clientes felices</small>
-            </div>
-          </div>
         </div>
 
-        <div className="handmade-badge" aria-label="Hecho a mano con amor">
-          <span>HECHO A MANO</span>
+        <div className="handmade-badge" aria-label="Handmade with love">
+          <span>{t("hero.badgeTop")}</span>
           <strong><img src={corazonIcon} alt="" /></strong>
-          <span>CON ESTILO</span>
+          <span>{t("hero.badgeBottom")}</span>
         </div>
       </div>
 

@@ -5,8 +5,11 @@ import corazonIcon from "../assets/icons/corazon.png";
 import manoIcon from "../assets/icons/mano.png";
 import paletaIcon from "../assets/icons/paleta.png";
 import monse from "../assets/monse.jpg";
+import { useLanguage } from "../i18n";
 
 export default function About() {
+  const { t } = useLanguage();
+
   return (
     <>
       <Navbar />
@@ -14,74 +17,76 @@ export default function About() {
       <main className="about-page">
         <section className="about-hero">
           <div className="about-copy">
-            <span className="about-kicker">Sobre nosotros</span>
-            <h1>La historia detras de My Favorite Rug</h1>
-            <p>
-              Soy la creadora detras de My Favorite Rug, un emprendimiento dedicado
-              al diseno y fabricacion de alfombras personalizadas hechas a mano.
-            </p>
+            <span className="about-kicker">{t("about.kicker")}</span>
+            <h1>{t("about.title")}</h1>
+            <p>{t("about.subtitle")}</p>
           </div>
 
           <div className="about-logo-card">
-            <img src={monse} alt="Monse, creadora de My Favorite Rug" />
+            <img src={monse} alt="Monse, creator of My Favorite Rug" />
           </div>
         </section>
 
-        <section className="about-story">
+        <section className="about-story" id="our-story">
           <article className="about-text-panel">
-            <p>
-              Me dedico a crear alfombras personalizadas hechas a mano, disenadas
-              desde cero segun lo que tu imagines. Cada diseno es unico y esta
-              pensado para darle vida, estilo y personalidad a tus espacios.
-            </p>
-            <p>
-              Me encanta transformar ideas en algo real: desde personajes, logos o
-              disenos creativos, hasta piezas totalmente originales.
-            </p>
-            <p>
-              Este proyecto nace desde la creatividad, el emprendimiento y las ganas
-              de hacer algo distinto, cuidando cada detalle en el proceso.
-            </p>
+            <p>{t("about.story1")}</p>
+            <p>{t("about.story2")}</p>
+            <p>{t("about.story3")}</p>
           </article>
 
           <aside className="about-feature-card">
             <div>
               <img src={paletaIcon} alt="" />
-              <span>Tu idea</span>
+              <span>{t("about.idea")}</span>
             </div>
             <div>
               <img src={manoIcon} alt="" />
-              <span>Trabajo manual</span>
+              <span>{t("about.handmade")}</span>
             </div>
             <div>
               <img src={corazonIcon} alt="" />
-              <span>Detalles con amor</span>
+              <span>{t("about.details")}</span>
             </div>
           </aside>
         </section>
 
+        <section className="about-info-sections" aria-label="About tufting">
+          <article id="que-es-tufting">
+            <h2>{t("about.tuftingTitle")}</h2>
+            <p>{t("about.tuftingText")}</p>
+          </article>
+          <article id="proceso-artesanal">
+            <h2>{t("about.processTitle")}</h2>
+            <p>{t("about.processText")}</p>
+          </article>
+          <article id="materiales-calidad">
+            <h2>{t("about.materialsTitle")}</h2>
+            <p>{t("about.materialsText")}</p>
+          </article>
+        </section>
+
         <section className="about-values">
           <article>
-            <strong>Diseño unico</strong>
-            <span>Cada alfombra parte desde una idea distinta.</span>
+            <strong>{t("about.value1Title")}</strong>
+            <span>{t("about.value1Text")}</span>
           </article>
           <article>
-            <strong>Hecho con cuidado</strong>
-            <span>Cada pieza se trabaja a mano, paso a paso.</span>
+            <strong>{t("about.value2Title")}</strong>
+            <span>{t("about.value2Text")}</span>
           </article>
           <article>
-            <strong>Espacios con personalidad</strong>
-            <span>La meta es crear algo que se sienta realmente tuyo.</span>
+            <strong>{t("about.value3Title")}</strong>
+            <span>{t("about.value3Text")}</span>
           </article>
         </section>
 
         <section className="about-cta">
           <div>
-            <h2>Transformemos tu idea en una alfombra</h2>
-            <p>Sube una imagen, elige medidas y cuentanos que quieres crear.</p>
+            <h2>{t("about.ctaTitle")}</h2>
+            <p>{t("about.ctaText")}</p>
           </div>
           <Link to="/personaliza" className="btn btn-primary">
-            PERSONALIZAR AHORA <span aria-hidden="true">&rarr;</span>
+            {t("how.cta")} <span aria-hidden="true">&rarr;</span>
           </Link>
         </section>
       </main>

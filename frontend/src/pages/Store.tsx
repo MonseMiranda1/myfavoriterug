@@ -3,22 +3,24 @@ import { getProducts, type Product } from "../services/api";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link, useSearchParams } from "react-router-dom";
+import { useLanguage } from "../i18n";
 
 const categories = [
   "Todas",
-  "Alfombras personalizadas",
-  "Personajes",
-  "Logos",
-  "Mascotas",
-  "Decoracion",
-  "Regalos",
+  "Custom Rugs",
+  "Anime Collection",
+  "Gaming Collection",
+  "Kawaii Collection",
+  "Minimal Collection",
+  "New Arrivals",
+  "Best Sellers",
 ];
 
 const sortOptions = [
-  { value: "name-asc", label: "Nombre: A - Z" },
-  { value: "name-desc", label: "Nombre: Z - A" },
-  { value: "price-asc", label: "Precio: menor a mayor" },
-  { value: "price-desc", label: "Precio: mayor a menor" },
+  { value: "name-asc", labelKey: "store.nameAsc" },
+  { value: "name-desc", labelKey: "store.nameDesc" },
+  { value: "price-asc", labelKey: "store.priceAsc" },
+  { value: "price-desc", labelKey: "store.priceDesc" },
 ];
 
 function formatPrice(price: number) {
@@ -30,18 +32,35 @@ function formatPrice(price: number) {
 }
 
 function getProductCategory(product: Product) {
+  if (product.newArrival) return "New Arrivals";
+  if (product.bestSeller) return "Best Sellers";
+  if (product.category) return product.category;
+  if (product.collection) return product.collection;
+
   const name = product.name.toLowerCase();
 
-  if (name.includes("logo") || name.includes("marca")) return "Logos";
-  if (name.includes("mascota") || name.includes("perro") || name.includes("gato")) return "Mascotas";
-  if (name.includes("personaje") || name.includes("anime") || name.includes("caricatura")) return "Personajes";
-  if (name.includes("regalo")) return "Regalos";
-  if (name.includes("decor")) return "Decoracion";
+  if (name.includes("anime")) return "Anime Collection";
+  if (name.includes("gaming") || name.includes("game")) return "Gaming Collection";
+  if (name.includes("kawaii")) return "Kawaii Collection";
+  if (name.includes("minimal")) return "Minimal Collection";
 
-  return "Alfombras personalizadas";
+  return "Custom Rugs";
+}
+
+function getCategoryLabel(category: string, t: ReturnType<typeof useLanguage>["t"]) {
+  if (category === "Todas") return t("store.all");
+  if (category === "Custom Rugs") return t("store.customRugs");
+  if (category === "Anime Collection") return t("store.anime");
+  if (category === "Gaming Collection") return t("store.gaming");
+  if (category === "Kawaii Collection") return t("store.kawaii");
+  if (category === "Minimal Collection") return t("store.minimal");
+  if (category === "New Arrivals") return t("store.new");
+  if (category === "Best Sellers") return t("store.best");
+  return category;
 }
 
 export default function Store() {
+  const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
@@ -59,7 +78,11 @@ export default function Store() {
         const matchesSearch = query
           ? product.name.toLowerCase().includes(query) || String(product.id).toLowerCase().includes(query)
           : true;
-        const matchesCategory = selectedCategory === "Todas" || getProductCategory(product) === selectedCategory;
+        const matchesCategory =
+          selectedCategory === "Todas" ||
+          getProductCategory(product) === selectedCategory ||
+          (selectedCategory === "New Arrivals" && product.newArrival) ||
+          (selectedCategory === "Best Sellers" && product.bestSeller);
         const matchesType = purchaseType === "Todos" || purchaseType === "Para cotizar" || product.price > 0;
 
         return matchesSearch && matchesCategory && matchesType;
@@ -91,37 +114,41 @@ export default function Store() {
 
       <main className="store-page">
         <header className="store-heading">
-          <span className="store-kicker">Catalogo</span>
-          <h1>Tienda</h1>
-          <p>Explora categorias y cotiza productos hechos a mano.</p>
+          <span className="store-kicker">{t("store.kicker")}</span>
+          <h1>{t("store.title")}</h1>
+          <p>{t("store.subtitle")}</p>
         </header>
 
         <button type="button" className="store-filter-toggle" onClick={() => setShowFilters((value) => !value)}>
           <span aria-hidden="true">{showFilters ? "\u2039" : "\u203a"}</span>
-          {showFilters ? "Ocultar filtros" : "Mostrar filtros"}
+          {showFilters ? t("store.hideFilters") : t("store.showFilters")}
         </button>
 
         <div className={`store-shell ${showFilters ? "" : "filters-hidden"}`}>
           {showFilters && (
             <aside className="store-sidebar" aria-label="Filtros de tienda">
               <section className="store-filter-card">
-                <h2>Tipo de compra</h2>
-                {["Todos", "Venta inmediata", "Para cotizar"].map((type) => (
-                  <label key={type}>
+                <h2>{t("store.purchaseType")}</h2>
+                {[
+                  { value: "Todos", label: t("store.allTypes") },
+                  { value: "Venta inmediata", label: t("store.ready") },
+                  { value: "Para cotizar", label: t("store.quote") },
+                ].map((type) => (
+                  <label key={type.value}>
                     <input
                       type="radio"
                       name="purchaseType"
-                      value={type}
-                      checked={purchaseType === type}
+                      value={type.value}
+                      checked={purchaseType === type.value}
                       onChange={(event) => setPurchaseType(event.target.value)}
                     />
-                    <span>{type}</span>
+                    <span>{type.label}</span>
                   </label>
                 ))}
               </section>
 
               <section className="store-filter-card">
-                <h2>Categorias</h2>
+                <h2>{t("store.categories")}</h2>
                 <div className="store-category-list">
                   {categories.map((category) => (
                     <button
@@ -130,7 +157,7 @@ export default function Store() {
                       className={selectedCategory === category ? "is-active" : ""}
                       onClick={() => setSelectedCategory(category)}
                     >
-                      {category}
+                      {getCategoryLabel(category, t)}
                     </button>
                   ))}
                 </div>
@@ -144,21 +171,21 @@ export default function Store() {
                 type="search"
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Buscar por nombre, SKU o etiqueta..."
+                placeholder={t("store.searchPlaceholder")}
               />
-              <button type="submit">Buscar</button>
+              <button type="submit">{t("store.search")}</button>
             </form>
 
             <div className="store-actions-row">
               <Link to="/personaliza" className="store-catalog-button">
-                Ver catalogo
+                {t("store.catalog")}
               </Link>
               <div className="store-sort">
-                <span>Ordenar por:</span>
+                <span>{t("store.sortBy")}</span>
                 <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {t(option.labelKey as never)}
                     </option>
                   ))}
                 </select>
@@ -166,12 +193,12 @@ export default function Store() {
             </div>
 
             <p className="store-result-count">
-              {filteredProducts.length} {filteredProducts.length === 1 ? "producto" : "productos"}
+              {filteredProducts.length} {filteredProducts.length === 1 ? t("store.productSingular") : t("store.productPlural")}
             </p>
 
             {query && (
               <p className="store-search-result">
-                Resultados para <strong>{activeSearch || searchParams.get("buscar")}</strong>
+                {t("store.resultsFor")} <strong>{activeSearch || searchParams.get("buscar")}</strong>
               </p>
             )}
 
@@ -181,7 +208,7 @@ export default function Store() {
                   <span className="store-product-image">
                     <img src={product.image} alt={product.name} />
                   </span>
-                  <span className="store-product-category">{getProductCategory(product)}</span>
+                  <span className="store-product-category">{getCategoryLabel(getProductCategory(product), t)}</span>
                   <strong>{product.name}</strong>
                   <span className="store-product-price">{formatPrice(product.price)}</span>
                 </Link>
@@ -189,7 +216,7 @@ export default function Store() {
             </div>
 
             {filteredProducts.length === 0 && (
-              <p className="store-empty-result">No encontramos productos con esa busqueda.</p>
+              <p className="store-empty-result">{t("store.empty")}</p>
             )}
           </section>
         </div>
