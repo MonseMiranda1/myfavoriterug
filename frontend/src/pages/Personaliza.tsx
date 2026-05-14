@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+﻿import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import imagenIcon from "../assets/icons/imagen.png";
@@ -8,18 +8,13 @@ import { useLanguage } from "../i18n";
 import { saveQuoteRequest } from "../services/quotes";
 
 type Currency = "CLP" | "USD" | "EUR";
+type PricingShape = "round" | "square" | "rectangular";
+type SizeOption = { id: string; label: string; width: number; height: number; priceClp: number };
 
 const currencyRates: Record<Exclude<Currency, "CLP">, number> = {
   USD: 950,
   EUR: 1020,
 };
-
-const sizeOptions = [
-  { id: "60x90", label: "60 x 90 cm", width: 60, height: 90, priceClp: 100000 },
-  { id: "80x120", label: "80 x 120 cm", width: 80, height: 120, priceClp: 69000 },
-  { id: "100x150", label: "100 x 150 cm", width: 100, height: 150, priceClp: 99000 },
-  { id: "120x180", label: "120 x 180 cm", width: 120, height: 180, priceClp: 139000 },
-];
 
 const woolOptions = [
   { id: "standard", label: "Lana standard", extraClp: 0 },
@@ -32,6 +27,82 @@ const colorOptions = [
   { id: "medium", label: "4 a 6 colores", extraClp: 8000 },
   { id: "complex", label: "7+ colores", extraClp: 15000 },
 ];
+
+const pricingCatalog: Record<
+  PricingShape,
+  { labelKey: "custom.pricingRound" | "custom.pricingSquare" | "custom.pricingRectangular"; measureLabelKey: "custom.diameter" | "custom.measure"; items: { measure: string; priceClp: number }[] }
+> = {
+  round: {
+    labelKey: "custom.pricingRound",
+    measureLabelKey: "custom.diameter",
+    items: [
+      { measure: "20 cm", priceClp: 15000 },
+      { measure: "30 cm", priceClp: 28000 },
+      { measure: "40 cm", priceClp: 35000 },
+      { measure: "50 cm", priceClp: 46000 },
+      { measure: "60 cm", priceClp: 60000 },
+      { measure: "70 cm", priceClp: 75000 },
+      { measure: "80 cm", priceClp: 98000 },
+      { measure: "90 cm", priceClp: 120000 },
+      { measure: "100 cm", priceClp: 138000 },
+      { measure: "110 cm", priceClp: 158000 },
+      { measure: "120 cm", priceClp: 195000 },
+      { measure: "130 cm", priceClp: 230000 },
+      { measure: "140 cm", priceClp: 260000 },
+      { measure: "150 cm", priceClp: 290000 },
+    ],
+  },
+  square: {
+    labelKey: "custom.pricingSquare",
+    measureLabelKey: "custom.measure",
+    items: [
+      { measure: "20x20 cm", priceClp: 20000 },
+      { measure: "30x30 cm", priceClp: 30000 },
+      { measure: "40x40 cm", priceClp: 40000 },
+      { measure: "50x50 cm", priceClp: 55000 },
+      { measure: "60x60 cm", priceClp: 70000 },
+      { measure: "70x70 cm", priceClp: 90000 },
+      { measure: "80x80 cm", priceClp: 115000 },
+      { measure: "90x90 cm", priceClp: 140000 },
+      { measure: "100x100 cm", priceClp: 180000 },
+      { measure: "110x110 cm", priceClp: 210000 },
+      { measure: "120x120 cm", priceClp: 250000 },
+      { measure: "130x130 cm", priceClp: 295000 },
+      { measure: "140x140 cm", priceClp: 350000 },
+      { measure: "150x150 cm", priceClp: 395000 },
+    ],
+  },
+  rectangular: {
+    labelKey: "custom.pricingRectangular",
+    measureLabelKey: "custom.measure",
+    items: [
+      { measure: "20x30 cm", priceClp: 23000 },
+      { measure: "30x40 cm", priceClp: 35000 },
+      { measure: "40x50 cm", priceClp: 42000 },
+      { measure: "40x60 cm", priceClp: 46000 },
+      { measure: "50x60 cm", priceClp: 54000 },
+      { measure: "50x70 cm", priceClp: 65000 },
+      { measure: "50x80 cm", priceClp: 75000 },
+      { measure: "50x90 cm", priceClp: 82000 },
+      { measure: "60x80 cm", priceClp: 90000 },
+      { measure: "50x120 cm", priceClp: 108000 },
+      { measure: "60x100 cm", priceClp: 110000 },
+      { measure: "70x90 cm", priceClp: 115000 },
+      { measure: "60x120 cm", priceClp: 130000 },
+      { measure: "80x100 cm", priceClp: 145000 },
+      { measure: "70x120 cm", priceClp: 150000 },
+      { measure: "80x120 cm", priceClp: 170000 },
+      { measure: "90x110 cm", priceClp: 178000 },
+      { measure: "90x130 cm", priceClp: 210000 },
+      { measure: "100x150 cm", priceClp: 270000 },
+      { measure: "110x140 cm", priceClp: 278000 },
+      { measure: "120x150 cm", priceClp: 320000 },
+      { measure: "140x150 cm", priceClp: 370000 },
+      { measure: "150x160 cm", priceClp: 430000 },
+      { measure: "160x170 cm", priceClp: 489000 },
+    ],
+  },
+};
 
 function formatPrice(amountClp: number, currency: Currency) {
   if (currency !== "CLP") {
@@ -49,11 +120,28 @@ function formatPrice(amountClp: number, currency: Currency) {
   }).format(amountClp);
 }
 
+function getSizeOptions(shape: PricingShape): SizeOption[] {
+  return pricingCatalog[shape].items.map((item) => {
+    const dimensions = item.measure.match(/\d+/g)?.map(Number) ?? [0];
+    const width = dimensions[0] ?? 0;
+    const height = dimensions[1] ?? width;
+
+    return {
+      id: item.measure,
+      label: item.measure.replace(/x/g, " x "),
+      width,
+      height,
+      priceClp: item.priceClp,
+    };
+  });
+}
+
 export default function Personaliza() {
   const { t } = useLanguage();
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState("");
-  const [selectedSizeId, setSelectedSizeId] = useState(sizeOptions[0].id);
+  const [activePricingShape, setActivePricingShape] = useState<PricingShape>("rectangular");
+  const [selectedSizeId, setSelectedSizeId] = useState(getSizeOptions("rectangular")[0].id);
   const [selectedWoolId, setSelectedWoolId] = useState(woolOptions[0].id);
   const [selectedColorId, setSelectedColorId] = useState(colorOptions[0].id);
   const [currency, setCurrency] = useState<Currency>("CLP");
@@ -61,6 +149,7 @@ export default function Personaliza() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
 
+  const sizeOptions = getSizeOptions(activePricingShape);
   const selectedSize = sizeOptions.find((option) => option.id === selectedSizeId) ?? sizeOptions[0];
   const selectedWool = woolOptions.find((option) => option.id === selectedWoolId) ?? woolOptions[0];
   const selectedColors = colorOptions.find((option) => option.id === selectedColorId) ?? colorOptions[0];
@@ -95,7 +184,7 @@ export default function Personaliza() {
 
     const request = saveQuoteRequest({
       imageName: fileName,
-      size: selectedSize.label,
+      size: `${t(pricingCatalog[activePricingShape].labelKey)} - ${selectedSize.label}`,
       wool: selectedWool.label,
       colors: selectedColors.label,
       currency,
@@ -105,7 +194,8 @@ export default function Personaliza() {
 
     setSubmitStatus("success");
     setSubmitMessage(`${t("custom.successPrefix")} ${request.id} ${t("custom.successSuffix")}`);
-    setSelectedSizeId(sizeOptions[0].id);
+    setActivePricingShape("rectangular");
+    setSelectedSizeId(getSizeOptions("rectangular")[0].id);
     setSelectedWoolId(woolOptions[0].id);
     setSelectedColorId(colorOptions[0].id);
     setCurrency("CLP");
@@ -116,6 +206,11 @@ export default function Personaliza() {
       URL.revokeObjectURL(preview);
       setPreview(null);
     }
+  }
+
+  function handleShapeChange(nextShape: PricingShape) {
+    setActivePricingShape(nextShape);
+    setSelectedSizeId(getSizeOptions(nextShape)[0].id);
   }
 
   return (
@@ -166,7 +261,18 @@ export default function Personaliza() {
               </div>
             </div>
 
-            <div className="custom-select-grid">
+            <div className="custom-select-grid primary-options-grid">
+              <label>
+                <span>{t("custom.shape")}</span>
+                <select value={activePricingShape} onChange={(event) => handleShapeChange(event.target.value as PricingShape)}>
+                  {(Object.keys(pricingCatalog) as PricingShape[]).map((shape) => (
+                    <option key={shape} value={shape}>
+                      {t(pricingCatalog[shape].labelKey)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <label>
                 <span>{t("custom.size")}</span>
                 <select value={selectedSizeId} onChange={(event) => setSelectedSizeId(event.target.value)}>
@@ -236,10 +342,11 @@ export default function Personaliza() {
                 placeholder={t("custom.commentsPlaceholder")}
               />
             </label>
+            <p className="pricing-reference-note custom-price-note">{t("custom.pricingReferenceNote")}</p>
 
             <div className="size-summary">
               <span>{t("custom.orderPreview")}</span>
-              <strong>{selectedSize.width} x {selectedSize.height} cm</strong>
+              <strong>{t(pricingCatalog[activePricingShape].labelKey)} - {selectedSize.label}</strong>
               <em>{formatPrice(totalClp, currency)}</em>
             </div>
 
@@ -275,3 +382,4 @@ export default function Personaliza() {
     </>
   );
 }
+

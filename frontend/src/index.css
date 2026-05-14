@@ -3116,6 +3116,144 @@ img {
   background: #fffaf0;
 }
 
+.admin-payment-section {
+  min-width: 820px;
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+  background: #fffaf0;
+}
+
+.admin-shipping-section > .admin-shipping-form {
+  display: none;
+}
+
+.admin-shipping-message {
+  margin: 0;
+  color: #5a4a41;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  padding: 22px;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.admin-modal {
+  width: min(760px, 100%);
+  max-height: min(720px, calc(100vh - 44px));
+  overflow: auto;
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+  color: #171211;
+  background: #fffaf0;
+  border: 1px solid rgba(27, 18, 12, 0.16);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.admin-modal-header,
+.admin-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.admin-modal-header span {
+  color: #5a4a41;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.admin-modal-header h3 {
+  margin: 4px 0 0;
+  font-family: var(--display-font);
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 1000;
+}
+
+.admin-modal-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: #171211;
+  background: #fff6e6;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.admin-shipping-modal .admin-shipping-form {
+  grid-template-columns: 160px minmax(220px, 1fr) 170px;
+}
+
+.admin-payment-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 160px 170px;
+  gap: 14px;
+  align-items: end;
+}
+
+.admin-payment-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-payment-form label span {
+  color: #3b342f;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.admin-payment-form input,
+.admin-payment-form select {
+  width: 100%;
+  height: 42px;
+  min-width: 0;
+  padding: 0 12px;
+  color: #211814;
+  background: #fffaf0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  outline: none;
+  font-weight: 800;
+}
+
+.admin-modal-actions > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.admin-modal-actions .admin-add-button,
+.admin-delete-button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.admin-modal-actions .admin-add-button {
+  background: linear-gradient(90deg, var(--orange), #ff5e00);
+}
+
+.admin-delete-button {
+  background: #d92d20;
+}
+
 .admin-shipping-form {
   display: grid;
   grid-template-columns: 190px minmax(220px, 1fr) 170px minmax(180px, 260px);
@@ -3812,6 +3950,10 @@ img {
   gap: 18px;
 }
 
+.primary-options-grid {
+  grid-template-columns: 0.9fr 1.35fr 0.75fr;
+}
+
 .extras-grid {
   grid-template-columns: repeat(2, 1fr);
   margin-top: 18px;
@@ -3975,6 +4117,19 @@ img {
   color: #b42318;
   background: rgba(217, 45, 32, 0.1);
   border: 1px solid rgba(217, 45, 32, 0.24);
+}
+
+.pricing-reference-note {
+  margin: 10px 0 0;
+  color: #40342e;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 850;
+  font-style: italic;
+}
+
+.custom-price-note {
+  max-width: 760px;
 }
 
 .content-page {

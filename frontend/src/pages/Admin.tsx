@@ -16,15 +16,15 @@ import {
   deleteUploadedProduct,
   getCategories,
   getProducts,
-  getUploadedProducts,
   saveCategory,
   saveUploadedProduct,
   updateCategory,
   updateUploadedProduct,
+  uploadProductImage,
   type Category,
   type Product,
 } from "../services/api";
-import { getOrders, updateOrderShipping, type Order } from "../services/orders";
+import { deleteOrder, getOrders, updateOrderShipping, type Order } from "../services/orders";
 
 const adminUser = "admin";
 const adminPassword = "admin123";
@@ -34,7 +34,7 @@ const initialQuotes = [
     id: "COT-1777735573931",
     date: "02-05-2026",
     time: "11:26:13 a. m.",
-    type: "Cotizacion",
+    type: "Cotización",
     client: "constructora zero spa",
     contact: "claudio zurita",
     rut: "76453747-5",
@@ -49,7 +49,7 @@ const initialQuotes = [
     id: "COT-20260428-1736",
     date: "28-04-2026",
     time: "09:18:44 a. m.",
-    type: "Cotizacion",
+    type: "Cotización",
     client: "Municipalidad Los Angeles",
     contact: "Compras Municipales",
     rut: "69.170.100-K",
@@ -64,9 +64,9 @@ const initialQuotes = [
     id: "COT-20260425-1750",
     date: "25-04-2026",
     time: "05:50:02 p. m.",
-    type: "Cotizacion",
+    type: "Cotización",
     client: "MARSUR CHILE",
-    contact: "Area comercial",
+    contact: "Área comercial",
     rut: "76.111.222-3",
     email: "ventas@marsur.cl",
     phone: "987654321",
@@ -79,7 +79,7 @@ const initialQuotes = [
     id: "COT-20260418-1108",
     date: "18-04-2026",
     time: "11:08:30 a. m.",
-    type: "Cotizacion",
+    type: "Cotización",
     client: "My Favorite Rug",
     contact: "Equipo tienda",
     rut: "77.777.777-7",
@@ -91,6 +91,29 @@ const initialQuotes = [
     message: "Mascota personalizada.",
   },
 ];
+
+type AdminQuote = (typeof initialQuotes)[number];
+
+const ADMIN_QUOTES_STORAGE_KEY = "my-favorite-rug-admin-quotes";
+
+function getAdminQuotes(): AdminQuote[] {
+  if (typeof window === "undefined") return initialQuotes;
+
+  const rawQuotes = window.localStorage.getItem(ADMIN_QUOTES_STORAGE_KEY);
+
+  if (rawQuotes === null) return initialQuotes;
+
+  try {
+    const parsed = JSON.parse(rawQuotes);
+    return Array.isArray(parsed) ? parsed : initialQuotes;
+  } catch {
+    return initialQuotes;
+  }
+}
+
+function saveAdminQuotes(quotes: AdminQuote[]) {
+  window.localStorage.setItem(ADMIN_QUOTES_STORAGE_KEY, JSON.stringify(quotes));
+}
 
 const clients = [
   { name: "constructora zero spa", email: "contacto@zero.cl", quotes: "1", lastOrder: "02-05-2026" },
@@ -104,10 +127,10 @@ const adminSections = [
   { id: "orders", label: "Ordenes", icon: carritoIcon },
   { id: "purchase-orders", label: "Ordenes de compra", icon: compraIcon },
   { id: "payments", label: "Pagos", icon: pagoIcon },
-  { id: "shipping", label: "Envios", icon: envioIcon },
+  { id: "shipping", label: "Envíos", icon: envioIcon },
   { id: "products", label: "Productos", icon: cajaIcon },
   { id: "projects", label: "Proyectos", icon: webIcon },
-  { id: "categories", label: "Categorias", icon: paletaIcon },
+  { id: "categories", label: "Categorías", icon: paletaIcon },
   { id: "upload", label: "Subir productos", icon: subirIcon },
 ] as const;
 
@@ -140,11 +163,11 @@ type Project = {
 };
 
 const initialProjects: Project[] = [
-  { id: "project-1", name: "Logo corporativo", client: "constructora zero spa", status: "Diseno" },
-  { id: "project-2", name: "Mascota tufting", client: "My Favorite Rug", status: "Produccion" },
+  { id: "project-1", name: "Logo corporativo", client: "constructora zero spa", status: "Diseño" },
+  { id: "project-2", name: "Mascota tufting", client: "My Favorite Rug", status: "Producción" },
 ];
 
-const projectStatusOptions = ["Diseno", "Produccion", "Pausado", "Terminado"];
+const projectStatusOptions = ["Diseño", "Producción", "Pausado", "Terminado"];
 
 const emptyProjectForm = {
   id: "",
@@ -161,13 +184,34 @@ const emptyShippingForm = {
   shippingStatus: shippingStatusOptions[0],
 };
 
+type AdminPayment = {
+  id: string;
+  client: string;
+  total: number;
+  status: string;
+};
+
+const paymentStatusOptions = ["Pendiente", "Abonado", "Pagado", "Rechazado"];
+
+const initialPayments: AdminPayment[] = [
+  { id: "payment-1", client: "MARSUR CHILE", total: 904400, status: "Pagado" },
+  { id: "payment-2", client: "Municipalidad Los Angeles", total: 9999998, status: "Pendiente" },
+];
+
+const emptyPaymentForm = {
+  id: "",
+  client: "",
+  total: "",
+  status: paymentStatusOptions[0],
+};
+
 function fileToProductImage(file: File) {
-  return new Promise<{ dataUrl: string; name: string }>((resolve, reject) => {
+  return new Promise<{ url: string; name: string }>((resolve, reject) => {
     const image = new Image();
     const objectUrl = URL.createObjectURL(file);
 
-    image.onload = () => {
-      const maxSize = 2200;
+    image.onload = async () => {
+      const maxSize = 1600;
       const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
       const width = Math.max(1, Math.round(image.width * scale));
       const height = Math.max(1, Math.round(image.height * scale));
@@ -186,7 +230,23 @@ function fileToProductImage(file: File) {
       context.fillRect(0, 0, width, height);
       context.drawImage(image, 0, 0, width, height);
       URL.revokeObjectURL(objectUrl);
-      resolve({ dataUrl: canvas.toDataURL("image/jpeg", 0.9), name: file.name });
+
+      try {
+        const blob = await new Promise<Blob>((blobResolve, blobReject) => {
+          canvas.toBlob((result) => {
+            if (result) {
+              blobResolve(result);
+            } else {
+              blobReject(new Error("No se pudo procesar la imagen."));
+            }
+          }, "image/jpeg", 0.82);
+        });
+        const optimizedFile = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" });
+        const url = await uploadProductImage(optimizedFile);
+        resolve({ url, name: file.name });
+      } catch (error) {
+        reject(error);
+      }
     };
 
     image.onerror = () => {
@@ -212,10 +272,10 @@ const sectionCopy: Record<AdminSection, { title: string; description: string }> 
   orders: { title: "Ordenes", description: "Revisa pedidos, estados y solicitudes de alfombras personalizadas." },
   "purchase-orders": { title: "Ordenes de compra", description: "Gestiona documentos y compras asociadas a pedidos especiales." },
   payments: { title: "Pagos", description: "Controla pagos pendientes, abonados y confirmados." },
-  shipping: { title: "Envios", description: "Organiza despachos nacionales e internacionales." },
+  shipping: { title: "Envíos", description: "Organiza despachos nacionales e internacionales." },
   products: { title: "Productos", description: "Crea y edita alfombras disponibles en la tienda." },
-  projects: { title: "Proyectos", description: "Da seguimiento a proyectos personalizados en produccion." },
-  categories: { title: "Categorias", description: "Administra categorias visibles en la tienda." },
+  projects: { title: "Proyectos", description: "Da seguimiento a proyectos personalizados en producción." },
+  categories: { title: "Categorías", description: "Administra categorías visibles en la tienda." },
   upload: { title: "Subir productos", description: "Carga productos temporales al catalogo." },
 };
 
@@ -226,12 +286,12 @@ const sectionRows: Record<Exclude<AdminSection, "quotes">, Array<Record<string, 
     { Indicador: "Ventas", Valor: formatClp(11038398), Estado: "Estimado" },
   ],
   orders: [
-    { Numero: "ORD-20260502-01", Cliente: "constructora zero spa", Estado: "Pendiente" },
-    { Numero: "ORD-20260428-02", Cliente: "Municipalidad Los Angeles", Estado: "En produccion" },
+    { Número: "ORD-20260502-01", Cliente: "constructora zero spa", Estado: "Pendiente" },
+    { Número: "ORD-20260428-02", Cliente: "Municipalidad Los Angeles", Estado: "En producción" },
   ],
   "purchase-orders": [
-    { Numero: "OC-1028", Proveedor: "Lanas premium", Estado: "Solicitada" },
-    { Numero: "OC-1029", Proveedor: "Empaque y cajas", Estado: "Recibida" },
+    { Número: "OC-1028", Proveedor: "Lanas premium", Estado: "Solicitada" },
+    { Número: "OC-1029", Proveedor: "Empaque y cajas", Estado: "Recibida" },
   ],
   payments: [
     { Cliente: "MARSUR CHILE", Total: formatClp(904400), Estado: "Pagado" },
@@ -246,12 +306,12 @@ const sectionRows: Record<Exclude<AdminSection, "quotes">, Array<Record<string, 
     { Producto: "Alfombra personalizada 120x180", Precio: formatClp(139000), Estado: "Activa" },
   ],
   projects: [
-    { Proyecto: "Logo corporativo", Cliente: "constructora zero spa", Estado: "Diseno" },
-    { Proyecto: "Mascota tufting", Cliente: "My Favorite Rug", Estado: "Produccion" },
+    { Proyecto: "Logo corporativo", Cliente: "constructora zero spa", Estado: "Diseño" },
+    { Proyecto: "Mascota tufting", Cliente: "My Favorite Rug", Estado: "Producción" },
   ],
   categories: [
-    { Categoria: "Anime", Productos: "8", Estado: "Visible" },
-    { Categoria: "Logos", Productos: "12", Estado: "Visible" },
+    { Categoría: "Anime", Productos: "8", Estado: "Visible" },
+    { Categoría: "Logos", Productos: "12", Estado: "Visible" },
   ],
   upload: [
     { Campo: "Imagen", Requisito: "PNG, JPG o WEBP", Estado: "Pendiente" },
@@ -264,7 +324,7 @@ export default function Admin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [quotes, setQuotes] = useState(initialQuotes);
+  const [quotes, setQuotes] = useState(getAdminQuotes);
   const [activeSection, setActiveSection] = useState<AdminSection>("quotes");
   const [activeView, setActiveView] = useState<"quotes" | "clients">("quotes");
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
@@ -284,6 +344,10 @@ export default function Admin() {
   const [adminOrders, setAdminOrders] = useState<Order[]>([]);
   const [shippingForm, setShippingForm] = useState(emptyShippingForm);
   const [shippingMessage, setShippingMessage] = useState("");
+  const [payments, setPayments] = useState(initialPayments);
+  const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     setIsLoggedIn(sessionStorage.getItem("admin-authenticated") === "true");
@@ -294,10 +358,9 @@ export default function Admin() {
 
   async function refreshAdminProducts() {
     const response = await getProducts();
-    const uploadedIds = new Set(getUploadedProducts().map((product) => String(product.id)));
 
     setAllProducts(response.data);
-    setUploadedProducts(response.data.filter((product) => uploadedIds.has(String(product.id))));
+    setUploadedProducts(response.data);
   }
 
   function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -322,7 +385,11 @@ export default function Admin() {
   }
 
   function handleDeleteQuote(id: string) {
-    setQuotes((currentQuotes) => currentQuotes.filter((quote) => quote.id !== id));
+    setQuotes((currentQuotes) => {
+      const nextQuotes = currentQuotes.filter((quote) => quote.id !== id);
+      saveAdminQuotes(nextQuotes);
+      return nextQuotes;
+    });
 
     if (selectedQuoteId === id) {
       setSelectedQuoteId(null);
@@ -335,22 +402,22 @@ export default function Admin() {
 
     const invalidFile = selectedFiles.find((file) => !["image/png", "image/jpeg", "image/webp"].includes(file.type));
     if (invalidFile) {
-      setProductFormMessage("Las imagenes deben ser PNG, JPG o WEBP.");
+      setProductFormMessage("Las imágenes deben ser PNG, JPG o WEBP.");
       return;
     }
 
-    setProductFormMessage("Procesando imagenes...");
+    setProductFormMessage("Procesando imágenes...");
 
     Promise.all(selectedFiles.map(fileToProductImage))
       .then((images) => {
         setProductForm((currentForm) => ({
           ...currentForm,
-          images: images.map((image) => image.dataUrl),
+          images: images.map((image) => image.url),
           imageNames: images.map((image) => image.name),
         }));
         setProductFormMessage(`${images.length} imagen(es) listas para guardar.`);
       })
-      .catch(() => setProductFormMessage("No se pudieron procesar las imagenes."));
+      .catch(() => setProductFormMessage("No se pudieron procesar las imágenes."));
   }
 
   async function handleUploadProduct(event: FormEvent<HTMLFormElement>) {
@@ -415,13 +482,13 @@ export default function Admin() {
       setProductForm(emptyProductForm);
       setProductFormMessage("Producto subido y disponible en la tienda.");
     } catch {
-      setProductFormMessage("No se pudo guardar. Prueba con menos imagenes o imagenes mas livianas.");
+      setProductFormMessage("No se pudo guardar. Prueba con menos imágenes o imágenes más livianas.");
     }
   }
 
-  function handleDeleteUploadedProduct(id: Product["id"]) {
-    deleteUploadedProduct(id);
-    refreshAdminProducts();
+  async function handleDeleteUploadedProduct(id: Product["id"]) {
+    await deleteUploadedProduct(id);
+    await refreshAdminProducts();
 
     if (String(productForm.id) === String(id)) {
       setProductForm(emptyProductForm);
@@ -440,7 +507,7 @@ export default function Admin() {
       images: product.images && product.images.length > 0 ? product.images : [product.image],
       imageNames: [],
     });
-    setProductFormMessage("Editando producto. Puedes cambiar datos, estado o imagenes.");
+    setProductFormMessage("Editando producto. Puedes cambiar datos, estado o imágenes.");
     setActiveSection("upload");
   }
 
@@ -454,7 +521,7 @@ export default function Admin() {
     const name = categoryForm.name.trim();
 
     if (!name) {
-      setCategoryMessage("Ingresa el nombre de la categoria.");
+      setCategoryMessage("Ingresa el nombre de la categoría.");
       return;
     }
 
@@ -463,7 +530,7 @@ export default function Admin() {
     );
 
     if (duplicatedCategory) {
-      setCategoryMessage("Ya existe una categoria con ese nombre.");
+      setCategoryMessage("Ya existe una categoría con ese nombre.");
       return;
     }
 
@@ -475,10 +542,10 @@ export default function Admin() {
         setProductForm((currentForm) => ({ ...currentForm, category: name }));
       }
 
-      setCategoryMessage("Categoria actualizada.");
+      setCategoryMessage("Categoría actualizada.");
     } else {
       saveCategory({ name, status: categoryForm.status });
-      setCategoryMessage("Categoria creada.");
+      setCategoryMessage("Categoría creada.");
     }
 
     const nextCategories = getCategories();
@@ -488,7 +555,7 @@ export default function Admin() {
 
   function handleEditCategory(category: Category) {
     setCategoryForm(category);
-    setCategoryMessage("Editando categoria.");
+    setCategoryMessage("Editando categoría.");
   }
 
   function handleDeleteCategory(id: string) {
@@ -509,7 +576,7 @@ export default function Admin() {
       setCategoryForm(emptyCategoryForm);
     }
 
-    setCategoryMessage("Categoria eliminada.");
+    setCategoryMessage("Categoría eliminada.");
   }
 
   function handleSaveProject(event: FormEvent<HTMLFormElement>) {
@@ -558,11 +625,11 @@ export default function Admin() {
 
   function handleViewShipping(order: Order) {
     setShippingForm({
-      orderId: order.id,
+      orderId: String(order.id),
       trackingNumber: order.trackingNumber ?? "",
       shippingStatus: order.shippingStatus ?? order.status ?? shippingStatusOptions[0],
     });
-    setShippingMessage(`Editando envio ${order.id}.`);
+    setShippingMessage(`Editando envío ${order.id}.`);
   }
 
   function handleSaveShipping(event: FormEvent<HTMLFormElement>) {
@@ -579,7 +646,90 @@ export default function Admin() {
     });
 
     setAdminOrders(getOrders());
-    setShippingMessage("Envio actualizado. El cliente ya puede verlo en seguimiento.");
+    setShippingMessage("Envío actualizado. El cliente ya puede verlo en seguimiento.");
+  }
+
+  function handleCloseShipping() {
+    setShippingForm(emptyShippingForm);
+    setShippingMessage("");
+  }
+
+  function handleDeleteShippingOrder() {
+    if (!shippingForm.orderId) return;
+    if (!window.confirm(`Eliminar pedido ${shippingForm.orderId}?`)) return;
+
+    deleteOrder(shippingForm.orderId);
+    setAdminOrders(getOrders());
+    setShippingForm(emptyShippingForm);
+    setShippingMessage("Pedido eliminado.");
+  }
+
+  function handleNewPayment() {
+    setPaymentForm(emptyPaymentForm);
+    setPaymentMessage("");
+    setIsPaymentModalOpen(true);
+  }
+
+  function handleViewPayment(payment: AdminPayment) {
+    setPaymentForm({
+      id: payment.id,
+      client: payment.client,
+      total: String(payment.total),
+      status: payment.status,
+    });
+    setPaymentMessage("");
+    setIsPaymentModalOpen(true);
+  }
+
+  function handleSavePayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const client = paymentForm.client.trim();
+    const total = Number(paymentForm.total);
+
+    if (!client) {
+      setPaymentMessage("Ingresa el cliente.");
+      return;
+    }
+
+    if (!Number.isFinite(total) || total < 0) {
+      setPaymentMessage("Ingresa un total valido.");
+      return;
+    }
+
+    if (paymentForm.id) {
+      setPayments((currentPayments) =>
+        currentPayments.map((payment) =>
+          payment.id === paymentForm.id ? { ...payment, client, total, status: paymentForm.status } : payment,
+        ),
+      );
+      setPaymentMessage("Pago actualizado.");
+    } else {
+      setPayments((currentPayments) => [
+        { id: `payment-${Date.now()}`, client, total, status: paymentForm.status },
+        ...currentPayments,
+      ]);
+      setPaymentMessage("Pago creado.");
+    }
+
+    setPaymentForm(emptyPaymentForm);
+    setIsPaymentModalOpen(false);
+  }
+
+  function handleClosePayment() {
+    setPaymentForm(emptyPaymentForm);
+    setPaymentMessage("");
+    setIsPaymentModalOpen(false);
+  }
+
+  function handleDeletePayment() {
+    if (!paymentForm.id) return;
+    if (!window.confirm(`Eliminar pago de ${paymentForm.client}?`)) return;
+
+    setPayments((currentPayments) => currentPayments.filter((payment) => payment.id !== paymentForm.id));
+    setPaymentForm(emptyPaymentForm);
+    setIsPaymentModalOpen(false);
+    setPaymentMessage("Pago eliminado.");
   }
 
   const filteredQuotes = quotes.filter((quote) => {
@@ -654,7 +804,7 @@ export default function Admin() {
                       className="admin-add-button"
                       onClick={() => {
                         setCategoryForm(emptyCategoryForm);
-                        setCategoryMessage("Nueva categoria.");
+                        setCategoryMessage("Nueva categoría.");
                       }}
                     >
                       + Nuevo
@@ -671,7 +821,11 @@ export default function Admin() {
                       + Nuevo
                     </button>
                   ) : activeSection === "products" ? null : (
-                    <button type="button" className="admin-add-button">
+                    <button
+                      type="button"
+                      className="admin-add-button"
+                      onClick={activeSection === "payments" ? handleNewPayment : undefined}
+                    >
                       + Nuevo
                     </button>
                   )}
@@ -709,7 +863,7 @@ export default function Admin() {
                           type="search"
                           value={search}
                           onChange={(event) => setSearch(event.target.value)}
-                          placeholder="Cliente, email, producto, numero"
+                          placeholder="Cliente, email, producto, número"
                         />
                       </label>
 
@@ -736,8 +890,8 @@ export default function Admin() {
                     <div className="quote-detail">
                       <header className="quote-detail-header">
                         <div>
-                          <h2>Detalle de cotizacion</h2>
-                          <p>{selectedQuote.id} · {selectedQuote.date}, {selectedQuote.time}</p>
+                          <h2>Detalle de cotización</h2>
+                          <p>{selectedQuote.id} Â· {selectedQuote.date}, {selectedQuote.time}</p>
                         </div>
 
                         <div className="quote-detail-actions">
@@ -756,8 +910,8 @@ export default function Admin() {
                           <p><strong>Nombre:</strong> {selectedQuote.contact}</p>
                           <p><strong>RUT:</strong> {selectedQuote.rut}</p>
                           <p><strong>Email:</strong> {selectedQuote.email}</p>
-                          <p><strong>Telefono:</strong> {selectedQuote.phone}</p>
-                          <p><strong>Direccion:</strong> {selectedQuote.address}</p>
+                          <p><strong>Teléfono:</strong> {selectedQuote.phone}</p>
+                          <p><strong>Dirección:</strong> {selectedQuote.address}</p>
                         </article>
 
                         <article>
@@ -767,17 +921,17 @@ export default function Admin() {
                             <dt>Estado</dt><dd>Abierto</dd>
                             <dt>Enviado</dt><dd>{selectedQuote.sent ? "Si" : "No"}</dd>
                             <dt>Condicion de pago</dt><dd>Contado</dd>
-                            <dt>Metodo de pago</dt><dd>Por definir</dd>
+                            <dt>Método de pago</dt><dd>Por definir</dd>
                             <dt>Vigencia</dt><dd>15 dias</dd>
                             <dt>Plazo entrega</dt><dd>-</dd>
-                            <dt>Envio neto</dt><dd>{formatClp(0)}</dd>
+                            <dt>Envío neto</dt><dd>{formatClp(0)}</dd>
                             <dt>Total</dt><dd>{formatClp(selectedQuote.total)}</dd>
                           </dl>
                         </article>
                       </div>
 
                       <article className="quote-detail-card">
-                        <h3>Articulos</h3>
+                        <h3>Artículos</h3>
                         <table className="quote-items-table">
                           <thead>
                             <tr>
@@ -816,7 +970,7 @@ export default function Admin() {
                       <thead>
                         <tr>
                           <th>Fecha</th>
-                          <th>Numero</th>
+                          <th>Número</th>
                           <th>Tipo</th>
                           <th>Cliente</th>
                           <th>Total</th>
@@ -874,8 +1028,183 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
+                  ) : activeSection === "payments" ? (
+                    <div className="admin-payment-section">
+                      {paymentMessage && <p className="admin-shipping-message">{paymentMessage}</p>}
+
+                      {isPaymentModalOpen && (
+                        <div className="admin-modal-backdrop" role="presentation" onMouseDown={handleClosePayment}>
+                          <form
+                            className="admin-modal admin-payment-modal"
+                            onSubmit={handleSavePayment}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="payment-modal-title"
+                            onMouseDown={(event) => event.stopPropagation()}
+                          >
+                            <header className="admin-modal-header">
+                              <div>
+                                <span>{paymentForm.id ? "Editar pago" : "Nuevo pago"}</span>
+                                <h3 id="payment-modal-title">{paymentForm.client || "Pago"}</h3>
+                              </div>
+                              <button type="button" className="admin-modal-close" onClick={handleClosePayment} aria-label="Cerrar">
+                                x
+                              </button>
+                            </header>
+
+                            <div className="admin-payment-form">
+                              <label>
+                                <span>Cliente</span>
+                                <input
+                                  type="text"
+                                  value={paymentForm.client}
+                                  onChange={(event) => setPaymentForm((currentForm) => ({ ...currentForm, client: event.target.value }))}
+                                  placeholder="Cliente o empresa"
+                                />
+                              </label>
+
+                              <label>
+                                <span>Total</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="1"
+                                  value={paymentForm.total}
+                                  onChange={(event) => setPaymentForm((currentForm) => ({ ...currentForm, total: event.target.value }))}
+                                  placeholder="99000"
+                                />
+                              </label>
+
+                              <label>
+                                <span>Estado</span>
+                                <select
+                                  value={paymentForm.status}
+                                  onChange={(event) => setPaymentForm((currentForm) => ({ ...currentForm, status: event.target.value }))}
+                                >
+                                  {paymentStatusOptions.map((status) => (
+                                    <option key={status}>{status}</option>
+                                  ))}
+                                </select>
+                              </label>
+                            </div>
+
+                            <footer className="admin-modal-actions">
+                              {paymentForm.id ? (
+                                <button type="button" className="admin-delete-button" onClick={handleDeletePayment}>
+                                  Eliminar pago
+                                </button>
+                              ) : (
+                                <span />
+                              )}
+                              <div>
+                                <button type="button" className="admin-cancel-edit-button" onClick={handleClosePayment}>
+                                  Cancelar
+                                </button>
+                                <button type="submit" className="admin-add-button">
+                                  Guardar pago
+                                </button>
+                              </div>
+                            </footer>
+                          </form>
+                        </div>
+                      )}
+
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Accion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {payments.map((payment) => (
+                            <tr key={payment.id}>
+                              <td>{payment.client}</td>
+                              <td>{formatClp(payment.total)}</td>
+                              <td>{payment.status}</td>
+                              <td>
+                                <button type="button" onClick={() => handleViewPayment(payment)}>Ver</button>
+                                <button type="button" onClick={() => handleViewPayment(payment)}>Editar</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   ) : activeSection === "shipping" ? (
                     <div className="admin-shipping-section">
+                      {shippingMessage && <p className="admin-shipping-message">{shippingMessage}</p>}
+
+                      {shippingForm.orderId && (
+                        <div className="admin-modal-backdrop" role="presentation" onMouseDown={handleCloseShipping}>
+                          <form
+                            className="admin-modal admin-shipping-modal"
+                            onSubmit={(event) => {
+                              handleSaveShipping(event);
+                              setShippingForm(emptyShippingForm);
+                            }}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="shipping-modal-title"
+                            onMouseDown={(event) => event.stopPropagation()}
+                          >
+                            <header className="admin-modal-header">
+                              <div>
+                                <span>Editar envio</span>
+                                <h3 id="shipping-modal-title">{shippingForm.orderId}</h3>
+                              </div>
+                              <button type="button" className="admin-modal-close" onClick={handleCloseShipping} aria-label="Cerrar">
+                                x
+                              </button>
+                            </header>
+
+                            <div className="admin-shipping-form">
+                              <label>
+                                <span>Pedido</span>
+                                <input type="text" value={shippingForm.orderId} readOnly />
+                              </label>
+
+                              <label>
+                                <span>Numero de envio</span>
+                                <input
+                                  type="text"
+                                  value={shippingForm.trackingNumber}
+                                  onChange={(event) => setShippingForm((currentForm) => ({ ...currentForm, trackingNumber: event.target.value }))}
+                                  placeholder="Ej: CHX123456789"
+                                />
+                              </label>
+
+                              <label>
+                                <span>Estado</span>
+                                <select
+                                  value={shippingForm.shippingStatus}
+                                  onChange={(event) => setShippingForm((currentForm) => ({ ...currentForm, shippingStatus: event.target.value }))}
+                                >
+                                  {shippingStatusOptions.map((status) => (
+                                    <option key={status}>{status}</option>
+                                  ))}
+                                </select>
+                              </label>
+                            </div>
+
+                            <footer className="admin-modal-actions">
+                              <button type="button" className="admin-delete-button" onClick={handleDeleteShippingOrder}>
+                                Eliminar pedido
+                              </button>
+                              <div>
+                                <button type="button" className="admin-cancel-edit-button" onClick={handleCloseShipping}>
+                                  Cancelar
+                                </button>
+                                <button type="submit" className="admin-add-button">
+                                  Guardar envio
+                                </button>
+                              </div>
+                            </footer>
+                          </form>
+                        </div>
+                      )}
                       <form className="admin-shipping-form" onSubmit={handleSaveShipping}>
                         <label>
                           <span>Pedido</span>
@@ -883,7 +1212,7 @@ export default function Admin() {
                         </label>
 
                         <label>
-                          <span>Numero de envio</span>
+                          <span>Número de envío</span>
                           <input
                             type="text"
                             value={shippingForm.trackingNumber}
@@ -906,7 +1235,7 @@ export default function Admin() {
 
                         <div className="admin-shipping-form-actions">
                           {shippingMessage && <p>{shippingMessage}</p>}
-                          <button type="submit" className="admin-add-button">Guardar envio</button>
+                          <button type="submit" className="admin-add-button">Guardar envío</button>
                         </div>
                       </form>
 
@@ -916,7 +1245,7 @@ export default function Admin() {
                             <th>Pedido</th>
                             <th>Destino</th>
                             <th>Estado</th>
-                            <th>Numero envio</th>
+                            <th>Número envío</th>
                             <th>Accion</th>
                           </tr>
                         </thead>
@@ -929,13 +1258,13 @@ export default function Admin() {
                                 <td>{order.shippingStatus || order.status}</td>
                                 <td>{order.trackingNumber || "-"}</td>
                                 <td>
-                                  <button type="button" onClick={() => handleViewShipping(order)}>Ver</button>
+                                  <button type="button" onClick={() => handleViewShipping(order)}>Editar</button>
                                 </td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={5}>Aun no hay pedidos para gestionar envios.</td>
+                              <td colSpan={5}>Aún no hay pedidos para gestionar envíos.</td>
                             </tr>
                           )}
                         </tbody>
@@ -1028,7 +1357,7 @@ export default function Admin() {
                         <tr>
                           <th>Imagen</th>
                           <th>Producto</th>
-                          <th>Categoria</th>
+                          <th>Categoría</th>
                           <th>Precio</th>
                           <th>Medidas</th>
                           <th>Disponibilidad</th>
@@ -1091,7 +1420,7 @@ export default function Admin() {
                         <div className="admin-category-form-actions">
                           {categoryMessage && <p>{categoryMessage}</p>}
                           <button type="submit" className="admin-add-button">
-                            {categoryForm.id ? "Guardar cambios" : "Crear categoria"}
+                            {categoryForm.id ? "Guardar cambios" : "Crear categoría"}
                           </button>
                         </div>
                       </form>
@@ -1099,7 +1428,7 @@ export default function Admin() {
                       <table className="admin-table">
                         <thead>
                           <tr>
-                            <th>Categoria</th>
+                            <th>Categoría</th>
                             <th>Productos</th>
                             <th>Estado</th>
                             <th>Accion</th>
@@ -1156,7 +1485,7 @@ export default function Admin() {
                         </label>
 
                         <label>
-                          <span>Categoria</span>
+                          <span>Categoría</span>
                           <select
                             value={productForm.category}
                             onChange={(event) => setProductForm((currentForm) => ({ ...currentForm, category: event.target.value }))}
@@ -1226,7 +1555,7 @@ export default function Admin() {
                           <tr>
                             <th>Imagen</th>
                             <th>Producto</th>
-                            <th>Categoria</th>
+                            <th>Categoría</th>
                             <th>Precio</th>
                             <th>Medidas</th>
                             <th>Disponibilidad</th>
@@ -1255,7 +1584,7 @@ export default function Admin() {
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={7}>Aun no hay productos subidos desde el panel.</td>
+                              <td colSpan={7}>Aún no hay productos subidos desde el panel.</td>
                             </tr>
                           )}
                         </tbody>

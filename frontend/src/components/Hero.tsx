@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import banner from "../assets/banner.png";
 import corazonIcon from "../assets/icons/corazon.png";
 import envioIcon from "../assets/icons/envio.png";
@@ -58,3 +58,4 @@ export default function Hero() {
     </section>
   );
 }
+

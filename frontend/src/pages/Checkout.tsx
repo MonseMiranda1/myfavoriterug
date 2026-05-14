@@ -1,10 +1,11 @@
 import { useMemo, useState, type FormEvent } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useLanguage } from "../i18n";
 import { getCartItems, saveCartItems } from "../services/cart";
-import { saveOrder } from "../services/orders";
+import { createOrder, createPaymentIntent, saveOrder } from "../services/orders";
 
 const TAX_RATE = 0.19;
 const SHIPPING_PRICE = 4500;
@@ -25,22 +26,25 @@ export default function Checkout() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [shippingMethod, setShippingMethod] = useState("Chilexpress");
-  const [paymentMethod, setPaymentMethod] = useState("Transferencia");
+  const [paymentMethod, setPaymentMethod] = useState("FLOW");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const items = useMemo(() => getCartItems(), []);
   const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
   const tax = Math.round(subtotal * TAX_RATE);
   const total = subtotal + tax + SHIPPING_PRICE;
   const steps = [t("checkout.stepsData"), t("checkout.stepsShipping"), t("checkout.stepsSummary"), t("checkout.stepsPayment"), t("checkout.stepsConfirmation")];
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSubmitError("");
 
     if (step < steps.length - 2) {
       setStep((current) => current + 1);
       return;
     }
 
-    saveOrder({
+    const orderInput = {
       customerName,
       email,
       address,
@@ -48,9 +52,37 @@ export default function Checkout() {
       paymentMethod,
       items,
       total,
-    });
-    saveCartItems([]);
-    navigate("/orden-confirmada");
+    };
+
+    try {
+      setIsSubmitting(true);
+      const order = await createOrder(orderInput);
+
+      saveOrder(orderInput);
+      saveCartItems([]);
+
+      if (paymentMethod === "TRANSFERENCIA") {
+        navigate("/orden-confirmada");
+        return;
+      }
+
+      const payment = await createPaymentIntent(order.id, paymentMethod);
+
+      if (payment.redirectUrl) {
+        window.location.assign(payment.redirectUrl);
+        return;
+      }
+
+      navigate("/orden-confirmada");
+    } catch (error) {
+      if (axios.isAxiosError<{ message?: string }>(error) && error.response?.data?.message) {
+        setSubmitError(error.response.data.message);
+      } else {
+        setSubmitError("No pudimos iniciar el pago. Revisa el backend o las credenciales de la pasarela.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -131,12 +163,13 @@ export default function Checkout() {
                 <label>
                   <span>{t("checkout.paymentMethod")}</span>
                   <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)}>
-                    <option>{t("checkout.transfer")}</option>
-                    <option>{t("checkout.card")}</option>
-                    <option>PayPal</option>
+                    <option value="FLOW">Flow</option>
+                    <option value="PAYPAL">PayPal</option>
+                    <option value="TRANSFERENCIA">{t("checkout.transfer")}</option>
                   </select>
                 </label>
                 <p>{t("checkout.paymentText")}</p>
+                {submitError && <p className="custom-submit-message error">{submitError}</p>}
               </>
             )}
 
@@ -146,8 +179,8 @@ export default function Checkout() {
                   {t("common.back")}
                 </button>
               )}
-              <button type="submit" className="btn btn-primary" disabled={items.length === 0}>
-                {step === 3 ? t("checkout.confirm") : t("common.continue")}
+              <button type="submit" className="btn btn-primary" disabled={items.length === 0 || isSubmitting}>
+                {step === 3 ? (isSubmitting ? "Abriendo portal..." : "Pagar") : t("common.continue")}
               </button>
             </div>
           </section>

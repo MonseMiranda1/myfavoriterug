@@ -1,4 +1,4 @@
-export type BlogPost = {
+﻿export type BlogPost = {
   slug: string;
   title: string;
   titleEn: string;
@@ -13,7 +13,7 @@ export type BlogPost = {
 export const blogPosts: BlogPost[] = [
   {
     slug: "cuidado-alfombras",
-    title: "Como cuidar una alfombra tufted",
+    title: "Cómo cuidar una alfombra tufted",
     titleEn: "How to care for a tufted rug",
     category: "Rug Care Tips",
     categoryEn: "Rug Care Tips",
@@ -29,16 +29,16 @@ export const blogPosts: BlogPost[] = [
     ],
   },
   {
-    slug: "decoracion",
+    slug: "decoración",
     title: "Ideas para decorar con rugs personalizados",
     titleEn: "Ideas for decorating with custom rugs",
-    category: "Decoracion",
+    category: "Decoración",
     categoryEn: "Decor",
     excerpt: "Formas simples de usar una pieza personalizada como foco visual de una habitacion.",
     excerptEn: "Simple ways to use a custom piece as the visual focus of a room.",
     content: [
-      "Elige colores que conversen con muebles, cuadros o detalles pequenos del espacio.",
-      "En piezas con logo o personaje, deja margen visual alrededor para que el diseno respire.",
+      "Elige colores que conversen con muebles, cuadros o detalles pequeños del espacio.",
+      "En piezas con logo o personaje, deja margen visual alrededor para que el diseño respire.",
     ],
     contentEn: [
       "Choose colors that connect with furniture, wall art, or small details in the space.",
@@ -51,11 +51,11 @@ export const blogPosts: BlogPost[] = [
     titleEn: "Custom rug trends",
     category: "Tendencias",
     categoryEn: "Trends",
-    excerpt: "Colecciones anime, gaming, kawaii y minimal para pedidos actuales.",
+    excerpt: "Colecciónes anime, gaming, kawaii y minimal para pedidos actuales.",
     excerptEn: "Anime, gaming, kawaii, and minimal collections for current orders.",
     content: [
       "Las piezas con formas organicas y bordes suaves siguen creciendo porque funcionan bien en muro y piso.",
-      "Los disenos minimalistas con una paleta corta son ideales cuando buscas algo discreto pero unico.",
+      "Los diseños minimalistas con una paleta corta son ideales cuando buscas algo discreto pero único.",
     ],
     contentEn: [
       "Pieces with organic shapes and soft edges keep growing because they work well on walls and floors.",
@@ -64,11 +64,11 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "tutoriales",
-    title: "Como preparar tu archivo para cotizar",
+    title: "Cómo preparar tu archivo para cotizar",
     titleEn: "How to prepare your file for a quote",
     category: "Tutoriales",
     categoryEn: "Tutorials",
-    excerpt: "Que imagen subir y que detalles enviar para una cotizacion mas precisa.",
+    excerpt: "Qué imagen subir y que detalles enviar para una cotización más precisa.",
     excerptEn: "What image to upload and what details to send for a more accurate quote.",
     content: [
       "Sube una imagen nitida, idealmente frontal y sin sombras fuertes. Si tienes colores exactos, agregalos en comentarios.",
@@ -80,3 +80,6 @@ export const blogPosts: BlogPost[] = [
     ],
   },
 ];
+
+
+

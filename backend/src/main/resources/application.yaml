@@ -1,18 +1,34 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
   application:
     name: backend
 
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 32MB
+
   datasource:
-    url: jdbc:postgresql://ep-frosty-cell-ac8ay65g-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
-    username: neondb_owner
-    password: npg_R8hMFNfEpun1
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/myfavoriterug}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
-        
+
+app:
+  frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
+  backend-base-url: ${BACKEND_BASE_URL:http://localhost:8080}
+  upload-dir: ${UPLOAD_DIR:uploads/product-images}
+  flow:
+    api-url: ${FLOW_API_URL:https://sandbox.flow.cl/api}
+    api-key: ${FLOW_API_KEY:}
+    secret-key: ${FLOW_SECRET_KEY:}
