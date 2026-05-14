@@ -7,6 +7,7 @@ frontend/*.local
 
 # Backend
 backend/target/
+backend/.env
 
 # Logs
 logs/
@@ -18,3 +19,4 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+.kiro

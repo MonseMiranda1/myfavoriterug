@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 import adminIcon from "../assets/icons/admin.png";
 import compraIcon from "../assets/icons/compra.png";
@@ -73,3 +73,4 @@ export default function Footer() {
     </footer>
   );
 }
+

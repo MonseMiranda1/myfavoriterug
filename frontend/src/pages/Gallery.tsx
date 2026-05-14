@@ -12,6 +12,13 @@ const filters: Array<GalleryCategory | "Todas"> = [
   "Finished Rugs",
 ];
 
+function getCategoryLabel(category: GalleryCategory, t: ReturnType<typeof useLanguage>["t"]) {
+  if (category === "Customer Photos") return t("gallery.customers");
+  if (category === "Behind The Scenes") return t("gallery.behind");
+  if (category === "Video Process") return t("gallery.video");
+  return t("gallery.finished");
+}
+
 export default function Gallery({ initialCategory = "Todas" }: { initialCategory?: GalleryCategory | "Todas" }) {
   const { language, t } = useLanguage();
   const [activeFilter, setActiveFilter] = useState<GalleryCategory | "Todas">(initialCategory);
@@ -39,7 +46,7 @@ export default function Gallery({ initialCategory = "Todas" }: { initialCategory
               className={activeFilter === filter ? "is-active" : ""}
               onClick={() => setActiveFilter(filter)}
             >
-              {filter === "Todas" ? t("gallery.all") : filter === "Customer Photos" ? t("gallery.customers") : filter === "Behind The Scenes" ? t("gallery.behind") : filter === "Video Process" ? t("gallery.video") : t("gallery.finished")}
+              {filter === "Todas" ? t("gallery.all") : getCategoryLabel(filter, t)}
             </button>
           ))}
         </div>
@@ -48,7 +55,7 @@ export default function Gallery({ initialCategory = "Todas" }: { initialCategory
           {items.map((item) => (
             <article className="content-card" key={item.id}>
               <img src={item.image} alt={item.title} />
-              <span>{item.category}</span>
+              <span>{getCategoryLabel(item.category, t)}</span>
               <h2>{language === "en" ? item.titleEn : item.title}</h2>
               <p>{language === "en" ? item.descriptionEn : item.description}</p>
             </article>

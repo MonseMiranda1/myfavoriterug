@@ -1,0 +1,74 @@
+package rug.backend.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import rug.backend.model.CustomerOrder;
+import rug.backend.model.OrderStatus;
+import rug.backend.repository.OrderRepository;
+
+@Service
+public class OrderService {
+    private static final int MAX_ITEM_IMAGE_LENGTH = 1200;
+
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    public List<CustomerOrder> getOrders() {
+        return orderRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    public CustomerOrder getOrder(Long id) {
+        return orderRepository.findById(id).orElse(null);
+    }
+
+    public CustomerOrder createOrder(CustomerOrder order) {
+        if ("Transferencia".equalsIgnoreCase(order.getPaymentMethod()) || "TRANSFERENCIA".equalsIgnoreCase(order.getPaymentMethod())) {
+            order.setStatus(OrderStatus.CONFIRMED);
+        }
+
+        if (order.getItems() != null) {
+            order.getItems().forEach(item -> {
+                String image = item.getImage();
+
+                if (image != null && image.length() > MAX_ITEM_IMAGE_LENGTH) {
+                    item.setImage(image.substring(0, MAX_ITEM_IMAGE_LENGTH));
+                }
+            });
+        }
+
+        return orderRepository.save(order);
+    }
+
+    public CustomerOrder updateShipping(Long id, String trackingNumber, String shippingStatus) {
+        CustomerOrder order = getOrder(id);
+
+        if (order == null) {
+            return null;
+        }
+
+        order.setTrackingNumber(trackingNumber);
+        order.setShippingStatus(shippingStatus);
+
+        if (shippingStatus != null && !shippingStatus.isBlank()) {
+            order.setStatus(OrderStatus.SHIPPED);
+        }
+
+        return orderRepository.save(order);
+    }
+
+    public CustomerOrder updateStatus(Long id, OrderStatus status) {
+        CustomerOrder order = getOrder(id);
+
+        if (order == null) {
+            return null;
+        }
+
+        order.setStatus(status);
+        return orderRepository.save(order);
+    }
+}

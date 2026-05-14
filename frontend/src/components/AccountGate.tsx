@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+﻿import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useLanguage } from "../i18n";
 import { ACCOUNT_AUTH_EVENT, getAccountUser, loginAccount, type AccountUser } from "../services/accountAuth";
 import Footer from "./Footer";
@@ -49,13 +49,13 @@ export default function AccountGate({ children }: AccountGateProps) {
 
       <main className="account-login-page">
         <section className="account-login-card">
-          <span className="account-kicker">{language === "en" ? "Customer area" : "Area cliente"}</span>
+          <span className="account-kicker">{language === "en" ? "Customer area" : "Área cliente"}</span>
           <h1>{language === "en" ? "Sign in" : "Inicia sesion"}</h1>
           <p>{language === "en" ? "Access your profile, orders, and quotes." : "Accede para revisar tu perfil, pedidos y cotizaciones."}</p>
 
           <form onSubmit={handleLogin}>
             <label>
-              <span>{language === "en" ? "Email" : "Correo electronico"}</span>
+              <span>{language === "en" ? "Email" : "Correo electrónico"}</span>
               <input
                 type="email"
                 value={email}
@@ -84,3 +84,6 @@ export default function AccountGate({ children }: AccountGateProps) {
     </>
   );
 }
+
+
+
