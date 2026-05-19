@@ -9,13 +9,13 @@ El proyecto esta separado en dos partes:
 
 ## Estado actual
 
-El frontend ya tiene las pantallas principales y esta preparado para pedir productos al backend en:
+El frontend ya tiene las pantallas principales y consume el backend en:
 
 ```txt
-http://localhost:8080/api/products
+http://localhost:8080/api
 ```
 
-El backend existe como proyecto Spring Boot, pero las clases de productos todavia estan vacias. Por eso, para que la tienda muestre productos reales, falta implementar el modelo, repositorio, servicio y controlador de productos.
+El backend ya tiene endpoints para productos, pedidos, pagos y autenticacion de clientes. La tienda puede pedir productos al backend, crear pedidos y manejar inicio de sesion de clientes con un token de sesion.
 
 ## Tecnologias usadas
 
@@ -75,10 +75,10 @@ backend/
 - `pom.xml`: define las dependencias del backend, como Spring Boot, JPA y PostgreSQL.
 - `mvnw` y `mvnw.cmd`: permiten ejecutar Maven sin instalarlo globalmente.
 - `BackendApplication.java`: archivo principal que inicia el backend.
-- `controller/`: deberia contener las rutas de la API. Por ejemplo, un controlador para `/api/products`.
-- `model/`: deberia contener las clases que representan datos de la base de datos, como `Product`.
-- `repository/`: deberia contener las clases que hablan con la base de datos.
-- `service/`: deberia contener la logica del negocio antes de responder al frontend.
+- `controller/`: rutas de la API, por ejemplo `/api/products`, `/api/orders`, `/api/payments` y `/api/auth`.
+- `model/`: entidades JPA que representan datos de la base de datos, como `Product`, `CustomerOrder`, `Payment` y `AccountUser`.
+- `repository/`: interfaces de Spring Data JPA para consultar y guardar datos.
+- `service/`: logica del negocio antes de responder al frontend.
 - `application.yaml`: configuracion del backend, incluyendo la conexion a PostgreSQL.
 - `test/`: pruebas automaticas del backend.
 
@@ -199,13 +199,192 @@ npm run preview
 
 En Windows, cambiar `./mvnw` por `mvnw.cmd`.
 
+## Cliente Axios del frontend
+
+El frontend usa Axios para comunicarse con el backend. La instancia compartida esta en:
+
+```txt
+frontend/src/services/http.ts
+```
+
+Ese archivo define:
+
+```ts
+export const API = axios.create({
+  baseURL: "http://localhost:8080/api",
+});
+```
+
+Todos los servicios del frontend deben importar esa instancia en vez de crear otra:
+
+```ts
+import { API } from "./http";
+```
+
+Esto evita repetir la URL base y deja un solo lugar para configurar headers, interceptores o cambios de ambiente.
+
+Servicios que usan el cliente compartido:
+
+- `frontend/src/services/api.ts`: productos y categorias.
+- `frontend/src/services/orders.ts`: pedidos y pagos.
+- `frontend/src/services/accountAuth.ts`: login, registro, perfil y logout.
+
+`http.ts` tambien expone `getApiErrorMessage()`, que permite mostrar mensajes enviados por el backend en respuestas como:
+
+```json
+{ "message": "Correo o contraseña incorrectos." }
+```
+
+## Autenticacion de clientes
+
+La autenticacion real ocurre en el backend. El frontend solo muestra el formulario y guarda la sesion devuelta por la API.
+
+Archivos principales del backend:
+
+- `backend/src/main/java/rug/backend/controller/AuthController.java`
+- `backend/src/main/java/rug/backend/service/AuthService.java`
+- `backend/src/main/java/rug/backend/model/AccountUser.java`
+- `backend/src/main/java/rug/backend/model/AccountSession.java`
+- `backend/src/main/java/rug/backend/repository/AccountUserRepository.java`
+- `backend/src/main/java/rug/backend/repository/AccountSessionRepository.java`
+
+Endpoints disponibles:
+
+```txt
+POST  /api/auth/register
+POST  /api/auth/login
+GET   /api/auth/me
+PATCH /api/auth/me
+POST  /api/auth/logout
+```
+
+### Registro
+
+`POST /api/auth/register`
+
+Body esperado:
+
+```json
+{
+  "name": "Cliente",
+  "email": "cliente@email.com",
+  "password": "secreto123",
+  "phone": "",
+  "rut": "",
+  "address": ""
+}
+```
+
+Respuesta:
+
+```json
+{
+  "token": "token-de-sesion",
+  "user": {
+    "name": "Cliente",
+    "email": "cliente@email.com",
+    "phone": "",
+    "rut": "",
+    "address": ""
+  }
+}
+```
+
+### Login
+
+`POST /api/auth/login`
+
+Body esperado:
+
+```json
+{
+  "email": "cliente@email.com",
+  "password": "secreto123"
+}
+```
+
+Si las credenciales son correctas, responde igual que registro: token y datos del usuario. Si son incorrectas, responde `401` con un mensaje de error.
+
+### Sesion actual
+
+`GET /api/auth/me`
+
+Debe enviarse el token en el header:
+
+```txt
+Authorization: Bearer token-de-sesion
+```
+
+Respuesta:
+
+```json
+{
+  "name": "Cliente",
+  "email": "cliente@email.com",
+  "phone": "",
+  "rut": "",
+  "address": ""
+}
+```
+
+### Actualizar perfil
+
+`PATCH /api/auth/me`
+
+Tambien requiere:
+
+```txt
+Authorization: Bearer token-de-sesion
+```
+
+Body esperado:
+
+```json
+{
+  "name": "Cliente actualizado",
+  "phone": "+56912345678",
+  "rut": "11111111-1",
+  "address": "Santiago, Chile"
+}
+```
+
+### Logout
+
+`POST /api/auth/logout`
+
+El backend elimina la sesion asociada al token. El frontend tambien borra la sesion guardada en `localStorage`.
+
+### Seguridad actual
+
+- La contraseña no se guarda en texto plano.
+- `AuthService` guarda un hash PBKDF2 con salt.
+- El navegador guarda el token y los datos del usuario en `localStorage`.
+- El token se envia como `Authorization: Bearer ...` para endpoints protegidos.
+
+Pendiente recomendado para produccion:
+
+- Mover el token a cookies `HttpOnly` y `Secure`.
+- Agregar expiracion de sesiones.
+- Agregar Spring Security o JWT si se necesita control de roles.
+- Mover el login admin al backend. Actualmente el panel admin todavia tiene credenciales hardcodeadas en frontend.
+
 ## Flujo basico de datos
 
 1. El usuario abre el frontend.
 2. La pagina `/tienda` llama a `getProducts()`.
-3. `getProducts()` usa Axios para pedir datos a `http://localhost:8080/api/products`.
-4. El backend deberia responder con una lista de productos.
-5. React muestra esos productos en la tienda.
+3. `getProducts()` usa `API` desde `frontend/src/services/http.ts`.
+4. Axios pide datos a `http://localhost:8080/api/products`.
+5. El backend responde con una lista de productos.
+6. React muestra esos productos en la tienda.
+
+Flujo basico de login:
+
+1. El usuario escribe correo y contraseña en el frontend.
+2. `AccountGate` llama a `loginAccount()` o `registerAccount()`.
+3. `accountAuth.ts` envia la solicitud a `/api/auth/login` o `/api/auth/register`.
+4. El backend valida credenciales y devuelve token + usuario.
+5. El frontend guarda `{ token, user }` en `localStorage`.
+6. Para `/api/auth/me`, el frontend envia `Authorization: Bearer token`.
 
 El tipo de producto esperado por el frontend es:
 
@@ -220,13 +399,12 @@ type Product = {
 
 ## Tareas pendientes recomendadas
 
-- Implementar `Product` como entidad JPA en el backend.
-- Implementar `ProductRepository` usando Spring Data JPA.
-- Implementar `ProductService` para obtener productos.
-- Implementar `ProductController` con el endpoint `GET /api/products`.
 - Revisar la configuracion de CORS si el frontend no puede comunicarse con el backend.
 - Hacer que el boton "Agregar al carrito" guarde productos.
 - Completar la logica real del carrito y checkout.
+- Proteger endpoints admin desde backend.
+- Mover el login admin al backend.
+- Agregar expiracion de tokens de sesion.
 - Mover credenciales sensibles de `application.yaml` a variables de entorno antes de subir o compartir el proyecto.
 
 ## Nota para el equipo

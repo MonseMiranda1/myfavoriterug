@@ -8,6 +8,7 @@ frontend/*.local
 # Backend
 backend/target/
 backend/.env
+backend/uploads/
 
 # Logs
 logs/

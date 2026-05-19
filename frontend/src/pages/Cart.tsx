@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { type CartItem, getCartItems, saveCartItems } from "../services/cart";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useLanguage } from "../i18n";
 
 const MINIMUM_ORDER = 15000;
@@ -22,15 +22,11 @@ function getSubtotal(items: CartItem[]) {
 
 export default function Cart() {
   const { t } = useLanguage();
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(getCartItems);
   const subtotal = useMemo(() => getSubtotal(items), [items]);
   const tax = Math.round(subtotal * TAX_RATE);
   const total = subtotal + tax;
   const missingAmount = Math.max(MINIMUM_ORDER - total, 0);
-
-  useEffect(() => {
-    setItems(getCartItems());
-  }, []);
 
   function updateItems(nextItems: CartItem[]) {
     setItems(nextItems);

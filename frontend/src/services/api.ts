@@ -1,5 +1,5 @@
-import axios from "axios";
 import { localProducts } from "../data/products";
+import { API } from "./http";
 
 export type Product = {
   id: number | string;
@@ -36,10 +36,6 @@ const defaultCategories: Category[] = [
   { id: "animales", name: "Animales", status: "Visible" },
   { id: "disney", name: "Disney", status: "Visible" },
 ];
-
-const API = axios.create({
-  baseURL: "http://localhost:8080/api"
-});
 
 function canUseStorage() {
   return typeof window !== "undefined" && Boolean(window.localStorage);
