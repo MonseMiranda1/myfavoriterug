@@ -309,37 +309,6 @@ const sectionCopy: Record<AdminSection, { title: string; description: string }> 
   upload: { title: "Subir productos", description: "Carga productos temporales al catalogo." },
 };
 
-const sectionRows: Record<Exclude<AdminSection, "quotes">, Array<Record<string, string>>> = {
-  orders: [
-    { Número: "ORD-20260502-01", Cliente: "constructora zero spa", Estado: "Pendiente" },
-    { Número: "ORD-20260428-02", Cliente: "Municipalidad Los Angeles", Estado: "En producción" },
-  ],
-  "purchase-orders": [
-    { Número: "OC-1028", Proveedor: "Lanas premium", Estado: "Solicitada" },
-    { Número: "OC-1029", Proveedor: "Empaque y cajas", Estado: "Recibida" },
-  ],
-  payments: [
-    { Cliente: "MARSUR CHILE", Total: formatClp(904400), Estado: "Pagado" },
-    { Cliente: "Municipalidad Los Angeles", Total: formatClp(9999998), Estado: "Pendiente" },
-  ],
-  shipping: [
-    { Pedido: "ORD-20260428-02", Destino: "Los Angeles, Chile", Estado: "Preparando" },
-    { Pedido: "ORD-20260418-03", Destino: "Santiago, Chile", Estado: "Enviado" },
-  ],
-  products: [
-    { Producto: "Alfombra personalizada 60x90", Precio: formatClp(45000), Estado: "Activa" },
-    { Producto: "Alfombra personalizada 120x180", Precio: formatClp(139000), Estado: "Activa" },
-  ],
-  categories: [
-    { Categoría: "Anime", Productos: "8", Estado: "Visible" },
-    { Categoría: "Logos", Productos: "12", Estado: "Visible" },
-  ],
-  upload: [
-    { Campo: "Imagen", Requisito: "PNG, JPG o WEBP", Estado: "Pendiente" },
-    { Campo: "Precio", Requisito: "CLP, USD o EUR", Estado: "Pendiente" },
-  ],
-};
-
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem("admin-authenticated") === "true");
   const [username, setUsername] = useState("");
@@ -860,9 +829,6 @@ export default function Admin() {
       purchaseOrder.status,
     ].some((value) => value.toLowerCase().includes(adminQuery));
   });
-  const selectedOrderPayment = selectedOrder
-    ? payments.find((payment) => String(payment.order?.id) === String(selectedOrder.id))
-    : undefined;
   const selectedPurchaseOrderRelatedOrder = selectedPurchaseOrder
     ? adminOrders.find((order) =>
         [String(order.id), order.orderNumber ?? ""].includes(selectedPurchaseOrder.relatedOrderNumber ?? ""),
@@ -1978,31 +1944,7 @@ export default function Admin() {
                         </tbody>
                       </table>
                     </div>
-                  ) : (
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          {Object.keys(sectionRows[activeSection][0]).map((heading) => (
-                            <th key={heading}>{heading}</th>
-                          ))}
-                          <th>Accion</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sectionRows[activeSection].map((row, index) => (
-                          <tr key={`${activeSection}-${index}`}>
-                            {Object.values(row).map((value) => (
-                              <td key={value}>{value}</td>
-                            ))}
-                            <td>
-                              <button type="button">Ver</button>
-                              <button type="button">Editar</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                ) : null}
                 </div>
               </section>
             </section>
