@@ -1,3 +1,5 @@
+import { API, getApiErrorMessage } from "./http";
+
 export type AccountUser = {
   name: string;
   email: string;
@@ -6,53 +8,119 @@ export type AccountUser = {
   address: string;
 };
 
+type AccountSession = {
+  token: string;
+  user: AccountUser;
+};
+
+type AuthResponse = AccountSession;
+
 export const ACCOUNT_SESSION_KEY = "my-favorite-rug-account-session";
 export const ACCOUNT_AUTH_EVENT = "my-favorite-rug-account-auth";
-
-const defaultUser: AccountUser = {
-  name: "miussette alfaro silva",
-  email: "miussette.alfaro@gmail.com",
-  phone: "+56929631899",
-  rut: "180651039",
-  address: "kkkk, kkkk, kkkk - kkkk",
-};
 
 function notifyAuthChanged() {
   window.dispatchEvent(new Event(ACCOUNT_AUTH_EVENT));
 }
 
-export function getAccountUser(): AccountUser | null {
+function readSession(): AccountSession | null {
   const rawSession = window.localStorage.getItem(ACCOUNT_SESSION_KEY);
 
   if (!rawSession) return null;
 
   try {
     const parsed = JSON.parse(rawSession);
-    return { ...defaultUser, ...parsed };
+
+    if (parsed?.token && parsed?.user) {
+      return parsed;
+    }
+
+    return null;
   } catch {
     return null;
   }
 }
 
-export function loginAccount(email: string) {
-  const user = {
-    ...defaultUser,
-    email,
-    name: email.trim().toLowerCase() === defaultUser.email ? defaultUser.name : email.split("@")[0],
-  };
-
-  window.localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(user));
+function saveSession(session: AccountSession) {
+  window.localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(session));
   notifyAuthChanged();
-  return user;
 }
 
-export function updateAccountUser(nextUser: AccountUser) {
-  window.localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(nextUser));
-  notifyAuthChanged();
-  return nextUser;
+function authHeaders() {
+  const token = getAccountToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export function logoutAccount() {
-  window.localStorage.removeItem(ACCOUNT_SESSION_KEY);
-  notifyAuthChanged();
+export function getAccountUser(): AccountUser | null {
+  return readSession()?.user ?? null;
+}
+
+export function getAccountToken(): string | null {
+  return readSession()?.token ?? null;
+}
+
+export async function loginAccount(email: string, password: string) {
+  try {
+    const response = await API.post<AuthResponse>("/auth/login", { email, password });
+    saveSession(response.data);
+    return response.data.user;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudo iniciar sesion."), { cause: error });
+  }
+}
+
+export async function registerAccount(email: string, password: string) {
+  try {
+    const response = await API.post<AuthResponse>("/auth/register", {
+      email,
+      password,
+      name: email.split("@")[0],
+      phone: "",
+      rut: "",
+      address: "",
+    });
+    saveSession(response.data);
+    return response.data.user;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudo crear la cuenta."), { cause: error });
+  }
+}
+
+export async function refreshAccountUser() {
+  const token = getAccountToken();
+
+  if (!token) return null;
+
+  try {
+    const response = await API.get<AccountUser>("/auth/me", { headers: authHeaders() });
+    saveSession({ token, user: response.data });
+    return response.data;
+  } catch {
+    logoutAccount();
+    return null;
+  }
+}
+
+export async function updateAccountUser(nextUser: AccountUser) {
+  const session = readSession();
+
+  if (!session) {
+    throw new Error("Sesion invalida.");
+  }
+
+  try {
+    const response = await API.patch<AccountUser>("/auth/me", nextUser, { headers: authHeaders() });
+    saveSession({ token: session.token, user: response.data });
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudo actualizar la cuenta."), { cause: error });
+  }
+}
+
+export async function logoutAccount() {
+  try {
+    await API.post("/auth/logout", null, { headers: authHeaders() });
+  } finally {
+    window.localStorage.removeItem(ACCOUNT_SESSION_KEY);
+    notifyAuthChanged();
+  }
 }

@@ -50,15 +50,15 @@ function getCategoryLabel(category: string, t: ReturnType<typeof useLanguage>["t
 
 export default function Store() {
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [searchValue, setSearchValue] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [purchaseType, setPurchaseType] = useState("Todos");
   const [sortBy, setSortBy] = useState("name-asc");
   const [showFilters, setShowFilters] = useState(true);
-  const [searchParams] = useSearchParams();
+  const searchParamValue = searchParams.get("buscar") ?? "";
   const searchTerm = searchParams.get("buscar")?.trim().toLowerCase() ?? "";
   const query = activeSearch.trim().toLowerCase() || searchTerm;
   const categoryOptions = useMemo(
@@ -108,13 +108,10 @@ export default function Store() {
     };
   }, []);
 
-  useEffect(() => {
-    setSearchValue(searchParams.get("buscar") ?? "");
-  }, [searchParams]);
-
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setActiveSearch(searchValue);
+    const formData = new FormData(event.currentTarget);
+    setActiveSearch(String(formData.get("search") ?? ""));
   }
 
   return (
@@ -177,9 +174,10 @@ export default function Store() {
           <section className="store-results" aria-label="Productos">
             <form className="store-search" onSubmit={handleSearch}>
               <input
+                key={searchParamValue}
+                name="search"
                 type="search"
-                value={searchValue}
-                onChange={(event) => setSearchValue(event.target.value)}
+                defaultValue={searchParamValue}
                 placeholder={t("store.searchPlaceholder")}
               />
               <button type="submit">{t("store.search")}</button>

@@ -320,7 +320,7 @@ const sectionRows: Record<Exclude<AdminSection, "quotes">, Array<Record<string, 
 };
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem("admin-authenticated") === "true");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -333,7 +333,7 @@ export default function Admin() {
   const [limit, setLimit] = useState("10");
   const [uploadedProducts, setUploadedProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(getCategories);
   const [productForm, setProductForm] = useState(emptyProductForm);
   const [productFormMessage, setProductFormMessage] = useState("");
   const [categoryForm, setCategoryForm] = useState(emptyCategoryForm);
@@ -341,7 +341,7 @@ export default function Admin() {
   const [projects, setProjects] = useState(initialProjects);
   const [projectForm, setProjectForm] = useState(emptyProjectForm);
   const [projectMessage, setProjectMessage] = useState("");
-  const [adminOrders, setAdminOrders] = useState<Order[]>([]);
+  const [adminOrders, setAdminOrders] = useState<Order[]>(getOrders);
   const [shippingForm, setShippingForm] = useState(emptyShippingForm);
   const [shippingMessage, setShippingMessage] = useState("");
   const [payments, setPayments] = useState(initialPayments);
@@ -350,9 +350,6 @@ export default function Admin() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
-    setIsLoggedIn(sessionStorage.getItem("admin-authenticated") === "true");
-    setCategories(getCategories());
-    setAdminOrders(getOrders());
     refreshAdminProducts();
   }, []);
 

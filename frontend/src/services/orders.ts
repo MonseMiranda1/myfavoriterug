@@ -1,5 +1,5 @@
-import axios from "axios";
 import type { CartItem } from "./cart";
+import { API } from "./http";
 
 export type Order = {
   id: string | number;
@@ -28,10 +28,6 @@ export type Payment = {
 
 const ORDERS_STORAGE_KEY = "my-favorite-rug-orders";
 export const ORDERS_UPDATED_EVENT = "my-favorite-rug-orders-updated";
-
-const API = axios.create({
-  baseURL: "http://localhost:8080/api",
-});
 
 export function getOrders(): Order[] {
   const raw = window.localStorage.getItem(ORDERS_STORAGE_KEY);

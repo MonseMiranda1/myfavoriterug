@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import AccountGate from "../components/AccountGate";
 import AccountSidebar, { BoxIcon } from "../components/AccountSidebar";
 import Footer from "../components/Footer";
@@ -18,24 +18,28 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
   const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [formUser, setFormUser] = useState(user);
-
-  useEffect(() => {
-    setFormUser(user);
-  }, [user]);
+  const [message, setMessage] = useState("");
 
   function updateField(field: keyof AccountUser, value: string) {
     setFormUser((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const savedUser = updateAccountUser(formUser);
-    onUserUpdate(savedUser);
-    setIsEditing(false);
+
+    try {
+      const savedUser = await updateAccountUser(formUser);
+      onUserUpdate(savedUser);
+      setMessage("");
+      setIsEditing(false);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "No se pudo guardar.");
+    }
   }
 
   function handleCancel() {
     setFormUser(user);
+    setMessage("");
     setIsEditing(false);
   }
 
@@ -74,6 +78,7 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
           </label>
 
           <div className="account-edit-actions">
+            {message && <strong className="account-login-error">{message}</strong>}
             <button type="button" onClick={handleCancel}>
               {t("account.cancel")}
             </button>
@@ -110,11 +115,6 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
 
 function AccountContent({ sessionUser }: { sessionUser: AccountUser }) {
   const { t } = useLanguage();
-  const [user, setUser] = useState(sessionUser);
-
-  useEffect(() => {
-    setUser(sessionUser);
-  }, [sessionUser]);
 
   return (
     <>
@@ -125,15 +125,15 @@ function AccountContent({ sessionUser }: { sessionUser: AccountUser }) {
           <span className="account-kicker">{t("account.area")}</span>
           <h1>{t("account.myAccount")}</h1>
           <p>
-            {t("account.welcome")} <strong>{user.name}</strong>
+            {t("account.welcome")} <strong>{sessionUser.name}</strong>
           </p>
         </header>
 
         <div className="account-shell">
-          <AccountSidebar activeSection="profile" user={user} />
+          <AccountSidebar activeSection="profile" user={sessionUser} />
 
           <section className="account-content">
-            <ProfileCard user={user} onUserUpdate={setUser} />
+            <ProfileCard key={`${sessionUser.email}-${sessionUser.name}`} user={sessionUser} onUserUpdate={() => undefined} />
 
             <article className="account-card account-orders-card">
               <h2>{t("account.recentOrders")}</h2>

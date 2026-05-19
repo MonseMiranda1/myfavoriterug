@@ -18,6 +18,7 @@ function BrandLogo() {
 }
 
 export default function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [cartQuantity, setCartQuantity] = useState(0);
@@ -55,18 +56,35 @@ export default function Navbar() {
     setLanguage(nextLanguage);
   }
 
+  function closeMenu() {
+    setIsMenuOpen(false);
+  }
+
   return (
     <header className="site-header">
       <nav className="main-nav">
         <BrandLogo />
 
-        <div className="nav-links">
-          <Link to="/tienda">{t("nav.store")}</Link>
-          <Link to="/personaliza">{t("nav.custom")}</Link>
-          <Link to="/galeria">{t("nav.gallery")}</Link>
-          <Link to="/sobre-nosotros">{t("nav.about")}</Link>
-          <Link to="/blog">{t("nav.blog")}</Link>
-          <Link to="/contacto">{t("nav.contact")}</Link>
+        <button
+          type="button"
+          className={`mobile-menu-toggle${isMenuOpen ? " is-open" : ""}`}
+          aria-label={isMenuOpen ? "Cerrar menu" : "Abrir menu"}
+          aria-controls="primary-navigation"
+          aria-expanded={isMenuOpen}
+          onClick={() => setIsMenuOpen((current) => !current)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <div id="primary-navigation" className={`nav-links${isMenuOpen ? " is-open" : ""}`}>
+          <Link to="/tienda" onClick={closeMenu}>{t("nav.store")}</Link>
+          <Link to="/personaliza" onClick={closeMenu}>{t("nav.custom")}</Link>
+          <Link to="/galeria" onClick={closeMenu}>{t("nav.gallery")}</Link>
+          <Link to="/sobre-nosotros" onClick={closeMenu}>{t("nav.about")}</Link>
+          <Link to="/blog" onClick={closeMenu}>{t("nav.blog")}</Link>
+          <Link to="/contacto" onClick={closeMenu}>{t("nav.contact")}</Link>
         </div>
 
         <div className={`nav-actions${isSearchOpen ? " is-search-open" : ""}`} aria-label="Acciones">

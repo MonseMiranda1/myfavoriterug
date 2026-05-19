@@ -28,14 +28,69 @@ http://localhost:5173
 
 ## Conexion con backend
 
-El frontend pide productos a:
+El frontend se comunica con el backend usando Axios. La instancia compartida esta en:
 
 ```txt
-http://localhost:8080/api/products
+src/services/http.ts
 ```
 
-Esa URL esta configurada en:
+Ese archivo configura la URL base:
 
 ```txt
-src/services/api.ts
+http://localhost:8080/api
 ```
+
+Los servicios no deben crear nuevas instancias de Axios. Deben importar el cliente compartido:
+
+```ts
+import { API } from "./http";
+```
+
+Servicios actuales:
+
+- `src/services/api.ts`: productos y categorias.
+- `src/services/orders.ts`: pedidos y pagos.
+- `src/services/accountAuth.ts`: registro, login, perfil y logout.
+
+## Login de clientes
+
+El login no se valida en el frontend. El frontend envia email y contraseña al backend:
+
+```txt
+POST /api/auth/login
+```
+
+Si el login es correcto, el backend responde:
+
+```json
+{
+  "token": "token-de-sesion",
+  "user": {
+    "name": "Cliente",
+    "email": "cliente@email.com",
+    "phone": "",
+    "rut": "",
+    "address": ""
+  }
+}
+```
+
+El frontend guarda esa sesion en `localStorage` usando la key:
+
+```txt
+my-favorite-rug-account-session
+```
+
+Para consultar o actualizar el perfil se envia el token:
+
+```txt
+Authorization: Bearer token-de-sesion
+```
+
+Archivos involucrados:
+
+- `src/components/AccountGate.tsx`: formulario de login/registro.
+- `src/services/accountAuth.ts`: llamadas a `/api/auth`.
+- `src/pages/Account.tsx`: edicion de perfil.
+
+Nota: el login admin todavia vive en `src/pages/Admin.tsx` con credenciales hardcodeadas. Conviene moverlo al backend en una siguiente etapa.
