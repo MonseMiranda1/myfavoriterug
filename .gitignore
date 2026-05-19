@@ -4,6 +4,7 @@ frontend/dist/
 frontend/dist-ssr/
 frontend/*.log
 frontend/*.local
+frontend/.env
 
 # Backend
 backend/target/
