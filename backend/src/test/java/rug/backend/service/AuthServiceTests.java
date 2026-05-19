@@ -3,12 +3,19 @@ package rug.backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.security.MessageDigest;
+import java.time.Instant;
+import java.util.Base64;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import rug.backend.model.AccountPasswordResetToken;
 import rug.backend.model.AccountUser;
+import rug.backend.repository.AccountPasswordResetTokenRepository;
 import rug.backend.repository.AccountSessionRepository;
 import rug.backend.repository.AccountUserRepository;
 import rug.backend.service.AuthService.ProfileInput;
@@ -31,8 +38,15 @@ class AuthServiceTests {
     @Autowired
     private AccountSessionRepository accountSessionRepository;
 
+    @Autowired
+    private AccountPasswordResetTokenRepository accountPasswordResetTokenRepository;
+
+    @MockitoBean
+    private PasswordResetEmailService passwordResetEmailService;
+
     @BeforeEach
     void cleanDatabase() {
+        accountPasswordResetTokenRepository.deleteAll();
         accountSessionRepository.deleteAll();
         accountUserRepository.deleteAll();
     }
@@ -117,5 +131,56 @@ class AuthServiceTests {
 
         assertThat(authService.findUserByToken(registered.token())).isEmpty();
         assertThat(authService.findUserByToken(loggedIn.token())).isPresent();
+    }
+
+    @Test
+    void requestPasswordResetStoresTokenWithoutRevealingIfEmailExists() {
+        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+
+        authService.requestPasswordReset(" MARIA@example.com ");
+        authService.requestPasswordReset("missing@example.com");
+
+        assertThat(accountPasswordResetTokenRepository.findAll()).hasSize(1);
+        assertThat(accountPasswordResetTokenRepository.findAll().getFirst().getExpiresAt()).isAfter(Instant.now());
+    }
+
+    @Test
+    void resetPasswordChangesPasswordInvalidatesTokenAndSessions() throws Exception {
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        String resetToken = "reset-token-123";
+
+        AccountPasswordResetToken token = new AccountPasswordResetToken();
+        token.setUser(registered.user());
+        token.setTokenHash(hashToken(resetToken));
+        token.setExpiresAt(Instant.now().plusSeconds(600));
+        accountPasswordResetTokenRepository.save(token);
+
+        authService.resetPassword("maria@example.com", resetToken, "updated123");
+
+        assertThat(authService.findUserByToken(registered.token())).isEmpty();
+        assertThat(authService.login("maria@example.com", "updated123").token()).isNotBlank();
+        assertThatThrownBy(() -> authService.resetPassword("maria@example.com", resetToken, "again123"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Token");
+    }
+
+    @Test
+    void resetPasswordRejectsExpiredToken() throws Exception {
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        String resetToken = "expired-token";
+
+        AccountPasswordResetToken token = new AccountPasswordResetToken();
+        token.setUser(registered.user());
+        token.setTokenHash(hashToken(resetToken));
+        token.setExpiresAt(Instant.now().minusSeconds(1));
+        accountPasswordResetTokenRepository.save(token);
+
+        assertThatThrownBy(() -> authService.resetPassword("maria@example.com", resetToken, "updated123"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Token");
+    }
+
+    private String hashToken(String token) throws Exception {
+        return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(token.getBytes()));
     }
 }

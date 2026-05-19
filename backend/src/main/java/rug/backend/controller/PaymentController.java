@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,11 @@ public class PaymentController {
 
     public PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
+    }
+
+    @GetMapping
+    public List<Payment> getPayments() {
+        return paymentService.getPayments();
     }
 
     @GetMapping("/order/{orderId}")
@@ -69,6 +75,12 @@ public class PaymentController {
         }
 
         return ResponseEntity.ok(payment);
+    }
+
+    @DeleteMapping("/{paymentId}")
+    public ResponseEntity<Void> deletePayment(@PathVariable Long paymentId) {
+        paymentService.deletePayment(paymentId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/flow/confirmation")

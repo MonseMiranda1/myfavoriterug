@@ -18,7 +18,7 @@ import rug.backend.service.AuthService.RegisterInput;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = { "http://localhost:5173", "http://127.0.0.1:5173" })
 public class AuthController {
     private final AuthService authService;
 
@@ -47,6 +47,26 @@ public class AuthController {
             return ResponseEntity.ok(toAuthResponse(authService.login(request.email(), request.password())));
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(exception.getMessage()));
+        }
+    }
+
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
+        try {
+            authService.requestPasswordReset(request.email());
+            return ResponseEntity.ok(new MessageResponse("Si el correo existe, enviaremos un token para restaurar la contrasena."));
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(exception.getMessage()));
+        }
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<?> confirmPasswordReset(@RequestBody PasswordResetConfirmRequest request) {
+        try {
+            authService.resetPassword(request.email(), request.token(), request.password());
+            return ResponseEntity.ok(new MessageResponse("Contrasena actualizada correctamente."));
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(exception.getMessage()));
         }
     }
 
@@ -98,6 +118,12 @@ public class AuthController {
     public record RegisterRequest(String name, String email, String password, String phone, String rut, String address) {
     }
 
+    public record PasswordResetRequest(String email) {
+    }
+
+    public record PasswordResetConfirmRequest(String email, String token, String password) {
+    }
+
     public record ProfileRequest(String name, String phone, String rut, String address) {
     }
 
@@ -105,6 +131,9 @@ public class AuthController {
     }
 
     public record AuthResponse(String token, UserResponse user) {
+    }
+
+    public record MessageResponse(String message) {
     }
 
     public record ErrorResponse(String message) {

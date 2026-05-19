@@ -24,6 +24,9 @@ export type Payment = {
   currency: string;
   status: string;
   redirectUrl?: string;
+  order?: Order;
+  createdAt?: string;
+  paidAt?: string;
 };
 
 const ORDERS_STORAGE_KEY = "my-favorite-rug-orders";
@@ -76,6 +79,11 @@ export async function createOrder(order: Omit<Order, "id" | "createdAt" | "statu
   return response.data;
 }
 
+export async function getBackendOrders() {
+  const response = await API.get<Order[]>("/orders");
+  return response.data;
+}
+
 export async function createPaymentIntent(orderId: Order["id"], provider: string) {
   const response = await API.post<Payment>("/payments/intent", {
     orderId,
@@ -85,7 +93,34 @@ export async function createPaymentIntent(orderId: Order["id"], provider: string
   return response.data;
 }
 
-export function updateOrderShipping(id: string, shipping: Pick<Order, "trackingNumber" | "shippingStatus">) {
+export async function getPayments() {
+  const response = await API.get<Payment[]>("/payments");
+  return response.data;
+}
+
+export async function deletePayment(paymentId: Payment["id"]) {
+  await API.delete(`/payments/${paymentId}`);
+}
+
+export async function confirmPayment(paymentId: Payment["id"]) {
+  const response = await API.patch<Payment>(`/payments/${paymentId}/confirm`);
+  return response.data;
+}
+
+export async function failPayment(paymentId: Payment["id"]) {
+  const response = await API.patch<Payment>(`/payments/${paymentId}/fail`);
+  return response.data;
+}
+
+export async function updateOrderShipping(id: string, shipping: Pick<Order, "trackingNumber" | "shippingStatus">) {
+  const numericId = Number(id);
+
+  if (Number.isFinite(numericId)) {
+    const response = await API.patch<Order>(`/orders/${numericId}/shipping`, shipping);
+    window.dispatchEvent(new Event(ORDERS_UPDATED_EVENT));
+    return response.data;
+  }
+
   const orders = getOrders();
   const nextOrders = orders.map((order) =>
     order.id === id
@@ -101,6 +136,12 @@ export function updateOrderShipping(id: string, shipping: Pick<Order, "trackingN
   window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(nextOrders));
   window.dispatchEvent(new Event(ORDERS_UPDATED_EVENT));
   return nextOrders.find((order) => order.id === id) ?? null;
+}
+
+export async function deleteBackendOrder(id: Order["id"]) {
+  const numericId = Number(id);
+  await API.delete(`/orders/${numericId}`);
+  window.dispatchEvent(new Event(ORDERS_UPDATED_EVENT));
 }
 
 export function deleteOrder(id: Order["id"]) {

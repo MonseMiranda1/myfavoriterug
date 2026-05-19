@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import AccountGate from "../components/AccountGate";
 import AccountSidebar, { QuoteIcon } from "../components/AccountSidebar";
 import Footer from "../components/Footer";
@@ -29,9 +29,9 @@ function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
   return (
     <article className="account-quote-card">
       <div>
-        <span>{quote.id}</span>
+        <span>{quote.quoteNumber}</span>
         <strong>{quote.size}</strong>
-        <small>{formatDate(quote.date)} · {quote.imageName}</small>
+        <small>{formatDate(quote.createdAt)} · {quote.imageName}</small>
       </div>
       <dl>
         <div>
@@ -54,7 +54,19 @@ function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
 
 export default function Quotes() {
   const { t } = useLanguage();
-  const quotes = useMemo(() => getQuoteRequests(), []);
+  const [quotes, setQuotes] = useState<CustomQuoteRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    getQuoteRequests()
+      .then((response) => {
+        setQuotes(response);
+        setMessage("");
+      })
+      .catch((error) => setMessage(error instanceof Error ? error.message : "No se pudieron cargar tus cotizaciones."))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   return (
     <AccountGate>
@@ -73,7 +85,16 @@ export default function Quotes() {
                   <p>{t("account.quotesHistory")}</p>
                 </header>
 
-                {quotes.length > 0 ? (
+                {isLoading ? (
+                  <section className="account-list-empty">
+                    <h2>Cargando cotizaciones...</h2>
+                  </section>
+                ) : message ? (
+                  <section className="account-list-empty">
+                    <h2>{message}</h2>
+                    <Link to="/personaliza">{t("account.requestQuote")}</Link>
+                  </section>
+                ) : quotes.length > 0 ? (
                   <section className="account-quotes-list">
                     {quotes.map((quote) => (
                       <QuoteCard quote={quote} key={quote.id} />

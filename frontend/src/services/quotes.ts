@@ -1,6 +1,32 @@
+import { getAccountToken } from "./accountAuth";
+import { API, getApiErrorMessage } from "./http";
+
 export type CustomQuoteRequest = {
-  id: string;
-  date: string;
+  id: number;
+  quoteNumber: string;
+  createdAt: string;
+  customerName: string;
+  email: string;
+  phone: string;
+  rut: string;
+  address: string;
+  imageName: string;
+  size: string;
+  wool: string;
+  colors: string;
+  currency: string;
+  comments: string;
+  totalClp: number;
+  status: string;
+  sent: boolean;
+};
+
+export type CreateQuoteInput = {
+  customerName?: string;
+  email?: string;
+  phone?: string;
+  rut?: string;
+  address?: string;
   imageName: string;
   size: string;
   wool: string;
@@ -10,29 +36,42 @@ export type CustomQuoteRequest = {
   totalClp: number;
 };
 
-export const QUOTES_STORAGE_KEY = "my-favorite-rug-quotes";
+function authHeaders() {
+  const token = getAccountToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
-export function getQuoteRequests(): CustomQuoteRequest[] {
-  const rawQuotes = window.localStorage.getItem(QUOTES_STORAGE_KEY);
-
-  if (!rawQuotes) return [];
-
+export async function getQuoteRequests(): Promise<CustomQuoteRequest[]> {
   try {
-    const parsed = JSON.parse(rawQuotes);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+    const response = await API.get<CustomQuoteRequest[]>("/quotes/me", { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudieron cargar tus cotizaciones."), { cause: error });
   }
 }
 
-export function saveQuoteRequest(request: Omit<CustomQuoteRequest, "id" | "date">) {
-  const quotes = getQuoteRequests();
-  const nextRequest: CustomQuoteRequest = {
-    ...request,
-    id: `COT-${Date.now().toString().slice(-6)}`,
-    date: new Date().toISOString(),
-  };
+export async function getAdminQuoteRequests(): Promise<CustomQuoteRequest[]> {
+  try {
+    const response = await API.get<CustomQuoteRequest[]>("/quotes");
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudieron cargar las cotizaciones."), { cause: error });
+  }
+}
 
-  window.localStorage.setItem(QUOTES_STORAGE_KEY, JSON.stringify([nextRequest, ...quotes]));
-  return nextRequest;
+export async function saveQuoteRequest(request: CreateQuoteInput) {
+  try {
+    const response = await API.post<CustomQuoteRequest>("/quotes", request, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudo enviar la cotizacion."), { cause: error });
+  }
+}
+
+export async function deleteQuoteRequest(id: CustomQuoteRequest["id"]) {
+  try {
+    await API.delete(`/quotes/${id}`);
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudo eliminar la cotizacion."), { cause: error });
+  }
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-import adminIcon from "../assets/icons/admin.png";
 import cajaIcon from "../assets/icons/caja.png";
 import carritoIcon from "../assets/icons/carrito.png";
 import compraIcon from "../assets/icons/compra.png";
@@ -10,7 +9,6 @@ import monedaIcon from "../assets/icons/moneda.png";
 import pagoIcon from "../assets/icons/pago.png";
 import paletaIcon from "../assets/icons/paleta.png";
 import subirIcon from "../assets/icons/subir.png";
-import webIcon from "../assets/icons/web.png";
 import {
   deleteCategory,
   deleteUploadedProduct,
@@ -24,7 +22,25 @@ import {
   type Category,
   type Product,
 } from "../services/api";
-import { deleteOrder, getOrders, updateOrderShipping, type Order } from "../services/orders";
+import {
+  confirmPayment,
+  deleteBackendOrder,
+  deletePayment,
+  failPayment,
+  getBackendOrders,
+  getPayments,
+  updateOrderShipping,
+  type Order,
+  type Payment,
+} from "../services/orders";
+import {
+  createPurchaseOrder,
+  deletePurchaseOrder,
+  getPurchaseOrders,
+  updatePurchaseOrder,
+  type PurchaseOrder,
+} from "../services/purchaseOrders";
+import { deleteQuoteRequest, getAdminQuoteRequests, type CustomQuoteRequest } from "../services/quotes";
 
 const adminUser = "admin";
 const adminPassword = "admin123";
@@ -92,28 +108,41 @@ const initialQuotes = [
   },
 ];
 
-type AdminQuote = (typeof initialQuotes)[number];
+type AdminQuote = {
+  backendId: number;
+  id: string;
+  date: string;
+  time: string;
+  type: string;
+  client: string;
+  contact: string;
+  rut: string;
+  email: string;
+  phone: string;
+  address: string;
+  total: number;
+  sent: boolean;
+  message: string;
+  size: string;
+  wool: string;
+  colors: string;
+  status: string;
+  imageName: string;
+};
 
 const ADMIN_QUOTES_STORAGE_KEY = "my-favorite-rug-admin-quotes";
 
 function getAdminQuotes(): AdminQuote[] {
-  if (typeof window === "undefined") return initialQuotes;
-
-  const rawQuotes = window.localStorage.getItem(ADMIN_QUOTES_STORAGE_KEY);
-
-  if (rawQuotes === null) return initialQuotes;
-
-  try {
-    const parsed = JSON.parse(rawQuotes);
-    return Array.isArray(parsed) ? parsed : initialQuotes;
-  } catch {
-    return initialQuotes;
-  }
+  return [];
 }
 
 function saveAdminQuotes(quotes: AdminQuote[]) {
-  window.localStorage.setItem(ADMIN_QUOTES_STORAGE_KEY, JSON.stringify(quotes));
+  void quotes;
 }
+
+void initialQuotes;
+void ADMIN_QUOTES_STORAGE_KEY;
+void saveAdminQuotes;
 
 const clients = [
   { name: "constructora zero spa", email: "contacto@zero.cl", quotes: "1", lastOrder: "02-05-2026" },
@@ -121,15 +150,39 @@ const clients = [
   { name: "MARSUR CHILE", email: "ventas@marsur.cl", quotes: "1", lastOrder: "25-04-2026" },
 ];
 
+function toAdminQuote(quote: CustomQuoteRequest): AdminQuote {
+  const createdAt = new Date(quote.createdAt);
+
+  return {
+    backendId: quote.id,
+    id: quote.quoteNumber,
+    date: new Intl.DateTimeFormat("es-CL").format(createdAt),
+    time: new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(createdAt),
+    type: "Cotizacion",
+    client: quote.customerName || quote.email,
+    contact: quote.customerName,
+    rut: quote.rut || "-",
+    email: quote.email,
+    phone: quote.phone || "-",
+    address: quote.address || "-",
+    total: quote.totalClp,
+    sent: quote.sent,
+    message: quote.comments || "-",
+    size: quote.size,
+    wool: quote.wool,
+    colors: quote.colors,
+    status: quote.status,
+    imageName: quote.imageName,
+  };
+}
+
 const adminSections = [
-  { id: "summary", label: "Resumen", icon: adminIcon },
   { id: "quotes", label: "Cotizaciones", icon: monedaIcon },
   { id: "orders", label: "Ordenes", icon: carritoIcon },
   { id: "purchase-orders", label: "Ordenes de compra", icon: compraIcon },
   { id: "payments", label: "Pagos", icon: pagoIcon },
   { id: "shipping", label: "Envíos", icon: envioIcon },
   { id: "products", label: "Productos", icon: cajaIcon },
-  { id: "projects", label: "Proyectos", icon: webIcon },
   { id: "categories", label: "Categorías", icon: paletaIcon },
   { id: "upload", label: "Subir productos", icon: subirIcon },
 ] as const;
@@ -155,27 +208,6 @@ const emptyCategoryForm = {
   status: "Visible" as Category["status"],
 };
 
-type Project = {
-  id: string;
-  name: string;
-  client: string;
-  status: string;
-};
-
-const initialProjects: Project[] = [
-  { id: "project-1", name: "Logo corporativo", client: "constructora zero spa", status: "Diseño" },
-  { id: "project-2", name: "Mascota tufting", client: "My Favorite Rug", status: "Producción" },
-];
-
-const projectStatusOptions = ["Diseño", "Producción", "Pausado", "Terminado"];
-
-const emptyProjectForm = {
-  id: "",
-  name: "",
-  client: "",
-  status: projectStatusOptions[0],
-};
-
 const shippingStatusOptions = ["Preparando", "Enviado", "Entregado", "Retenido"];
 
 const emptyShippingForm = {
@@ -184,25 +216,25 @@ const emptyShippingForm = {
   shippingStatus: shippingStatusOptions[0],
 };
 
-type AdminPayment = {
-  id: string;
-  client: string;
-  total: number;
-  status: string;
-};
-
-const paymentStatusOptions = ["Pendiente", "Abonado", "Pagado", "Rechazado"];
-
-const initialPayments: AdminPayment[] = [
-  { id: "payment-1", client: "MARSUR CHILE", total: 904400, status: "Pagado" },
-  { id: "payment-2", client: "Municipalidad Los Angeles", total: 9999998, status: "Pendiente" },
-];
+const paymentStatusOptions = ["PENDING", "PAID", "FAILED"];
 
 const emptyPaymentForm = {
   id: "",
   client: "",
   total: "",
   status: paymentStatusOptions[0],
+};
+
+const purchaseOrderStatusOptions = ["Solicitada", "Recibida", "En revision", "Cancelada"];
+
+const emptyPurchaseOrderForm = {
+  id: "",
+  client: "",
+  provider: "",
+  status: purchaseOrderStatusOptions[0],
+  total: "",
+  relatedOrderNumber: "",
+  notes: "",
 };
 
 function fileToProductImage(file: File) {
@@ -267,56 +299,14 @@ function formatClp(value: number) {
 }
 
 const sectionCopy: Record<AdminSection, { title: string; description: string }> = {
-  summary: { title: "Resumen", description: "Vista general de ventas, cotizaciones y actividad reciente." },
   quotes: { title: "Cotizaciones o estimados", description: "Vista tipo panel para gestionar cotizaciones y datos de clientes." },
   orders: { title: "Ordenes", description: "Revisa pedidos, estados y solicitudes de alfombras personalizadas." },
   "purchase-orders": { title: "Ordenes de compra", description: "Gestiona documentos y compras asociadas a pedidos especiales." },
   payments: { title: "Pagos", description: "Controla pagos pendientes, abonados y confirmados." },
   shipping: { title: "Envíos", description: "Organiza despachos nacionales e internacionales." },
   products: { title: "Productos", description: "Crea y edita alfombras disponibles en la tienda." },
-  projects: { title: "Proyectos", description: "Da seguimiento a proyectos personalizados en producción." },
   categories: { title: "Categorías", description: "Administra categorías visibles en la tienda." },
   upload: { title: "Subir productos", description: "Carga productos temporales al catalogo." },
-};
-
-const sectionRows: Record<Exclude<AdminSection, "quotes">, Array<Record<string, string>>> = {
-  summary: [
-    { Indicador: "Cotizaciones", Valor: "4", Estado: "Activas" },
-    { Indicador: "Pedidos", Valor: "3", Estado: "En revision" },
-    { Indicador: "Ventas", Valor: formatClp(11038398), Estado: "Estimado" },
-  ],
-  orders: [
-    { Número: "ORD-20260502-01", Cliente: "constructora zero spa", Estado: "Pendiente" },
-    { Número: "ORD-20260428-02", Cliente: "Municipalidad Los Angeles", Estado: "En producción" },
-  ],
-  "purchase-orders": [
-    { Número: "OC-1028", Proveedor: "Lanas premium", Estado: "Solicitada" },
-    { Número: "OC-1029", Proveedor: "Empaque y cajas", Estado: "Recibida" },
-  ],
-  payments: [
-    { Cliente: "MARSUR CHILE", Total: formatClp(904400), Estado: "Pagado" },
-    { Cliente: "Municipalidad Los Angeles", Total: formatClp(9999998), Estado: "Pendiente" },
-  ],
-  shipping: [
-    { Pedido: "ORD-20260428-02", Destino: "Los Angeles, Chile", Estado: "Preparando" },
-    { Pedido: "ORD-20260418-03", Destino: "Santiago, Chile", Estado: "Enviado" },
-  ],
-  products: [
-    { Producto: "Alfombra personalizada 60x90", Precio: formatClp(45000), Estado: "Activa" },
-    { Producto: "Alfombra personalizada 120x180", Precio: formatClp(139000), Estado: "Activa" },
-  ],
-  projects: [
-    { Proyecto: "Logo corporativo", Cliente: "constructora zero spa", Estado: "Diseño" },
-    { Proyecto: "Mascota tufting", Cliente: "My Favorite Rug", Estado: "Producción" },
-  ],
-  categories: [
-    { Categoría: "Anime", Productos: "8", Estado: "Visible" },
-    { Categoría: "Logos", Productos: "12", Estado: "Visible" },
-  ],
-  upload: [
-    { Campo: "Imagen", Requisito: "PNG, JPG o WEBP", Estado: "Pendiente" },
-    { Campo: "Precio", Requisito: "CLP, USD o EUR", Estado: "Pendiente" },
-  ],
 };
 
 export default function Admin() {
@@ -338,20 +328,51 @@ export default function Admin() {
   const [productFormMessage, setProductFormMessage] = useState("");
   const [categoryForm, setCategoryForm] = useState(emptyCategoryForm);
   const [categoryMessage, setCategoryMessage] = useState("");
-  const [projects, setProjects] = useState(initialProjects);
-  const [projectForm, setProjectForm] = useState(emptyProjectForm);
-  const [projectMessage, setProjectMessage] = useState("");
-  const [adminOrders, setAdminOrders] = useState<Order[]>(getOrders);
+  const [adminOrders, setAdminOrders] = useState<Order[]>([]);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [shippingForm, setShippingForm] = useState(emptyShippingForm);
   const [shippingMessage, setShippingMessage] = useState("");
-  const [payments, setPayments] = useState(initialPayments);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
   const [paymentMessage, setPaymentMessage] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState<number | null>(null);
+  const [purchaseOrderForm, setPurchaseOrderForm] = useState(emptyPurchaseOrderForm);
+  const [purchaseOrderMessage, setPurchaseOrderMessage] = useState("");
+  const [isPurchaseOrderModalOpen, setIsPurchaseOrderModalOpen] = useState(false);
 
   useEffect(() => {
     refreshAdminProducts();
+    refreshAdminQuotes();
+    refreshAdminOrders();
+    refreshPayments();
+    refreshPurchaseOrders();
   }, []);
+
+  async function refreshAdminOrders() {
+    const response = await getBackendOrders();
+    setAdminOrders(response);
+  }
+
+  async function refreshPayments() {
+    const response = await getPayments();
+    setPayments(response);
+  }
+
+  async function refreshPurchaseOrders() {
+    const response = await getPurchaseOrders();
+    setPurchaseOrders(response);
+  }
+
+  async function refreshAdminQuotes() {
+    try {
+      const response = await getAdminQuoteRequests();
+      setQuotes(response.map(toAdminQuote));
+    } catch {
+      setQuotes([]);
+    }
+  }
 
   async function refreshAdminProducts() {
     const response = await getProducts();
@@ -381,12 +402,13 @@ export default function Admin() {
     setPassword("");
   }
 
-  function handleDeleteQuote(id: string) {
-    setQuotes((currentQuotes) => {
-      const nextQuotes = currentQuotes.filter((quote) => quote.id !== id);
-      saveAdminQuotes(nextQuotes);
-      return nextQuotes;
-    });
+  async function handleDeleteQuote(id: string) {
+    const quote = quotes.find((currentQuote) => currentQuote.id === id);
+
+    if (!quote) return;
+
+    await deleteQuoteRequest(quote.backendId);
+    setQuotes((currentQuotes) => currentQuotes.filter((currentQuote) => currentQuote.id !== id));
 
     if (selectedQuoteId === id) {
       setSelectedQuoteId(null);
@@ -576,51 +598,8 @@ export default function Admin() {
     setCategoryMessage("Categoría eliminada.");
   }
 
-  function handleSaveProject(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const name = projectForm.name.trim();
-    const client = projectForm.client.trim();
-
-    if (!name || !client) {
-      setProjectMessage("Ingresa proyecto y cliente.");
-      return;
-    }
-
-    if (projectForm.id) {
-      setProjects((currentProjects) =>
-        currentProjects.map((project) =>
-          project.id === projectForm.id ? { ...project, name, client, status: projectForm.status } : project,
-        ),
-      );
-      setProjectMessage("Proyecto actualizado.");
-    } else {
-      setProjects((currentProjects) => [
-        { id: `project-${Date.now()}`, name, client, status: projectForm.status },
-        ...currentProjects,
-      ]);
-      setProjectMessage("Proyecto creado.");
-    }
-
-    setProjectForm(emptyProjectForm);
-  }
-
-  function handleEditProject(project: Project) {
-    setProjectForm(project);
-    setProjectMessage("Editando proyecto.");
-  }
-
-  function handleDeleteProject(id: string) {
-    setProjects((currentProjects) => currentProjects.filter((project) => project.id !== id));
-
-    if (projectForm.id === id) {
-      setProjectForm(emptyProjectForm);
-    }
-
-    setProjectMessage("Proyecto eliminado.");
-  }
-
   function handleViewShipping(order: Order) {
+    setSelectedOrderId(String(order.id));
     setShippingForm({
       orderId: String(order.id),
       trackingNumber: order.trackingNumber ?? "",
@@ -629,20 +608,23 @@ export default function Admin() {
     setShippingMessage(`Editando envío ${order.id}.`);
   }
 
-  function handleSaveShipping(event: FormEvent<HTMLFormElement>) {
+  async function handleSaveShipping(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    await saveSelectedOrderShipping();
+  }
 
+  async function saveSelectedOrderShipping() {
     if (!shippingForm.orderId) {
       setShippingMessage("Selecciona un pedido con Ver.");
       return;
     }
 
-    updateOrderShipping(shippingForm.orderId, {
+    await updateOrderShipping(shippingForm.orderId, {
       trackingNumber: shippingForm.trackingNumber.trim(),
       shippingStatus: shippingForm.shippingStatus,
     });
 
-    setAdminOrders(getOrders());
+    await refreshAdminOrders();
     setShippingMessage("Envío actualizado. El cliente ya puede verlo en seguimiento.");
   }
 
@@ -652,62 +634,38 @@ export default function Admin() {
   }
 
   function handleDeleteShippingOrder() {
-    if (!shippingForm.orderId) return;
-    if (!window.confirm(`Eliminar pedido ${shippingForm.orderId}?`)) return;
-
-    deleteOrder(shippingForm.orderId);
-    setAdminOrders(getOrders());
-    setShippingForm(emptyShippingForm);
-    setShippingMessage("Pedido eliminado.");
+    setShippingMessage("Los pedidos no se eliminan desde envios. Cambia su estado desde Ordenes.");
   }
 
   function handleNewPayment() {
     setPaymentForm(emptyPaymentForm);
-    setPaymentMessage("");
-    setIsPaymentModalOpen(true);
+    setPaymentMessage("Los pagos se crean desde pedidos o checkout. Selecciona un pago existente para cambiar su estado.");
+    setIsPaymentModalOpen(false);
   }
 
-  function handleViewPayment(payment: AdminPayment) {
+  function handleViewPayment(payment: Payment) {
     setPaymentForm({
-      id: payment.id,
-      client: payment.client,
-      total: String(payment.total),
+      id: String(payment.id),
+      client: payment.order?.customerName ?? payment.order?.email ?? payment.provider,
+      total: String(payment.amount),
       status: payment.status,
     });
     setPaymentMessage("");
     setIsPaymentModalOpen(true);
   }
 
-  function handleSavePayment(event: FormEvent<HTMLFormElement>) {
+  async function handleSavePayment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const paymentId = Number(paymentForm.id);
 
-    const client = paymentForm.client.trim();
-    const total = Number(paymentForm.total);
-
-    if (!client) {
-      setPaymentMessage("Ingresa el cliente.");
-      return;
+    if (paymentForm.status === "PAID" || paymentForm.status === "Pagado") {
+      await confirmPayment(paymentId);
+    } else if (paymentForm.status === "FAILED" || paymentForm.status === "Rechazado") {
+      await failPayment(paymentId);
     }
 
-    if (!Number.isFinite(total) || total < 0) {
-      setPaymentMessage("Ingresa un total valido.");
-      return;
-    }
-
-    if (paymentForm.id) {
-      setPayments((currentPayments) =>
-        currentPayments.map((payment) =>
-          payment.id === paymentForm.id ? { ...payment, client, total, status: paymentForm.status } : payment,
-        ),
-      );
-      setPaymentMessage("Pago actualizado.");
-    } else {
-      setPayments((currentPayments) => [
-        { id: `payment-${Date.now()}`, client, total, status: paymentForm.status },
-        ...currentPayments,
-      ]);
-      setPaymentMessage("Pago creado.");
-    }
+    await refreshPayments();
+    setPaymentMessage("Pago actualizado.");
 
     setPaymentForm(emptyPaymentForm);
     setIsPaymentModalOpen(false);
@@ -719,14 +677,98 @@ export default function Admin() {
     setIsPaymentModalOpen(false);
   }
 
-  function handleDeletePayment() {
-    if (!paymentForm.id) return;
-    if (!window.confirm(`Eliminar pago de ${paymentForm.client}?`)) return;
-
-    setPayments((currentPayments) => currentPayments.filter((payment) => payment.id !== paymentForm.id));
+  async function handleDeletePayment(id: number) {
+    if (!window.confirm("¿Eliminar este pago? Esta acción no se puede deshacer.")) return;
+    await deletePayment(id);
+    await refreshPayments();
     setPaymentForm(emptyPaymentForm);
     setIsPaymentModalOpen(false);
     setPaymentMessage("Pago eliminado.");
+  }
+
+  function handleNewPurchaseOrder() {
+    setPurchaseOrderForm(emptyPurchaseOrderForm);
+    setPurchaseOrderMessage("");
+    setIsPurchaseOrderModalOpen(true);
+  }
+
+  function handleSelectPurchaseOrder(purchaseOrder: PurchaseOrder) {
+    setSelectedPurchaseOrderId((currentId) => (currentId === purchaseOrder.id ? null : purchaseOrder.id));
+    setPurchaseOrderMessage("");
+  }
+
+  function handleViewPurchaseOrder(purchaseOrder: PurchaseOrder) {
+    setPurchaseOrderForm({
+      id: String(purchaseOrder.id),
+      client: purchaseOrder.client,
+      provider: purchaseOrder.provider,
+      status: purchaseOrder.status,
+      total: String(purchaseOrder.total),
+      relatedOrderNumber: purchaseOrder.relatedOrderNumber ?? "",
+      notes: purchaseOrder.notes ?? "",
+    });
+    setPurchaseOrderMessage("");
+    setIsPurchaseOrderModalOpen(true);
+  }
+
+  async function handleSavePurchaseOrderNotes(purchaseOrder: PurchaseOrder) {
+    await updatePurchaseOrder(purchaseOrder.id, {
+      client: purchaseOrder.client,
+      provider: purchaseOrder.provider,
+      status: purchaseOrder.status,
+      total: purchaseOrder.total,
+      relatedOrderNumber: purchaseOrder.relatedOrderNumber ?? "",
+      notes: purchaseOrder.notes ?? "",
+    });
+    await refreshPurchaseOrders();
+    setPurchaseOrderMessage("Notas de orden de compra guardadas.");
+  }
+
+  async function handleSavePurchaseOrder(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const input = {
+      client: purchaseOrderForm.client.trim(),
+      provider: purchaseOrderForm.provider.trim(),
+      status: purchaseOrderForm.status,
+      total: Number(purchaseOrderForm.total),
+      relatedOrderNumber: purchaseOrderForm.relatedOrderNumber.trim(),
+      notes: purchaseOrderForm.notes.trim(),
+    };
+
+    if (purchaseOrderForm.id) {
+      await updatePurchaseOrder(Number(purchaseOrderForm.id), input);
+      setPurchaseOrderMessage("Orden de compra actualizada.");
+    } else {
+      await createPurchaseOrder(input);
+      setPurchaseOrderMessage("Orden de compra creada.");
+    }
+
+    await refreshPurchaseOrders();
+    setPurchaseOrderForm(emptyPurchaseOrderForm);
+    setIsPurchaseOrderModalOpen(false);
+  }
+
+  async function handleDeletePurchaseOrder() {
+    if (!purchaseOrderForm.id) return;
+
+    await handleDeletePurchaseOrderById(Number(purchaseOrderForm.id));
+    setPurchaseOrderForm(emptyPurchaseOrderForm);
+    setIsPurchaseOrderModalOpen(false);
+  }
+
+  async function handleDeletePurchaseOrderById(id: PurchaseOrder["id"]) {
+    await deletePurchaseOrder(id);
+    await refreshPurchaseOrders();
+    if (selectedPurchaseOrderId === id) {
+      setSelectedPurchaseOrderId(null);
+    }
+    setPurchaseOrderMessage("Orden de compra eliminada.");
+  }
+
+  function handleClosePurchaseOrder() {
+    setPurchaseOrderForm(emptyPurchaseOrderForm);
+    setIsPurchaseOrderModalOpen(false);
   }
 
   const filteredQuotes = quotes.filter((quote) => {
@@ -735,7 +777,25 @@ export default function Admin() {
     return [quote.id, quote.type, quote.client, quote.date].some((value) => value.toLowerCase().includes(query));
   });
 
-  const filteredClients = clients.filter((client) => {
+  const quoteClients = quotes.reduce<Array<{ name: string; email: string; quotes: string; lastOrder: string }>>((accumulator, quote) => {
+    const existingClient = accumulator.find((client) => client.email === quote.email);
+
+    if (existingClient) {
+      existingClient.quotes = String(Number(existingClient.quotes) + 1);
+      return accumulator;
+    }
+
+    accumulator.push({
+      name: quote.client,
+      email: quote.email,
+      quotes: "1",
+      lastOrder: quote.date,
+    });
+
+    return accumulator;
+  }, clients.length > 0 && quotes.length === 0 ? clients : []);
+
+  const filteredClients = quoteClients.filter((client) => {
     const query = search.trim().toLowerCase();
     if (!query) return true;
     return [client.name, client.email, client.lastOrder].some((value) => value.toLowerCase().includes(query));
@@ -744,7 +804,38 @@ export default function Admin() {
   const currentSection = sectionCopy[activeSection];
   const showQuoteTools = activeSection === "quotes";
   const selectedQuote = quotes.find((quote) => quote.id === selectedQuoteId);
+  const selectedOrder = adminOrders.find((order) => String(order.id) === selectedOrderId);
+  const selectedPurchaseOrder = purchaseOrders.find((purchaseOrder) => purchaseOrder.id === selectedPurchaseOrderId);
   const visibleCategories = categories.filter((category) => category.status === "Visible");
+  const adminQuery = search.trim().toLowerCase();
+  const filteredAdminOrders = adminOrders.filter((order) => {
+    if (!adminQuery) return true;
+    return [
+      String(order.id),
+      order.orderNumber ?? "",
+      order.customerName,
+      order.email,
+      order.status,
+      order.paymentMethod,
+    ].some((value) => value.toLowerCase().includes(adminQuery));
+  });
+  const filteredPurchaseOrders = purchaseOrders.filter((purchaseOrder) => {
+    if (!adminQuery) return true;
+    return [
+      purchaseOrder.purchaseOrderNumber,
+      purchaseOrder.relatedOrderNumber ?? "",
+      purchaseOrder.client,
+      purchaseOrder.provider,
+      purchaseOrder.status,
+    ].some((value) => value.toLowerCase().includes(adminQuery));
+  });
+  const selectedPurchaseOrderRelatedOrder = selectedPurchaseOrder
+    ? adminOrders.find((order) =>
+        [String(order.id), order.orderNumber ?? ""].includes(selectedPurchaseOrder.relatedOrderNumber ?? ""),
+      )
+    : undefined;
+  const getRelatedOrder = (purchaseOrder: PurchaseOrder) =>
+    adminOrders.find((order) => [String(order.id), order.orderNumber ?? ""].includes(purchaseOrder.relatedOrderNumber ?? ""));
 
   return (
     <>
@@ -764,6 +855,8 @@ export default function Admin() {
                     onClick={() => {
                       setActiveSection(item.id);
                       setSelectedQuoteId(null);
+                      setSelectedOrderId(null);
+                      setSelectedPurchaseOrderId(null);
                     }}
                   >
                     <span aria-hidden="true"><img src={item.icon} alt="" /></span>
@@ -806,22 +899,17 @@ export default function Admin() {
                     >
                       + Nuevo
                     </button>
-                  ) : activeSection === "shipping" ? null : activeSection === "projects" ? (
+                  ) : activeSection === "shipping" || activeSection === "orders" ? null : activeSection === "products" ? null : (
                     <button
                       type="button"
                       className="admin-add-button"
-                      onClick={() => {
-                        setProjectForm(emptyProjectForm);
-                        setProjectMessage("Nuevo proyecto.");
-                      }}
-                    >
-                      + Nuevo
-                    </button>
-                  ) : activeSection === "products" ? null : (
-                    <button
-                      type="button"
-                      className="admin-add-button"
-                      onClick={activeSection === "payments" ? handleNewPayment : undefined}
+                      onClick={
+                        activeSection === "payments"
+                          ? handleNewPayment
+                          : activeSection === "purchase-orders"
+                            ? handleNewPurchaseOrder
+                            : undefined
+                      }
                     >
                       + Nuevo
                     </button>
@@ -895,7 +983,7 @@ export default function Admin() {
                           <button type="button" onClick={() => setSelectedQuoteId(null)}>Cerrar</button>
                           <button type="button" className="info">CSV</button>
                           <button type="button" className="success">PDF</button>
-                          <button type="button" className="danger">Eliminar</button>
+                          <button type="button" className="danger" onClick={() => handleDeleteQuote(selectedQuote.id)}>Eliminar</button>
                           <button type="button" className="edit">Editar</button>
                         </div>
                       </header>
@@ -915,7 +1003,7 @@ export default function Admin() {
                           <h3>Resumen</h3>
                           <dl className="quote-summary-list">
                             <dt>Tipo</dt><dd>{selectedQuote.type}</dd>
-                            <dt>Estado</dt><dd>Abierto</dd>
+                            <dt>Estado</dt><dd>{selectedQuote.status}</dd>
                             <dt>Enviado</dt><dd>{selectedQuote.sent ? "Si" : "No"}</dd>
                             <dt>Condicion de pago</dt><dd>Contado</dd>
                             <dt>Método de pago</dt><dd>Por definir</dd>
@@ -941,7 +1029,11 @@ export default function Admin() {
                           </thead>
                           <tbody>
                             <tr>
-                              <td colSpan={5}>Sin productos.</td>
+                              <td>1</td>
+                              <td>{selectedQuote.size}</td>
+                              <td>{selectedQuote.wool} / {selectedQuote.colors}</td>
+                              <td>{formatClp(selectedQuote.total)}</td>
+                              <td>{formatClp(selectedQuote.total)}</td>
                             </tr>
                           </tbody>
                         </table>
@@ -951,6 +1043,7 @@ export default function Admin() {
                         <article>
                           <h3>Mensaje</h3>
                           <p>{selectedQuote.message}</p>
+                          <p><strong>Imagen:</strong> {selectedQuote.imageName}</p>
                         </article>
                         <article>
                           <h3>Nota publica</h3>
@@ -1025,6 +1118,350 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
+                  ) : activeSection === "orders" ? (
+                    <div className="admin-linked-section">
+                      <div className="admin-linked-search">
+                        <input
+                          type="search"
+                          value={search}
+                          onChange={(event) => setSearch(event.target.value)}
+                          placeholder="Buscar por numero, cliente, email, pago o estado"
+                        />
+                        <button type="button">Buscar</button>
+                      </div>
+
+                      <table className="admin-table admin-linked-table">
+                        <thead>
+                          <tr>
+                            <th>Orden</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredAdminOrders.length > 0 ? (
+                            filteredAdminOrders.map((order) => (
+                              <tr key={order.id} className={String(order.id) === selectedOrderId ? "is-open" : ""}>
+                                <td>
+                                  <strong>{order.orderNumber ?? `Orden #${order.id}`}</strong>
+                                  <span>Pedido #{order.id}</span>
+                                  <span>{new Date(order.createdAt).toLocaleString("es-CL")}</span>
+                                </td>
+                                <td>
+                                  <strong>{order.email}</strong>
+                                  <span>{order.customerName}</span>
+                                  <span>{order.paymentMethod}</span>
+                                </td>
+                                <td>{order.shippingStatus || order.status}</td>
+                                <td>{formatClp(order.total)}</td>
+                                <td>
+                                  <button type="button" className="success" onClick={() => handleViewShipping(order)}>Ver</button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (String(order.id) === selectedOrderId) {
+                                        setSelectedOrderId(null);
+                                        return;
+                                      }
+
+                                      handleViewShipping(order);
+                                    }}
+                                  >
+                                    {String(order.id) === selectedOrderId ? "Ocultar" : "Editar"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="danger"
+                                    onClick={async () => {
+                                      if (!window.confirm(`¿Eliminar la orden #${order.id}? Esta acción no se puede deshacer.`)) return;
+                                      await deleteBackendOrder(order.id);
+                                      await refreshAdminOrders();
+                                      if (String(order.id) === selectedOrderId) setSelectedOrderId(null);
+                                    }}
+                                  >
+                                    Eliminar
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5}>Aun no hay ordenes registradas.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+
+                      {selectedOrder && (
+                        <div className="modal-overlay" onClick={() => setSelectedOrderId(null)}>
+                          <div className="modal-content admin-order-modal" onClick={(e) => e.stopPropagation()}>
+                            <header className="admin-detail-title">
+                              <div>
+                                <h2>Orden #{selectedOrder.id}</h2>
+                                <p>Creada: {new Date(selectedOrder.createdAt).toLocaleString("es-CL")}</p>
+                              </div>
+                              <button type="button" onClick={() => setSelectedOrderId(null)}>✕</button>
+                            </header>
+
+                            <div className="admin-order-detail-grid">
+                              <section className="admin-detail-card">
+                                <h3>Informacion del Cliente</h3>
+                                <div className="admin-two-col">
+                                  <p><span>Nombre</span><strong>{selectedOrder.customerName}</strong></p>
+                                  <p><span>Email</span><strong>{selectedOrder.email}</strong></p>
+                                  <p><span>Telefono</span><strong>-</strong></p>
+                                  <p><span>RUT</span><strong>-</strong></p>
+                                  <p><span>Dirección</span><strong>{selectedOrder.address}</strong></p>
+                                </div>
+                              </section>
+
+                              <section className="admin-detail-card admin-side-card">
+                                <h3>Estado del Pedido</h3>
+                                <label>
+                                  <span>Estado actual</span>
+                                  <select
+                                    value={shippingForm.shippingStatus}
+                                    onChange={(event) => setShippingForm((currentForm) => ({ ...currentForm, shippingStatus: event.target.value }))}
+                                  >
+                                    {shippingStatusOptions.map((status) => <option key={status}>{status}</option>)}
+                                  </select>
+                                </label>
+                                <p><span>Metodo de pago</span><strong>{selectedOrder.paymentMethod}</strong></p>
+                              </section>
+
+                              <section className="admin-detail-card admin-side-card">
+                                <h3>Tracking</h3>
+                                <label>
+                                  <span>Numero de seguimiento</span>
+                                  <input
+                                    value={shippingForm.trackingNumber}
+                                    onChange={(event) => setShippingForm((currentForm) => ({ ...currentForm, trackingNumber: event.target.value }))}
+                                    placeholder="Ej: 123456789"
+                                  />
+                                </label>
+                                <label>
+                                  <span>URL de seguimiento</span>
+                                  <input value={selectedOrder.trackingNumber ? `https://tracking/${selectedOrder.trackingNumber}` : ""} readOnly placeholder="https://..." />
+                                </label>
+                              </section>
+
+                              <section className="admin-detail-card">
+                                <h3>Productos</h3>
+                                {selectedOrder.items.map((item) => (
+                                  <div className="admin-product-line" key={`${item.id}-${item.name}`}>
+                                    <p>
+                                      <strong>{item.name}</strong>
+                                      <span>Cantidad: {item.quantity} × {formatClp(item.price)}</span>
+                                    </p>
+                                    <strong>{formatClp(item.price * item.quantity)}</strong>
+                                  </div>
+                                ))}
+                                <div className="admin-total-line"><span>Total</span><strong>{formatClp(selectedOrder.total)}</strong></div>
+                              </section>
+
+                              <section className="admin-detail-card admin-side-card">
+                                <h3>Notas Internas</h3>
+                                <textarea placeholder="Notas privadas del administrador..." />
+                                <button type="button" className="admin-add-button" onClick={() => void saveSelectedOrderShipping()}>Guardar orden</button>
+                                <button
+                                  type="button"
+                                  className="admin-delete-order-button"
+                                  onClick={async () => {
+                                    if (!window.confirm(`¿Eliminar la orden #${selectedOrder.id}? Esta acción no se puede deshacer.`)) return;
+                                    await deleteBackendOrder(selectedOrder.id);
+                                    setSelectedOrderId(null);
+                                    await refreshAdminOrders();
+                                  }}
+                                >
+                                  Eliminar orden
+                                </button>
+                              </section>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : activeSection === "purchase-orders" ? (
+                    <div className="admin-payment-section">
+                      {purchaseOrderMessage && <p className="admin-shipping-message">{purchaseOrderMessage}</p>}
+
+                      {isPurchaseOrderModalOpen && (
+                        <div className="admin-modal-backdrop" role="presentation" onMouseDown={handleClosePurchaseOrder}>
+                          <form
+                            className="admin-modal admin-payment-modal"
+                            onSubmit={handleSavePurchaseOrder}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="purchase-order-modal-title"
+                            onMouseDown={(event) => event.stopPropagation()}
+                          >
+                            <header className="admin-modal-header">
+                              <div>
+                                <span>{purchaseOrderForm.id ? "Editar orden de compra" : "Nueva orden de compra"}</span>
+                                <h3 id="purchase-order-modal-title">{purchaseOrderForm.client || "Orden de compra"}</h3>
+                              </div>
+                              <button type="button" className="admin-modal-close" onClick={handleClosePurchaseOrder} aria-label="Cerrar">
+                                x
+                              </button>
+                            </header>
+
+                            <div className="admin-payment-form">
+                              <label>
+                                <span>Cliente</span>
+                                <input value={purchaseOrderForm.client} onChange={(event) => setPurchaseOrderForm((current) => ({ ...current, client: event.target.value }))} />
+                              </label>
+                              <label>
+                                <span>Proveedor</span>
+                                <input value={purchaseOrderForm.provider} onChange={(event) => setPurchaseOrderForm((current) => ({ ...current, provider: event.target.value }))} />
+                              </label>
+                              <label>
+                                <span>Total</span>
+                                <input type="number" min="0" value={purchaseOrderForm.total} onChange={(event) => setPurchaseOrderForm((current) => ({ ...current, total: event.target.value }))} />
+                              </label>
+                              <label>
+                                <span>Pedido asociado</span>
+                                <select
+                                  value={purchaseOrderForm.relatedOrderNumber}
+                                  onChange={(event) => {
+                                    const relatedOrder = adminOrders.find((order) =>
+                                      [String(order.id), order.orderNumber ?? ""].includes(event.target.value),
+                                    );
+
+                                    setPurchaseOrderForm((current) => ({
+                                      ...current,
+                                      relatedOrderNumber: event.target.value,
+                                      client: relatedOrder?.email ?? current.client,
+                                      total: relatedOrder ? String(relatedOrder.total) : current.total,
+                                    }));
+                                  }}
+                                >
+                                  <option value="">Sin pedido asociado</option>
+                                  {adminOrders.map((order) => (
+                                    <option key={order.id} value={order.orderNumber ?? String(order.id)}>
+                                      {(order.orderNumber ?? `#${order.id}`)} - {order.customerName} - {order.email}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                <span>Estado</span>
+                                <select value={purchaseOrderForm.status} onChange={(event) => setPurchaseOrderForm((current) => ({ ...current, status: event.target.value }))}>
+                                  {purchaseOrderStatusOptions.map((status) => <option key={status}>{status}</option>)}
+                                </select>
+                              </label>
+                              <label>
+                                <span>Notas</span>
+                                <input value={purchaseOrderForm.notes} onChange={(event) => setPurchaseOrderForm((current) => ({ ...current, notes: event.target.value }))} />
+                              </label>
+                            </div>
+
+                            <footer className="admin-modal-actions">
+                              {purchaseOrderForm.id ? (
+                                <button type="button" className="admin-delete-button" onClick={handleDeletePurchaseOrder}>Eliminar</button>
+                              ) : <span />}
+                              <div>
+                                <button type="button" className="admin-cancel-edit-button" onClick={handleClosePurchaseOrder}>Cancelar</button>
+                                <button type="submit" className="admin-add-button">Guardar</button>
+                              </div>
+                            </footer>
+                          </form>
+                        </div>
+                      )}
+
+                      <div className="admin-linked-search">
+                        <input
+                          type="search"
+                          value={search}
+                          onChange={(event) => setSearch(event.target.value)}
+                          placeholder="Buscar por numero, pedido, email o estado"
+                        />
+                        <button type="button">Buscar</button>
+                      </div>
+
+                      <table className="admin-table admin-linked-table">
+                        <thead>
+                          <tr>
+                            <th>Orden de compra</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                            <th>Accion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredPurchaseOrders.length > 0 ? filteredPurchaseOrders.map((purchaseOrder) => (
+                            <tr key={purchaseOrder.id} className={purchaseOrder.id === selectedPurchaseOrderId ? "is-open" : ""}>
+                              <td>
+                                <strong>{purchaseOrder.purchaseOrderNumber}</strong>
+                                <span>{purchaseOrder.relatedOrderNumber ? `Pedido ${purchaseOrder.relatedOrderNumber}` : "Sin pedido asociado"}</span>
+                                <span>{new Date(purchaseOrder.createdAt).toLocaleString("es-CL")}</span>
+                              </td>
+                              <td>
+                                <strong>{purchaseOrder.client}</strong>
+                                <span>{purchaseOrder.provider}</span>
+                                <span>{getRelatedOrder(purchaseOrder)?.paymentMethod ?? "-"}</span>
+                              </td>
+                              <td>{purchaseOrder.status}</td>
+                              <td>{formatClp(purchaseOrder.total)}</td>
+                              <td>
+                                <button type="button" className="success" onClick={() => window.print()}>Ver PDF</button>
+                                <button type="button" onClick={() => handleSelectPurchaseOrder(purchaseOrder)}>
+                                  {purchaseOrder.id === selectedPurchaseOrderId ? "Ocultar" : "Ver"}
+                                </button>
+                                <button type="button" onClick={() => handleViewPurchaseOrder(purchaseOrder)}>Editar</button>
+                                <button type="button" className="danger" onClick={() => void handleDeletePurchaseOrderById(purchaseOrder.id)}>Eliminar</button>
+                              </td>
+                            </tr>
+                          )) : (
+                            <tr><td colSpan={5}>Aun no hay ordenes de compra.</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+
+                      {selectedPurchaseOrder && (
+                        <div className="admin-purchase-detail">
+                          <section className="admin-detail-card">
+                            <h3>Detalle orden de compra</h3>
+                            <dl className="quote-summary-list">
+                              <dt>OC</dt><dd>{selectedPurchaseOrder.purchaseOrderNumber}</dd>
+                              <dt>Pedido</dt><dd>{selectedPurchaseOrder.relatedOrderNumber || "-"}</dd>
+                              <dt>Email</dt><dd>{selectedPurchaseOrderRelatedOrder?.email ?? "-"}</dd>
+                              <dt>Cliente</dt><dd>{selectedPurchaseOrder.client}</dd>
+                              <dt>Estado</dt><dd>{selectedPurchaseOrder.status}</dd>
+                              <dt>Pago</dt><dd>{selectedPurchaseOrderRelatedOrder?.paymentMethod ?? "-"}</dd>
+                              <dt>Total</dt><dd>{formatClp(selectedPurchaseOrder.total)}</dd>
+                            </dl>
+                          </section>
+
+                          <section className="admin-detail-card">
+                            <h3>Comentarios (solo admin / PDF)</h3>
+                            <label>
+                              <span>Notas cliente</span>
+                              <textarea
+                                value={selectedPurchaseOrder.notes ?? ""}
+                                onChange={(event) => setPurchaseOrders((currentOrders) =>
+                                  currentOrders.map((currentOrder) =>
+                                    currentOrder.id === selectedPurchaseOrder.id
+                                      ? { ...currentOrder, notes: event.target.value }
+                                      : currentOrder,
+                                  ),
+                                )}
+                                placeholder="Notas del cliente para mostrar en PDF..."
+                              />
+                            </label>
+                            <label>
+                              <span>Notas admin</span>
+                              <textarea placeholder="Notas internas del admin para incluir en el PDF..." />
+                            </label>
+                            <button type="button" className="admin-add-button" onClick={() => handleSavePurchaseOrderNotes(selectedPurchaseOrder)}>
+                              Guardar comentarios
+                            </button>
+                          </section>
+                        </div>
+                      )}
+                    </div>
                   ) : activeSection === "payments" ? (
                     <div className="admin-payment-section">
                       {paymentMessage && <p className="admin-shipping-message">{paymentMessage}</p>}
@@ -1087,7 +1524,7 @@ export default function Admin() {
 
                             <footer className="admin-modal-actions">
                               {paymentForm.id ? (
-                                <button type="button" className="admin-delete-button" onClick={handleDeletePayment}>
+                                <button type="button" className="admin-delete-button" onClick={() => void handleDeletePayment(Number(paymentForm.id))}>
                                   Eliminar pago
                                 </button>
                               ) : (
@@ -1118,12 +1555,13 @@ export default function Admin() {
                         <tbody>
                           {payments.map((payment) => (
                             <tr key={payment.id}>
-                              <td>{payment.client}</td>
-                              <td>{formatClp(payment.total)}</td>
+                              <td>{payment.order?.customerName ?? payment.order?.email ?? payment.provider}</td>
+                              <td>{formatClp(payment.amount)}</td>
                               <td>{payment.status}</td>
                               <td>
                                 <button type="button" onClick={() => handleViewPayment(payment)}>Ver</button>
                                 <button type="button" onClick={() => handleViewPayment(payment)}>Editar</button>
+                                <button type="button" className="danger" onClick={() => void handleDeletePayment(payment.id)}>Eliminar</button>
                               </td>
                             </tr>
                           ))}
@@ -1264,87 +1702,6 @@ export default function Admin() {
                               <td colSpan={5}>Aún no hay pedidos para gestionar envíos.</td>
                             </tr>
                           )}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : activeSection === "projects" ? (
-                    <div className="admin-project-section">
-                      <form className="admin-project-form" onSubmit={handleSaveProject}>
-                        <label>
-                          <span>Proyecto</span>
-                          <input
-                            type="text"
-                            value={projectForm.name}
-                            onChange={(event) => setProjectForm((currentForm) => ({ ...currentForm, name: event.target.value }))}
-                            placeholder="Ej: Logo corporativo"
-                          />
-                        </label>
-
-                        <label>
-                          <span>Cliente</span>
-                          <input
-                            type="text"
-                            value={projectForm.client}
-                            onChange={(event) => setProjectForm((currentForm) => ({ ...currentForm, client: event.target.value }))}
-                            placeholder="Ej: Empresa o persona"
-                          />
-                        </label>
-
-                        <label>
-                          <span>Estado</span>
-                          <select
-                            value={projectForm.status}
-                            onChange={(event) => setProjectForm((currentForm) => ({ ...currentForm, status: event.target.value }))}
-                          >
-                            {projectStatusOptions.map((status) => (
-                              <option key={status}>{status}</option>
-                            ))}
-                          </select>
-                        </label>
-
-                        <div className="admin-project-form-actions">
-                          {projectMessage && <p>{projectMessage}</p>}
-                          <button type="submit" className="admin-add-button">
-                            {projectForm.id ? "Guardar cambios" : "Crear proyecto"}
-                          </button>
-                          {projectForm.id && (
-                            <button
-                              type="button"
-                              className="admin-cancel-edit-button"
-                              onClick={() => {
-                                setProjectForm(emptyProjectForm);
-                                setProjectMessage("Edicion cancelada.");
-                              }}
-                            >
-                              Cancelar edicion
-                            </button>
-                          )}
-                        </div>
-                      </form>
-
-                      <table className="admin-table">
-                        <thead>
-                          <tr>
-                            <th>Proyecto</th>
-                            <th>Cliente</th>
-                            <th>Estado</th>
-                            <th>Accion</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {projects.map((project) => (
-                            <tr key={project.id}>
-                              <td>{project.name}</td>
-                              <td>{project.client}</td>
-                              <td>{project.status}</td>
-                              <td>
-                                <button type="button" onClick={() => handleEditProject(project)}>Editar</button>
-                                <button type="button" className="danger" onClick={() => handleDeleteProject(project.id)}>
-                                  Eliminar
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
                         </tbody>
                       </table>
                     </div>
@@ -1587,31 +1944,7 @@ export default function Admin() {
                         </tbody>
                       </table>
                     </div>
-                  ) : (
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          {Object.keys(sectionRows[activeSection][0]).map((heading) => (
-                            <th key={heading}>{heading}</th>
-                          ))}
-                          <th>Accion</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sectionRows[activeSection].map((row, index) => (
-                          <tr key={`${activeSection}-${index}`}>
-                            {Object.values(row).map((value) => (
-                              <td key={value}>{value}</td>
-                            ))}
-                            <td>
-                              <button type="button">Ver</button>
-                              <button type="button">Editar</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                ) : null}
                 </div>
               </section>
             </section>

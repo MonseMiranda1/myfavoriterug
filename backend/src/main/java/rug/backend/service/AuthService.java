@@ -5,6 +5,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -14,8 +16,10 @@ import javax.crypto.spec.PBEKeySpec;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import rug.backend.model.AccountPasswordResetToken;
 import rug.backend.model.AccountSession;
 import rug.backend.model.AccountUser;
+import rug.backend.repository.AccountPasswordResetTokenRepository;
 import rug.backend.repository.AccountSessionRepository;
 import rug.backend.repository.AccountUserRepository;
 
@@ -24,14 +28,23 @@ public class AuthService {
     private static final int SALT_BYTES = 16;
     private static final int HASH_BYTES = 32;
     private static final int HASH_ITERATIONS = 120000;
+    private static final Duration PASSWORD_RESET_TOKEN_TTL = Duration.ofMinutes(30);
 
     private final SecureRandom secureRandom = new SecureRandom();
     private final AccountUserRepository accountUserRepository;
     private final AccountSessionRepository accountSessionRepository;
+    private final AccountPasswordResetTokenRepository accountPasswordResetTokenRepository;
+    private final PasswordResetEmailService passwordResetEmailService;
 
-    public AuthService(AccountUserRepository accountUserRepository, AccountSessionRepository accountSessionRepository) {
+    public AuthService(
+            AccountUserRepository accountUserRepository,
+            AccountSessionRepository accountSessionRepository,
+            AccountPasswordResetTokenRepository accountPasswordResetTokenRepository,
+            PasswordResetEmailService passwordResetEmailService) {
         this.accountUserRepository = accountUserRepository;
         this.accountSessionRepository = accountSessionRepository;
+        this.accountPasswordResetTokenRepository = accountPasswordResetTokenRepository;
+        this.passwordResetEmailService = passwordResetEmailService;
     }
 
     public AuthResult register(RegisterInput input) {
@@ -68,6 +81,56 @@ public class AuthService {
         }
 
         return createSession(user);
+    }
+
+    @Transactional
+    public void requestPasswordReset(String emailInput) {
+        String email = normalizeEmail(emailInput);
+        Optional<AccountUser> optionalUser = accountUserRepository.findByEmailIgnoreCase(email);
+
+        if (optionalUser.isEmpty()) {
+            return;
+        }
+
+        AccountUser user = optionalUser.get();
+        String token = generateToken();
+
+        accountPasswordResetTokenRepository.deleteByUserAndUsedAtIsNull(user);
+
+        AccountPasswordResetToken resetToken = new AccountPasswordResetToken();
+        resetToken.setUser(user);
+        resetToken.setTokenHash(hashToken(token));
+        resetToken.setExpiresAt(Instant.now().plus(PASSWORD_RESET_TOKEN_TTL));
+        accountPasswordResetTokenRepository.save(resetToken);
+
+        passwordResetEmailService.sendPasswordResetToken(user, token);
+    }
+
+    @Transactional
+    public void resetPassword(String emailInput, String tokenInput, String passwordInput) {
+        String email = normalizeEmail(emailInput);
+        String token = requireText(tokenInput, "El token es obligatorio.").trim();
+        String password = requireText(passwordInput, "La contraseÃ±a es obligatoria.");
+
+        if (password.length() < 6) {
+            throw new IllegalArgumentException("La contraseÃ±a debe tener al menos 6 caracteres.");
+        }
+
+        AccountPasswordResetToken resetToken = accountPasswordResetTokenRepository
+                .findByTokenHashAndUsedAtIsNull(hashToken(token))
+                .orElseThrow(() -> new IllegalArgumentException("Token de recuperacion invalido o expirado."));
+
+        if (!resetToken.getUser().getEmail().equalsIgnoreCase(email) || resetToken.getExpiresAt().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Token de recuperacion invalido o expirado.");
+        }
+
+        AccountUser user = resetToken.getUser();
+        user.setPasswordHash(hashPassword(password));
+        accountUserRepository.save(user);
+
+        resetToken.setUsedAt(Instant.now());
+        accountPasswordResetTokenRepository.save(resetToken);
+        accountSessionRepository.deleteByUser(user);
     }
 
     public Optional<AccountUser> findUserByToken(String token) {
@@ -107,6 +170,14 @@ public class AuthService {
         byte[] bytes = new byte[48];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String hashToken(String token) {
+        try {
+            return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(token.getBytes()));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("No se pudo procesar el token.", exception);
+        }
     }
 
     private String hashPassword(String password) {
