@@ -68,20 +68,45 @@ export async function loginAccount(email: string, password: string) {
   }
 }
 
-export async function registerAccount(email: string, password: string) {
+type RegisterAccountInput = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  rut: string;
+  address: string;
+};
+
+export async function registerAccount(input: RegisterAccountInput) {
   try {
     const response = await API.post<AuthResponse>("/auth/register", {
-      email,
-      password,
-      name: email.split("@")[0],
-      phone: "",
-      rut: "",
-      address: "",
+      name: input.name,
+      email: input.email,
+      password: input.password,
+      phone: input.phone,
+      rut: input.rut,
+      address: input.address,
     });
     saveSession(response.data);
     return response.data.user;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, "No se pudo crear la cuenta."), { cause: error });
+  }
+}
+
+export async function requestPasswordReset(email: string) {
+  try {
+    await API.post("/auth/password-reset/request", { email });
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudo enviar el token de recuperacion."), { cause: error });
+  }
+}
+
+export async function confirmPasswordReset(email: string, token: string, password: string) {
+  try {
+    await API.post("/auth/password-reset/confirm", { email, token, password });
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "No se pudo restaurar la contrasena."), { cause: error });
   }
 }
 

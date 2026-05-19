@@ -3,19 +3,23 @@ package rug.backend.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import rug.backend.model.CustomerOrder;
 import rug.backend.model.OrderStatus;
 import rug.backend.repository.OrderRepository;
+import rug.backend.repository.PaymentRepository;
 
 @Service
 public class OrderService {
     private static final int MAX_ITEM_IMAGE_LENGTH = 1200;
 
     private final OrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, PaymentRepository paymentRepository) {
         this.orderRepository = orderRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     public List<CustomerOrder> getOrders() {
@@ -70,5 +74,16 @@ public class OrderService {
 
         order.setStatus(status);
         return orderRepository.save(order);
+    }
+
+    @Transactional
+    public boolean deleteOrder(Long id) {
+        if (!orderRepository.existsById(id)) {
+            return false;
+        }
+
+        paymentRepository.deleteByOrderId(id);
+        orderRepository.deleteById(id);
+        return true;
     }
 }

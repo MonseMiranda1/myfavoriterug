@@ -6,6 +6,7 @@ import paletaIcon from "../assets/icons/paleta.png";
 import subirIcon from "../assets/icons/subir.png";
 import { useLanguage } from "../i18n";
 import { saveQuoteRequest } from "../services/quotes";
+import { ACCOUNT_AUTH_EVENT, getAccountUser, type AccountUser } from "../services/accountAuth";
 
 type Currency = "CLP" | "USD" | "EUR";
 type PricingShape = "round" | "square" | "rectangular";
@@ -138,7 +139,19 @@ function getSizeOptions(shape: PricingShape): SizeOption[] {
 
 export default function Personaliza() {
   const { t } = useLanguage();
+  const [accountUser, setAccountUser] = useState<AccountUser | null>(() => getAccountUser());
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactRut, setContactRut] = useState("");
+  const [contactAddress, setContactAddress] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<"contain" | "cover">("contain");
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropX, setCropX] = useState(0);
+  const [cropY, setCropY] = useState(0);
   const [fileName, setFileName] = useState("");
   const [activePricingShape, setActivePricingShape] = useState<PricingShape>("rectangular");
   const [selectedSizeId, setSelectedSizeId] = useState(getSizeOptions("rectangular")[0].id);
@@ -161,6 +174,18 @@ export default function Personaliza() {
     };
   }, [preview]);
 
+  useEffect(() => {
+    const syncAccountUser = () => setAccountUser(getAccountUser());
+
+    window.addEventListener(ACCOUNT_AUTH_EVENT, syncAccountUser);
+    window.addEventListener("storage", syncAccountUser);
+
+    return () => {
+      window.removeEventListener(ACCOUNT_AUTH_EVENT, syncAccountUser);
+      window.removeEventListener("storage", syncAccountUser);
+    };
+  }, []);
+
   function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
@@ -169,11 +194,13 @@ export default function Personaliza() {
     if (preview) URL.revokeObjectURL(preview);
 
     setPreview(URL.createObjectURL(file));
+    setPreviewMode("contain");
+    resetCrop();
     setFileName(file.name);
     setSubmitMessage("");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!fileName) {
@@ -182,35 +209,74 @@ export default function Personaliza() {
       return;
     }
 
-    const request = saveQuoteRequest({
-      imageName: fileName,
-      size: `${t(pricingCatalog[activePricingShape].labelKey)} - ${selectedSize.label}`,
-      wool: selectedWool.label,
-      colors: selectedColors.label,
-      currency,
-      comments,
-      totalClp,
-    });
+    if (!accountUser && (!contactName.trim() || !contactEmail.trim() || !contactPhone.trim())) {
+      setSubmitStatus("error");
+      setSubmitMessage("Ingresa tus datos de contacto para solicitar la cotizacion.");
+      setIsContactModalOpen(true);
+      return;
+    }
 
-    setSubmitStatus("success");
-    setSubmitMessage(`${t("custom.successPrefix")} ${request.id} ${t("custom.successSuffix")}`);
-    setActivePricingShape("rectangular");
-    setSelectedSizeId(getSizeOptions("rectangular")[0].id);
-    setSelectedWoolId(woolOptions[0].id);
-    setSelectedColorId(colorOptions[0].id);
-    setCurrency("CLP");
-    setComments("");
-    setFileName("");
+    try {
+      const request = await saveQuoteRequest({
+        customerName: accountUser?.name ?? contactName.trim(),
+        email: accountUser?.email ?? contactEmail.trim(),
+        phone: accountUser?.phone ?? contactPhone.trim(),
+        rut: accountUser?.rut ?? contactRut.trim(),
+        address: accountUser?.address ?? contactAddress.trim(),
+        imageName: fileName,
+        size: `${t(pricingCatalog[activePricingShape].labelKey)} - ${selectedSize.label}`,
+        wool: selectedWool.label,
+        colors: selectedColors.label,
+        currency,
+        comments,
+        totalClp,
+      });
 
-    if (preview) {
-      URL.revokeObjectURL(preview);
-      setPreview(null);
+      setSubmitStatus("success");
+      setSubmitMessage(`${t("custom.successPrefix")} ${request.quoteNumber} ${t("custom.successSuffix")}`);
+      setActivePricingShape("rectangular");
+      setSelectedSizeId(getSizeOptions("rectangular")[0].id);
+      setSelectedWoolId(woolOptions[0].id);
+      setSelectedColorId(colorOptions[0].id);
+      setCurrency("CLP");
+      setComments("");
+      setFileName("");
+
+      if (preview) {
+        URL.revokeObjectURL(preview);
+        setPreview(null);
+      }
+    } catch (error) {
+      setSubmitStatus("error");
+      setSubmitMessage(error instanceof Error ? error.message : "No se pudo enviar la cotizacion.");
     }
   }
 
   function handleShapeChange(nextShape: PricingShape) {
     setActivePricingShape(nextShape);
     setSelectedSizeId(getSizeOptions(nextShape)[0].id);
+  }
+
+  function resetCrop() {
+    setCropZoom(1);
+    setCropX(0);
+    setCropY(0);
+  }
+
+  function handleContactSubmit() {
+    if (!contactName.trim() || !contactEmail.trim() || !contactPhone.trim()) {
+      setContactMessage("Ingresa nombre, correo y telefono.");
+      return;
+    }
+
+    setContactMessage("");
+    setSubmitMessage("");
+    setIsContactModalOpen(false);
+  }
+
+  function closeContactModal() {
+    setIsContactModalOpen(false);
+    setContactMessage("");
   }
 
   return (
@@ -234,7 +300,18 @@ export default function Personaliza() {
           <section className="upload-panel" aria-label="Imagen de referencia">
             <div className="upload-preview">
               {preview ? (
-                <img src={preview} alt="Vista previa de tu diseño" />
+                <img
+                  className={previewMode === "cover" ? "is-cropped" : undefined}
+                  src={preview}
+                  alt="Vista previa de tu diseño"
+                  style={
+                    previewMode === "cover"
+                      ? {
+                          transform: `translate(${cropX}%, ${cropY}%) scale(${cropZoom})`,
+                        }
+                      : undefined
+                  }
+                />
               ) : (
                 <div className="upload-empty">
                   <img src={subirIcon} alt="" />
@@ -243,6 +320,58 @@ export default function Personaliza() {
                 </div>
               )}
             </div>
+
+            {preview && (
+              <div className="upload-preview-controls" aria-label="Modo de vista previa">
+                <button type="button" className={previewMode === "contain" ? "is-active" : ""} onClick={() => setPreviewMode("contain")}>
+                  Completa
+                </button>
+                <button type="button" className={previewMode === "cover" ? "is-active" : ""} onClick={() => setPreviewMode("cover")}>
+                  Recortar
+                </button>
+              </div>
+            )}
+
+            {preview && previewMode === "cover" && (
+              <div className="upload-crop-controls">
+                <label>
+                  <span>Zoom</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="3"
+                    step="0.05"
+                    value={cropZoom}
+                    onChange={(event) => setCropZoom(Number(event.target.value))}
+                  />
+                </label>
+                <label>
+                  <span>Horizontal</span>
+                  <input
+                    type="range"
+                    min="-40"
+                    max="40"
+                    step="1"
+                    value={cropX}
+                    onChange={(event) => setCropX(Number(event.target.value))}
+                  />
+                </label>
+                <label>
+                  <span>Vertical</span>
+                  <input
+                    type="range"
+                    min="-40"
+                    max="40"
+                    step="1"
+                    value={cropY}
+                    onChange={(event) => setCropY(Number(event.target.value))}
+                  />
+                </label>
+                <button type="button" onClick={resetCrop}>
+                  Centrar
+                </button>
+              </div>
+            )}
 
             <label className="upload-button">
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImageChange} />
@@ -350,6 +479,26 @@ export default function Personaliza() {
               <em>{formatPrice(totalClp, currency)}</em>
             </div>
 
+            <section className="custom-account-box">
+              {accountUser ? (
+                <div className="custom-account-ready">
+                  <span>Cuenta asociada</span>
+                  <strong>{accountUser.name}</strong>
+                  <small>{accountUser.email}</small>
+                </div>
+              ) : (
+                <div className="custom-account-inline">
+                  <div>
+                    <strong>Datos de contacto</strong>
+                    <span>{contactEmail ? `${contactName} · ${contactEmail}` : "Puedes cotizar como invitado sin crear cuenta."}</span>
+                  </div>
+                  <button type="button" onClick={() => setIsContactModalOpen(true)}>
+                    {contactEmail ? "Editar datos" : "Agregar datos"}
+                  </button>
+                </div>
+              )}
+            </section>
+
             <button type="submit" className="btn btn-primary custom-submit">
               {t("custom.submit")} <span aria-hidden="true">&rarr;</span>
             </button>
@@ -361,6 +510,57 @@ export default function Personaliza() {
             )}
           </section>
         </form>
+
+        {isContactModalOpen && (
+          <div className="custom-account-modal-backdrop" role="presentation" onMouseDown={closeContactModal}>
+            <section
+              className="custom-account-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="custom-account-modal-title"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <button className="custom-account-modal-close" type="button" aria-label="Cerrar" onClick={closeContactModal}>
+                x
+              </button>
+              <div className="custom-account-heading">
+                <strong id="custom-account-modal-title">Datos para la cotizacion</strong>
+                <span>No necesitas crear cuenta. Usaremos estos datos para responder tu solicitud.</span>
+              </div>
+
+              <div className="custom-account-form custom-account-form-create">
+                <label>
+                  <span>Nombre completo</span>
+                  <input value={contactName} onChange={(event) => setContactName(event.target.value)} autoComplete="name" />
+                </label>
+                <label>
+                  <span>Telefono</span>
+                  <input value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} autoComplete="tel" />
+                </label>
+                <label>
+                  <span>Correo electronico</span>
+                  <input type="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} autoComplete="email" />
+                </label>
+                <label>
+                  <span>RUT</span>
+                  <input value={contactRut} onChange={(event) => setContactRut(event.target.value)} autoComplete="off" />
+                </label>
+                <label className="custom-account-wide">
+                  <span>Direccion</span>
+                  <input value={contactAddress} onChange={(event) => setContactAddress(event.target.value)} autoComplete="street-address" />
+                </label>
+              </div>
+
+              {contactMessage && <p className="custom-account-message">{contactMessage}</p>}
+
+              <div className="custom-account-actions">
+                <button type="button" onClick={handleContactSubmit}>
+                  Guardar datos
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
 
         <section className="custom-info-grid">
           <article>

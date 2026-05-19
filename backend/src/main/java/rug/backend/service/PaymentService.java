@@ -58,6 +58,10 @@ public class PaymentService {
         return paymentRepository.findByOrderId(orderId);
     }
 
+    public List<Payment> getPayments() {
+        return paymentRepository.findAllByOrderByCreatedAtDesc();
+    }
+
     public Payment createPaymentIntent(Long orderId, String provider) {
         CustomerOrder order = orderService.getOrder(orderId);
 
@@ -143,6 +147,10 @@ public class PaymentService {
 
         payment.setStatus(PaymentStatus.FAILED);
         return paymentRepository.save(payment);
+    }
+
+    public void deletePayment(Long paymentId) {
+        paymentRepository.deleteById(paymentId);
     }
 
     private Payment createFlowPayment(CustomerOrder order) {

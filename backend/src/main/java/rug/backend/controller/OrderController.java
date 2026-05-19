@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +19,13 @@ import rug.backend.service.OrderService;
 
 @RestController
 @RequestMapping("/api/orders")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", methods = {
+    org.springframework.web.bind.annotation.RequestMethod.GET,
+    org.springframework.web.bind.annotation.RequestMethod.POST,
+    org.springframework.web.bind.annotation.RequestMethod.PATCH,
+    org.springframework.web.bind.annotation.RequestMethod.DELETE,
+    org.springframework.web.bind.annotation.RequestMethod.OPTIONS
+})
 public class OrderController {
     private final OrderService orderService;
 
@@ -67,6 +74,17 @@ public class OrderController {
         }
 
         return ResponseEntity.ok(order);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        boolean deleted = orderService.deleteOrder(id);
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     public record ShippingUpdateRequest(String trackingNumber, String shippingStatus) {
