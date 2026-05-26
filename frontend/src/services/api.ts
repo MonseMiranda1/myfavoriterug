@@ -37,20 +37,70 @@ const defaultCategories: Category[] = [
   { id: "disney", name: "Disney", status: "Visible" },
 ];
 
+const localImageHosts = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
+
 function canUseStorage() {
   return typeof window !== "undefined" && Boolean(window.localStorage);
+}
+
+function getApiOrigin() {
+  try {
+    return new URL(API.defaults.baseURL ?? "", window.location.origin).origin;
+  } catch {
+    return "";
+  }
+}
+
+function isLocalPage() {
+  if (typeof window === "undefined") return false;
+
+  return localImageHosts.has(window.location.hostname);
+}
+
+function resolveProductImageUrl(image: string) {
+  const trimmedImage = image.trim();
+  const apiOrigin = getApiOrigin();
+
+  if (!trimmedImage || !apiOrigin) return trimmedImage;
+
+  if (trimmedImage.startsWith("/uploads/product-images/")) {
+    return apiOrigin + trimmedImage;
+  }
+
+  try {
+    const imageUrl = new URL(trimmedImage);
+
+    if (!isLocalPage() && localImageHosts.has(imageUrl.hostname)) {
+      return apiOrigin + imageUrl.pathname + imageUrl.search + imageUrl.hash;
+    }
+  } catch {
+    return trimmedImage;
+  }
+
+  return trimmedImage;
+}
+
+function normalizeProductImages(product: Product): Product {
+  const images = product.images?.map(resolveProductImageUrl).filter(Boolean);
+  const image = resolveProductImageUrl(product.image);
+
+  return {
+    ...product,
+    image,
+    images: images && images.length > 0 ? images : [image],
+  };
 }
 
 export async function saveUploadedProduct(product: ProductInput) {
   const response = await API.post<Product>("/products", product);
   window.dispatchEvent(new Event(PRODUCTS_UPDATED_EVENT));
-  return response.data;
+  return normalizeProductImages(response.data);
 }
 
 export async function updateUploadedProduct(id: Product["id"], product: ProductInput) {
   const response = await API.put<Product>(`/products/${id}`, product);
   window.dispatchEvent(new Event(PRODUCTS_UPDATED_EVENT));
-  return response.data;
+  return normalizeProductImages(response.data);
 }
 
 export async function deleteUploadedProduct(id: Product["id"]) {
@@ -66,7 +116,7 @@ export async function uploadProductImage(file: File) {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-  return response.data.url;
+  return resolveProductImageUrl(response.data.url);
 }
 
 function createCategoryId(name: string) {
@@ -123,5 +173,5 @@ export function deleteCategory(id: string) {
 
 export const getProducts = () =>
   API.get<Product[]>("/products")
-    .then((response) => response)
-    .catch(() => Promise.resolve({ data: localProducts }));
+    .then((response) => ({ ...response, data: response.data.map(normalizeProductImages) }))
+    .catch(() => Promise.resolve({ data: localProducts.map(normalizeProductImages) }));
