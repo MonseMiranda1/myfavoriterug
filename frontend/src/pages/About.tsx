@@ -4,6 +4,8 @@ import Navbar from "../components/Navbar";
 import corazonIcon from "../assets/icons/corazon.png";
 import manoIcon from "../assets/icons/mano.png";
 import paletaIcon from "../assets/icons/paleta.png";
+import claire from "../assets/claire.jpeg";
+import kidney from "../assets/kidney.jpeg";
 import monse from "../assets/monse.jpg";
 import { useLanguage } from "../i18n";
 
@@ -48,6 +50,26 @@ export default function About() {
               <span>{t("about.details")}</span>
             </div>
           </aside>
+        </section>
+
+        <section className="about-inspiration" aria-label={t("about.inspirationLabel")}>
+          <div className="about-inspiration-photos">
+            <figure className="about-pet-photo about-pet-photo-kidney">
+              <img src={kidney} alt={t("about.kidneyAlt")} />
+              <figcaption>Kidney</figcaption>
+            </figure>
+            <figure className="about-pet-photo about-pet-photo-claire">
+              <img src={claire} alt={t("about.claireAlt")} />
+              <figcaption>Claire</figcaption>
+            </figure>
+          </div>
+
+          <article className="about-inspiration-copy">
+            <span>{t("about.inspirationKicker")}</span>
+            <p>{t("about.inspiration1")}</p>
+            <p>{t("about.inspiration2")}</p>
+            <p>{t("about.inspiration3")}</p>
+          </article>
         </section>
 
         <section className="about-info-sections" aria-label="About tufting">
