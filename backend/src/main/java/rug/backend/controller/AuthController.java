@@ -82,11 +82,18 @@ public class AuthController {
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @RequestBody ProfileRequest request) {
         return authService.findUserByToken(extractBearerToken(authorization))
-                .<ResponseEntity<?>>map(user -> ResponseEntity.ok(toUserResponse(authService.updateProfile(user, new ProfileInput(
-                        request.name(),
-                        request.phone(),
-                        request.rut(),
-                        request.address())))))
+                .<ResponseEntity<?>>map(user -> {
+                    try {
+                        return ResponseEntity.ok(toUserResponse(authService.updateProfile(user, new ProfileInput(
+                                request.name(),
+                                request.email(),
+                                request.phone(),
+                                request.rut(),
+                                request.address()))));
+                    } catch (IllegalArgumentException exception) {
+                        return ResponseEntity.badRequest().body(new ErrorResponse(exception.getMessage()));
+                    }
+                })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Sesion invalida.")));
     }
 
@@ -124,7 +131,7 @@ public class AuthController {
     public record PasswordResetConfirmRequest(String email, String token, String password) {
     }
 
-    public record ProfileRequest(String name, String phone, String rut, String address) {
+    public record ProfileRequest(String name, String email, String phone, String rut, String address) {
     }
 
     public record UserResponse(String name, String email, String phone, String rut, String address) {

@@ -13,6 +13,7 @@ import java.util.Optional;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,15 +60,25 @@ public class AuthService {
             throw new IllegalArgumentException("Ya existe una cuenta con ese correo.");
         }
 
+        String rut = normalizeRut(input.rut());
+
+        if (accountUserRepository.existsByRutCanonical(canonicalRut(rut))) {
+            throw new IllegalArgumentException("Ya existe una cuenta con ese RUT.");
+        }
+
         AccountUser user = new AccountUser();
         user.setName(defaultText(input.name(), email.substring(0, email.indexOf("@"))));
         user.setEmail(email);
         user.setPhone(defaultText(input.phone(), ""));
-        user.setRut(defaultText(input.rut(), ""));
+        user.setRut(rut);
         user.setAddress(defaultText(input.address(), ""));
         user.setPasswordHash(hashPassword(password));
 
-        return createSession(accountUserRepository.save(user));
+        try {
+            return createSession(accountUserRepository.save(user));
+        } catch (DataIntegrityViolationException exception) {
+            throw new IllegalArgumentException("Ya existe una cuenta con ese correo o RUT.", exception);
+        }
     }
 
     public AuthResult login(String emailInput, String passwordInput) {
@@ -144,7 +155,15 @@ public class AuthService {
     public AccountUser updateProfile(AccountUser user, ProfileInput input) {
         user.setName(defaultText(input.name(), user.getName()));
         user.setPhone(defaultText(input.phone(), ""));
-        user.setRut(defaultText(input.rut(), ""));
+
+        if (input.email() != null && !user.getEmail().equalsIgnoreCase(normalizeEmail(input.email()))) {
+            throw new IllegalArgumentException("El correo no se puede modificar.");
+        }
+
+        if (input.rut() != null && !sameRut(user.getRut(), input.rut())) {
+            throw new IllegalArgumentException("El RUT no se puede modificar.");
+        }
+
         user.setAddress(defaultText(input.address(), ""));
 
         return accountUserRepository.save(user);
@@ -223,6 +242,18 @@ public class AuthService {
         return normalizedEmail;
     }
 
+    private String normalizeRut(String rut) {
+        return requireText(rut, "El RUT es obligatorio.").trim();
+    }
+
+    private boolean sameRut(String firstRut, String secondRut) {
+        return canonicalRut(firstRut).equals(canonicalRut(secondRut));
+    }
+
+    private String canonicalRut(String rut) {
+        return rut == null ? "" : rut.replaceAll("[\\.\\-\\s]", "").toUpperCase();
+    }
+
     private String requireText(String value, String message) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(message);
@@ -242,7 +273,7 @@ public class AuthService {
     public record RegisterInput(String name, String email, String password, String phone, String rut, String address) {
     }
 
-    public record ProfileInput(String name, String phone, String rut, String address) {
+    public record ProfileInput(String name, String email, String phone, String rut, String address) {
     }
 
     public record AuthResult(String token, AccountUser user) {

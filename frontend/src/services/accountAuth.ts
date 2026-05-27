@@ -125,7 +125,9 @@ export async function refreshAccountUser() {
   }
 }
 
-export async function updateAccountUser(nextUser: AccountUser) {
+type UpdateAccountUserInput = Pick<AccountUser, "name" | "phone" | "address">;
+
+export async function updateAccountUser(nextUser: UpdateAccountUserInput) {
   const session = readSession();
 
   if (!session) {
@@ -133,7 +135,11 @@ export async function updateAccountUser(nextUser: AccountUser) {
   }
 
   try {
-    const response = await API.patch<AccountUser>("/auth/me", nextUser, { headers: authHeaders() });
+    const response = await API.patch<AccountUser>("/auth/me", {
+      name: nextUser.name,
+      phone: nextUser.phone,
+      address: nextUser.address,
+    }, { headers: authHeaders() });
     saveSession({ token: session.token, user: response.data });
     return response.data;
   } catch (error) {
