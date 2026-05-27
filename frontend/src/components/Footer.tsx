@@ -14,19 +14,30 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-benefits">
-        <article><span><img src={pagoIcon} alt="" /></span><strong>{t("footer.cardPayment")}</strong><small>{t("footer.cardPaymentSmall")}</small></article>
-        <article><span><img src={envioIcon} alt="" /></span><strong>{t("footer.shipping")}</strong><small>{t("footer.shippingSmall")}</small></article>
-        <article><span><img src={compraIcon} alt="" /></span><strong>{t("footer.safe")}</strong><small>{t("footer.safeSmall")}</small></article>
+        <article>
+          <span>
+            <img src={pagoIcon} alt="" />
+          </span>
+          <strong>{t("footer.cardPayment")}</strong>
+          <small>{t("footer.cardPaymentSmall")}</small>
+        </article>
+        <article>
+          <span>
+            <img src={envioIcon} alt="" />
+          </span>
+          <strong>{t("footer.shipping")}</strong>
+          <small>{t("footer.shippingSmall")}</small>
+        </article>
+        <article>
+          <span>
+            <img src={compraIcon} alt="" />
+          </span>
+          <strong>{t("footer.safe")}</strong>
+          <small>{t("footer.safeSmall")}</small>
+        </article>
       </div>
 
       <div className="footer-main">
-        <div className="footer-brand">
-          <p>{t("footer.brand")}</p>
-          <a href="/admin" className="admin-link" aria-label="Admin">
-            <img src={adminIcon} alt="" />
-          </a>
-        </div>
-
         <div>
           <h3>{t("footer.info")}</h3>
           <Link to="/sobre-nosotros">{t("footer.about")}</Link>
@@ -44,21 +55,40 @@ export default function Footer() {
         <div>
           <h3>{t("footer.follow")}</h3>
           <div className="social-icons">
-            <a href="https://www.instagram.com/myfavoriterug" target="_blank" rel="noreferrer" aria-label="Instagram">
+            <a
+              href="https://www.instagram.com/myfavoriterug"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+            >
               <img src={instagramIcon} alt="" />
             </a>
-            <a href="https://www.tiktok.com/@myfavoriterug" target="_blank" rel="noreferrer" aria-label="TikTok">
+            <a
+              href="https://www.tiktok.com/@myfavoriterug"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="TikTok"
+            >
               <img src={tiktokIcon} alt="" />
             </a>
-            <a href="https://www.etsy.com/shop/myfavoriterug/" target="_blank" rel="noreferrer" aria-label="Etsy">
+            <a
+              href="https://www.etsy.com/shop/myfavoriterug/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Etsy"
+            >
               <img src={webIcon} alt="" />
             </a>
           </div>
         </div>
       </div>
 
-      <p className="copyright">{t("footer.copy")}</p>
+      <div className="footer-bottom">
+        <p className="copyright">{t("footer.copy")}</p>
+        <a href="/admin" className="admin-link" aria-label="Admin">
+          <img src={adminIcon} alt="" />
+        </a>
+      </div>
     </footer>
   );
 }
-
