@@ -171,7 +171,11 @@ export function deleteCategory(id: string) {
   saveCategories(getCategories().filter((category) => category.id !== id));
 }
 
+export function getFallbackProducts() {
+  return localProducts.map(normalizeProductImages);
+}
+
 export const getProducts = () =>
   API.get<Product[]>("/products")
     .then((response) => ({ ...response, data: response.data.map(normalizeProductImages) }))
-    .catch(() => Promise.resolve({ data: localProducts.map(normalizeProductImages) }));
+    .catch(() => Promise.resolve({ data: getFallbackProducts() }));

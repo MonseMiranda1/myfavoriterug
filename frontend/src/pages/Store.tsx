@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { CATEGORIES_UPDATED_EVENT, getCategories, getProducts, PRODUCTS_UPDATED_EVENT, type Category, type Product } from "../services/api";
+import { CATEGORIES_UPDATED_EVENT, getCategories, getFallbackProducts, getProducts, PRODUCTS_UPDATED_EVENT, type Category, type Product } from "../services/api";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link, useSearchParams } from "react-router-dom";
@@ -51,8 +51,8 @@ function getCategoryLabel(category: string, t: ReturnType<typeof useLanguage>["t
 export default function Store() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => getFallbackProducts());
+  const [categories, setCategories] = useState<Category[]>(() => getCategories());
   const [activeSearch, setActiveSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [purchaseType, setPurchaseType] = useState("Todos");
@@ -211,7 +211,7 @@ export default function Store() {
 
             <div className="store-product-grid">
               {filteredProducts.map((product) => (
-                <Link to={`/producto/${product.id}`} className="store-product-card" key={product.id}>
+                <Link to={`/producto/`} state={{ product }} className="store-product-card" key={product.id}>
                   <span className="store-product-image">
                     <img src={product.image} alt={product.name} />
                   </span>

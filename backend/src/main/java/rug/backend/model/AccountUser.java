@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -25,6 +26,10 @@ public class AccountUser {
 
     private String phone;
     private String rut;
+
+    @Column(unique = true)
+    private String rutCanonical;
+
     private String address;
 
     @Column(nullable = false)
@@ -36,6 +41,12 @@ public class AccountUser {
     @PrePersist
     public void prePersist() {
         createdAt = Instant.now();
+        updateRutCanonical();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updateRutCanonical();
     }
 
     public Long getId() {
@@ -72,6 +83,11 @@ public class AccountUser {
 
     public void setRut(String rut) {
         this.rut = rut;
+        updateRutCanonical();
+    }
+
+    public String getRutCanonical() {
+        return rutCanonical;
     }
 
     public String getAddress() {
@@ -92,5 +108,9 @@ public class AccountUser {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    private void updateRutCanonical() {
+        rutCanonical = rut == null ? "" : rut.replaceAll("[\\.\\-\\s]", "").toUpperCase();
     }
 }

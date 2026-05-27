@@ -24,7 +24,7 @@ function formatDate(date: string) {
 }
 
 function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return (
     <article className="account-quote-card">
@@ -44,7 +44,7 @@ function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
         </div>
         <div>
           <dt>{t("account.referenceTotal")}</dt>
-          <dd>{formatPrice(quote.totalClp)}</dd>
+          <dd>{quote.totalClp > 0 ? formatPrice(quote.totalClp) : language === "en" ? "To quote" : "Por cotizar"}</dd>
         </div>
       </dl>
       {quote.comments && <p>{quote.comments}</p>}
@@ -55,7 +55,6 @@ function QuoteCard({ quote }: { quote: CustomQuoteRequest }) {
 export default function Quotes() {
   const { t } = useLanguage();
   const [quotes, setQuotes] = useState<CustomQuoteRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -64,8 +63,7 @@ export default function Quotes() {
         setQuotes(response);
         setMessage("");
       })
-      .catch((error) => setMessage(error instanceof Error ? error.message : "No se pudieron cargar tus cotizaciones."))
-      .finally(() => setIsLoading(false));
+      .catch((error) => setMessage(error instanceof Error ? error.message : "No se pudieron cargar tus cotizaciones."));
   }, []);
 
   return (
@@ -85,11 +83,7 @@ export default function Quotes() {
                   <p>{t("account.quotesHistory")}</p>
                 </header>
 
-                {isLoading ? (
-                  <section className="account-list-empty">
-                    <h2>Cargando cotizaciones...</h2>
-                  </section>
-                ) : message ? (
+                {message ? (
                   <section className="account-list-empty">
                     <h2>{message}</h2>
                     <Link to="/personaliza">{t("account.requestQuote")}</Link>

@@ -10,4 +10,6 @@ public interface AccountUserRepository extends JpaRepository<AccountUser, Long> 
     Optional<AccountUser> findByEmailIgnoreCase(String email);
 
     boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByRutCanonical(String rutCanonical);
 }

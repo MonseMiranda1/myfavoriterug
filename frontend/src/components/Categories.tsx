@@ -43,20 +43,11 @@ export default function Categories() {
           </ul>
         </article>
 
-        <article className="review-card">
-          <div className="review-avatar">MG</div>
-          <div>
-            <strong>*****</strong>
-            <p>{t("categories.review")}</p>
-            <span>- Mariana G.</span>
-          </div>
-        </article>
-
         <article className="community-card">
           <div>
             <h3>{t("categories.community")}</h3>
             <p>{t("categories.communityText")}</p>
-            <strong>@myfavoriterug</strong>
+            <a className="instagram-link" href="https://www.instagram.com/myfavoriterug/" target="_blank" rel="noreferrer">@myfavoriterug</a>
           </div>
           <span className="good-vibes">GOOD<br />VIBES</span>
         </article>

@@ -65,6 +65,8 @@ class AuthServiceTests {
         assertThat(result.user().getEmail()).isEqualTo("maria@example.com");
         assertThat(result.user().getName()).isEqualTo("Maria Lopez");
         assertThat(result.user().getPhone()).isEqualTo("999");
+        assertThat(result.user().getRut()).isEqualTo("11.111.111-1");
+        assertThat(result.user().getRutCanonical()).isEqualTo("111111111");
         assertThat(accountUserRepository.existsByEmailIgnoreCase("MARIA@example.com")).isTrue();
         assertThat(accountSessionRepository.findByToken(result.token())).isPresent();
         assertThat(result.user().getPasswordHash()).startsWith("pbkdf2_sha256$");
@@ -72,17 +74,33 @@ class AuthServiceTests {
     }
 
     @Test
-    void registerRejectsDuplicatedEmailIgnoringCase() {
-        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
-
-        assertThatThrownBy(() -> authService.register(new RegisterInput("Other", "MARIA@example.com", "secret123", "", "", "")))
+    void registerRejectsMissingRut() {
+        assertThatThrownBy(() -> authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", "")))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("cuenta");
+                .hasMessageContaining("RUT");
+    }
+
+    @Test
+    void registerRejectsDuplicatedEmailIgnoringCase() {
+        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
+
+        assertThatThrownBy(() -> authService.register(new RegisterInput("Other", "MARIA@example.com", "secret123", "", "22.222.222-2", "")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("correo");
+    }
+
+    @Test
+    void registerRejectsDuplicatedRutIgnoringFormat() {
+        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
+
+        assertThatThrownBy(() -> authService.register(new RegisterInput("Other", "other@example.com", "secret123", "", "111111111", "")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("RUT");
     }
 
     @Test
     void loginCreatesNewSessionWhenPasswordMatches() {
-        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
 
         var result = authService.login(" MARIA@example.com ", "secret123");
 
@@ -93,7 +111,7 @@ class AuthServiceTests {
 
     @Test
     void loginRejectsInvalidPassword() {
-        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
 
         assertThatThrownBy(() -> authService.login("maria@example.com", "wrong-password"))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -101,19 +119,20 @@ class AuthServiceTests {
     }
 
     @Test
-    void updateProfilePersistsEditableFieldsWithoutChangingEmail() {
-        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+    void updateProfilePersistsEditableFieldsWithoutChangingEmailOrRut() {
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
 
         AccountUser updated = authService.updateProfile(registered.user(), new ProfileInput(
                 "Maria Updated",
+                null,
                 "+56912345678",
-                "22.222.222-2",
+                null,
                 "Providencia"));
 
         assertThat(updated.getEmail()).isEqualTo("maria@example.com");
         assertThat(updated.getName()).isEqualTo("Maria Updated");
         assertThat(updated.getPhone()).isEqualTo("+56912345678");
-        assertThat(updated.getRut()).isEqualTo("22.222.222-2");
+        assertThat(updated.getRut()).isEqualTo("11.111.111-1");
         assertThat(updated.getAddress()).isEqualTo("Providencia");
 
         assertThat(accountUserRepository.findByEmailIgnoreCase("maria@example.com"))
@@ -123,8 +142,36 @@ class AuthServiceTests {
     }
 
     @Test
+    void updateProfileRejectsEmailChanges() {
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
+
+        assertThatThrownBy(() -> authService.updateProfile(registered.user(), new ProfileInput(
+                "Maria",
+                "other@example.com",
+                "",
+                null,
+                "")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("correo");
+    }
+
+    @Test
+    void updateProfileRejectsRutChanges() {
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
+
+        assertThatThrownBy(() -> authService.updateProfile(registered.user(), new ProfileInput(
+                "Maria",
+                null,
+                "",
+                "22.222.222-2",
+                "")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("RUT");
+    }
+
+    @Test
     void logoutRemovesOnlyTheGivenSession() {
-        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
         var loggedIn = authService.login("maria@example.com", "secret123");
 
         authService.logout(registered.token());
@@ -135,7 +182,7 @@ class AuthServiceTests {
 
     @Test
     void requestPasswordResetStoresTokenWithoutRevealingIfEmailExists() {
-        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
 
         authService.requestPasswordReset(" MARIA@example.com ");
         authService.requestPasswordReset("missing@example.com");
@@ -146,7 +193,7 @@ class AuthServiceTests {
 
     @Test
     void resetPasswordChangesPasswordInvalidatesTokenAndSessions() throws Exception {
-        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
         String resetToken = "reset-token-123";
 
         AccountPasswordResetToken token = new AccountPasswordResetToken();
@@ -166,7 +213,7 @@ class AuthServiceTests {
 
     @Test
     void resetPasswordRejectsExpiredToken() throws Exception {
-        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "", ""));
+        var registered = authService.register(new RegisterInput("Maria", "maria@example.com", "secret123", "", "11.111.111-1", ""));
         String resetToken = "expired-token";
 
         AccountPasswordResetToken token = new AccountPasswordResetToken();

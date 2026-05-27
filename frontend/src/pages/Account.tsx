@@ -62,7 +62,7 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
           </label>
           <label>
             <span>Email</span>
-            <input type="email" value={formUser.email} onChange={(event) => updateField("email", event.target.value)} />
+            <input type="email" value={user.email} readOnly aria-readonly="true" className="account-locked-input" />
           </label>
           <label>
             <span>{t("account.phone")}</span>
@@ -70,7 +70,7 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
           </label>
           <label>
             <span>RUT</span>
-            <input value={formUser.rut} onChange={(event) => updateField("rut", event.target.value)} />
+            <input value={user.rut} readOnly aria-readonly="true" className="account-locked-input" />
           </label>
           <label>
             <span>{t("account.address")}</span>

@@ -77,8 +77,8 @@ export default function AccountGate({ children }: AccountGateProps) {
     }
 
     if (isCreatingAccount) {
-      if (!name.trim() || !phone.trim() || !address.trim()) {
-        setError(language === "en" ? "Enter your name, phone, and address to create your account." : "Ingresa tu nombre, telefono y direccion para crear tu cuenta.");
+      if (!name.trim() || !phone.trim() || !rut.trim() || !address.trim()) {
+        setError(language === "en" ? "Enter your name, phone, RUT, and address to create your account." : "Ingresa tu nombre, telefono, RUT y direccion para crear tu cuenta.");
         return;
       }
 
@@ -253,6 +253,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                   value={rut}
                   onChange={(event) => setRut(event.target.value)}
                   autoComplete="off"
+                  required
                 />
               </label>
             )}

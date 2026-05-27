@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
+import Home from "../pages/Home";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-const Home = lazy(() => import("../pages/Home"));
 const Store = lazy(() => import("../pages/Store"));
 const ProductDetail = lazy(() => import("../pages/ProductDetail"));
 const Cart = lazy(() => import("../pages/Cart"));
@@ -25,7 +25,7 @@ const OrderConfirmation = lazy(() => import("../pages/OrderConfirmation"));
 export default function AppRouter() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<p className="route-loading">Cargando...</p>}>
+      <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/personaliza" element={<Personaliza />} />
