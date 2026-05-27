@@ -1,6 +1,6 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getProducts, type Product } from "../services/api";
+import { getFallbackProducts, getProducts, type Product } from "../services/api";
 import Navbar from "../components/Navbar";
 import { addCartItem } from "../services/cart";
 import { useLanguage } from "../i18n";
@@ -13,23 +13,50 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
+function findFallbackProduct(id?: string) {
+  return getFallbackProducts().find((product) => String(product.id) === id) ?? null;
+}
+
 export default function ProductDetail() {
   const { t } = useLanguage();
   const { id } = useParams();
-  const [product, setProduct] = useState<Product | null>(null);
+  const location = useLocation();
+  const routeProduct = (location.state as { product?: Product } | null)?.product;
+  const [product, setProduct] = useState<Product | null>(() => routeProduct ?? findFallbackProduct(id));
+  const [hasResolvedProduct, setHasResolvedProduct] = useState(Boolean(routeProduct ?? findFallbackProduct(id)));
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
-    getProducts().then((res) => {
-      const found = res.data.find((p) => String(p.id) === id);
-      setProduct(found ?? null);
-    });
-  }, [id]);
+    setSelectedImageIndex(0);
+    setProduct(routeProduct ?? findFallbackProduct(id));
+    setHasResolvedProduct(Boolean(routeProduct ?? findFallbackProduct(id)));
 
-  if (!product) return <p>{t("common.loading")}</p>;
+    getProducts()
+      .then((res) => {
+        const found = res.data.find((p) => String(p.id) === id);
+        setProduct(found ?? routeProduct ?? findFallbackProduct(id));
+      })
+      .finally(() => setHasResolvedProduct(true));
+  }, [id, routeProduct]);
+
+  if (!product) {
+    return (
+      <>
+        <Navbar />
+        <main className="product-detail-page">
+          {hasResolvedProduct && (
+            <section className="store-empty-result">
+              <p>{t("store.empty")}</p>
+              <Link to="/tienda">{t("nav.store")}</Link>
+            </section>
+          )}
+        </main>
+      </>
+    );
+  }
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
-  const currentImage = images[selectedImageIndex];
+  const currentImage = images[selectedImageIndex] ?? images[0];
   const isQuoteProduct = product.availability === "Personalizado" || product.price === 0;
   const isAvailable = product.availability !== "Agotado" && product.availability !== "Oculto" && !isQuoteProduct;
 

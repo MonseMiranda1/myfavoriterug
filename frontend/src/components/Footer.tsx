@@ -1,5 +1,4 @@
 ﻿import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";
 import adminIcon from "../assets/icons/admin.png";
 import compraIcon from "../assets/icons/compra.png";
 import envioIcon from "../assets/icons/envio.png";
@@ -22,17 +21,15 @@ export default function Footer() {
 
       <div className="footer-main">
         <div className="footer-brand">
-          <img src={logo} alt="My Favorite Rug" className="footer-logo" />
+          <p>{t("footer.brand")}</p>
           <a href="/admin" className="admin-link" aria-label="Admin">
             <img src={adminIcon} alt="" />
           </a>
-          <p>{t("footer.brand")}</p>
         </div>
 
         <div>
           <h3>{t("footer.info")}</h3>
           <Link to="/sobre-nosotros">{t("footer.about")}</Link>
-          <Link to="/personaliza">{t("footer.faq")}</Link>
           <Link to="/envios">{t("footer.shippingPolicy")}</Link>
           <Link to="/terminos">{t("footer.returns")}</Link>
         </div>
@@ -57,15 +54,6 @@ export default function Footer() {
               <img src={webIcon} alt="" />
             </a>
           </div>
-        </div>
-
-        <div>
-          <h3>{t("footer.newsletter")}</h3>
-          <p>{t("footer.newsletterText")}</p>
-          <form className="newsletter">
-            <input type="email" placeholder={t("footer.email")} aria-label={t("footer.email")} />
-            <button type="submit" aria-label={t("footer.submit")}><span aria-hidden="true">&rarr;</span></button>
-          </form>
         </div>
       </div>
 
