@@ -9,6 +9,14 @@ import { createOrder, createPaymentIntent, saveOrder } from "../services/orders"
 
 const TAX_RATE = 0.19;
 const SHIPPING_PRICE = 4500;
+const BANK_TRANSFER_DETAILS = [
+  ["Titular", "Monserrat Francisca Miranda Medina"],
+  ["RUT", "186219813"],
+  ["Banco", "Mercado Pago"],
+  ["Tipo de cuenta", "Cuenta Vista"],
+  ["Número de cuenta", "1014841261"],
+  ["Correo", "veganrom@gmail.com"],
+];
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -169,6 +177,19 @@ export default function Checkout() {
                   </select>
                 </label>
                 <p>{t("checkout.paymentText")}</p>
+                {paymentMethod === "TRANSFERENCIA" && (
+                  <div className="checkout-transfer-details" aria-label="Datos para transferencia">
+                    <strong>Datos para transferencia</strong>
+                    <dl>
+                      {BANK_TRANSFER_DETAILS.map(([label, value]) => (
+                        <div key={label}>
+                          <dt>{label}</dt>
+                          <dd>{value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
                 {submitError && <p className="custom-submit-message error">{submitError}</p>}
               </>
             )}
