@@ -12,6 +12,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n";
+import fallbackProductImage from "../assets/banner.png";
 
 const sortOptions = [
   { value: "name-asc", labelKey: "store.nameAsc" },
@@ -259,17 +260,27 @@ export default function Store() {
                   key={product.id}
                 >
                   <span className="store-product-image">
-                    <img src={product.image} alt={product.name} />
+                    <img
+                      src={product.image || fallbackProductImage}
+                      alt={product.name}
+                      onError={(event) => {
+                        event.currentTarget.src = fallbackProductImage;
+                      }}
+                    />
                   </span>
                   <span className="store-product-category">
                     {getCategoryLabel(getProductCategory(product), t)}
                   </span>
                   <strong>{product.name}</strong>
                   <span className="store-product-price">
-                    {product.availability === "Personalizado" ||
-                    product.price === 0
-                      ? t("store.quote")
-                      : formatPrice(product.price)}
+                    {product.availability === "Personalizado" || product.price === 0 ? (
+                      t("store.quote")
+                    ) : (
+                      <>
+                        <span>{formatPrice(product.price)}</span>
+                        <small>{t("store.netPrice")}</small>
+                      </>
+                    )}
                   </span>
                   {product.availability && (
                     <span className="store-product-availability">

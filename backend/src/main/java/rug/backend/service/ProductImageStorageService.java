@@ -18,30 +18,32 @@ public class ProductImageStorageService {
 
     private final Path uploadRoot;
     private final String backendBaseUrl;
+    private final String cloudinaryFolder;
+    private final CloudinaryImageStorageService cloudinaryImageStorageService;
 
     public ProductImageStorageService(
         @Value("${app.upload-dir:uploads/product-images}") String uploadDir,
-        @Value("${app.backend-base-url:http://localhost:8080}") String backendBaseUrl
+        @Value("${app.backend-base-url:http://localhost:8080}") String backendBaseUrl,
+        @Value("${cloudinary.product-folder:myfavoriterug/products}") String cloudinaryFolder,
+        CloudinaryImageStorageService cloudinaryImageStorageService
     ) {
         this.uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
         this.backendBaseUrl = backendBaseUrl.replaceAll("/+$", "");
+        this.cloudinaryFolder = cloudinaryFolder;
+        this.cloudinaryImageStorageService = cloudinaryImageStorageService;
     }
 
     public String store(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("La imagen no puede estar vacia.");
-        }
+        validate(file);
 
-        String contentType = file.getContentType();
-
-        if (!ALLOWED_TYPES.contains(contentType)) {
-            throw new IllegalArgumentException("Formato de imagen no permitido.");
+        if (cloudinaryImageStorageService.isConfigured()) {
+            return cloudinaryImageStorageService.upload(file, cloudinaryFolder);
         }
 
         try {
             Files.createDirectories(uploadRoot);
 
-            String extension = extensionFor(contentType);
+            String extension = extensionFor(file.getContentType());
             String fileName = UUID.randomUUID() + extension;
             Path destination = uploadRoot.resolve(fileName).normalize();
 
@@ -53,6 +55,16 @@ public class ProductImageStorageService {
             return backendBaseUrl + "/uploads/product-images/" + fileName;
         } catch (IOException exception) {
             throw new IllegalStateException("No se pudo guardar la imagen.", exception);
+        }
+    }
+
+    private void validate(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("La imagen no puede estar vacia.");
+        }
+
+        if (!ALLOWED_TYPES.contains(file.getContentType())) {
+            throw new IllegalArgumentException("Formato de imagen no permitido.");
         }
     }
 
