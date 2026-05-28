@@ -52,7 +52,10 @@ export default function About() {
           </aside>
         </section>
 
-        <section className="about-inspiration" aria-label={t("about.inspirationLabel")}>
+        <section
+          className="about-inspiration"
+          aria-label={t("about.inspirationLabel")}
+        >
           <div className="about-inspiration-photos">
             <figure className="about-pet-photo about-pet-photo-kidney">
               <img src={kidney} alt={t("about.kidneyAlt")} />
@@ -88,17 +91,17 @@ export default function About() {
         </section>
 
         <section className="about-values">
-          <article>
-            <strong>{t("about.value1Title")}</strong>
-            <span>{t("about.value1Text")}</span>
+          <article id="Diseño Unico">
+            <h2>{t("about.value1Title")}</h2>
+            <p>{t("about.value1Text")}</p>
           </article>
-          <article>
-            <strong>{t("about.value2Title")}</strong>
-            <span>{t("about.value2Text")}</span>
+          <article id="Hecho-con-cuidado">
+            <h2>{t("about.value2Title")}</h2>
+            <p>{t("about.value2Text")}</p>
           </article>
-          <article>
-            <strong>{t("about.value3Title")}</strong>
-            <span>{t("about.value3Text")}</span>
+          <article id="Espacios con personalidad">
+            <h2>{t("about.value3Title")}</h2>
+            <p>{t("about.value3Text")}</p>
           </article>
         </section>
 
