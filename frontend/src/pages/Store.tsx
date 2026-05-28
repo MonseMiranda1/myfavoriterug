@@ -11,7 +11,6 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link, useSearchParams } from "react-router-dom";
-import { localProducts } from "../data/products";
 import { useLanguage } from "../i18n";
 
 const sortOptions = [
