@@ -40,9 +40,18 @@ export default function AppRouter() {
           <Route path="/cuenta/wishlist" element={<Wishlist />} />
           <Route path="/cuenta/seguimiento" element={<Tracking />} />
           <Route path="/galeria" element={<Gallery />} />
-          <Route path="/galeria/clientes" element={<Gallery initialCategory="Customer Photos" />} />
-          <Route path="/galeria/proceso" element={<Gallery initialCategory="Video Process" />} />
-          <Route path="/galeria/terminadas" element={<Gallery initialCategory="Finished Rugs" />} />
+          <Route
+            path="/galeria/clientes"
+            element={<Gallery initialCategory="Customer Photos" />}
+          />
+          <Route
+            path="/galeria/proceso"
+            element={<Gallery initialCategory="Video Process" />}
+          />
+          <Route
+            path="/galeria/terminadas"
+            element={<Gallery initialCategory="Finished Rugs" />}
+          />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/contacto" element={<Contact />} />
