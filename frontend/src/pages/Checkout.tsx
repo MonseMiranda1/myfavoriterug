@@ -5,7 +5,11 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useLanguage } from "../i18n";
 import { getCartItems, saveCartItems } from "../services/cart";
-import { createOrder, createPaymentIntent, saveOrder } from "../services/orders";
+import {
+  createOrder,
+  createPaymentIntent,
+  saveOrder,
+} from "../services/orders";
 
 const TAX_RATE = 0.19;
 const SHIPPING_PRICE = 4500;
@@ -38,10 +42,19 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const items = useMemo(() => getCartItems(), []);
-  const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
+  const subtotal = items.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0,
+  );
   const tax = Math.round(subtotal * TAX_RATE);
   const total = subtotal + tax + SHIPPING_PRICE;
-  const steps = [t("checkout.stepsData"), t("checkout.stepsShipping"), t("checkout.stepsSummary"), t("checkout.stepsPayment"), t("checkout.stepsConfirmation")];
+  const steps = [
+    t("checkout.stepsData"),
+    t("checkout.stepsShipping"),
+    t("checkout.stepsSummary"),
+    t("checkout.stepsPayment"),
+    t("checkout.stepsConfirmation"),
+  ];
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,10 +96,15 @@ export default function Checkout() {
 
       navigate("/orden-confirmada");
     } catch (error) {
-      if (axios.isAxiosError<{ message?: string }>(error) && error.response?.data?.message) {
+      if (
+        axios.isAxiosError<{ message?: string }>(error) &&
+        error.response?.data?.message
+      ) {
         setSubmitError(error.response.data.message);
       } else {
-        setSubmitError("No pudimos iniciar el pago. Revisa el backend o las credenciales de la pasarela.");
+        setSubmitError(
+          "No pudimos iniciar el pago. Revisa el backend o las credenciales de la pasarela.",
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -119,11 +137,20 @@ export default function Checkout() {
                 <h2>{t("checkout.customerData")}</h2>
                 <label>
                   <span>{t("checkout.name")}</span>
-                  <input required value={customerName} onChange={(event) => setCustomerName(event.target.value)} />
+                  <input
+                    required
+                    value={customerName}
+                    onChange={(event) => setCustomerName(event.target.value)}
+                  />
                 </label>
                 <label>
                   <span>{t("checkout.email")}</span>
-                  <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+                  <input
+                    required
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
                 </label>
               </>
             )}
@@ -133,12 +160,19 @@ export default function Checkout() {
                 <h2>{t("checkout.shipping")}</h2>
                 <label>
                   <span>{t("checkout.address")}</span>
-                  <input required value={address} onChange={(event) => setAddress(event.target.value)} />
+                  <input
+                    required
+                    value={address}
+                    onChange={(event) => setAddress(event.target.value)}
+                  />
                 </label>
                 <label>
                   <span>{t("checkout.shippingMethod")}</span>
-                  <select value={shippingMethod} onChange={(event) => setShippingMethod(event.target.value)}>
-                    <option>Chilexpress</option>
+                  <select
+                    value={shippingMethod}
+                    onChange={(event) => setShippingMethod(event.target.value)}
+                  >
+                    <option>Correos de Chile</option>
                     <option>Starken</option>
                     <option>{t("checkout.pickup")}</option>
                     <option>{t("checkout.international")}</option>
@@ -156,8 +190,12 @@ export default function Checkout() {
                   <div className="checkout-items">
                     {items.map((item) => (
                       <div key={item.id}>
-                        <span>{item.name} x {item.quantity}</span>
-                        <strong>{formatPrice(item.price * item.quantity)}</strong>
+                        <span>
+                          {item.name} x {item.quantity}
+                        </span>
+                        <strong>
+                          {formatPrice(item.price * item.quantity)}
+                        </strong>
                       </div>
                     ))}
                   </div>
@@ -170,10 +208,15 @@ export default function Checkout() {
                 <h2>{t("checkout.payment")}</h2>
                 <label>
                   <span>{t("checkout.paymentMethod")}</span>
-                  <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)}>
+                  <select
+                    value={paymentMethod}
+                    onChange={(event) => setPaymentMethod(event.target.value)}
+                  >
                     <option value="FLOW">Flow</option>
                     <option value="PAYPAL">PayPal</option>
-                    <option value="TRANSFERENCIA">{t("checkout.transfer")}</option>
+                    <option value="TRANSFERENCIA">
+                      {t("checkout.transfer")}
+                    </option>
                   </select>
                 </label>
                 <p>{t("checkout.paymentText")}</p>
@@ -196,22 +239,46 @@ export default function Checkout() {
 
             <div className="checkout-actions">
               {step > 0 && (
-                <button type="button" className="cart-secondary-link" onClick={() => setStep((current) => current - 1)}>
+                <button
+                  type="button"
+                  className="cart-secondary-link"
+                  onClick={() => setStep((current) => current - 1)}
+                >
                   {t("common.back")}
                 </button>
               )}
-              <button type="submit" className="btn btn-primary" disabled={items.length === 0 || isSubmitting}>
-                {step === 3 ? (isSubmitting ? "Abriendo portal..." : "Pagar") : t("common.continue")}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={items.length === 0 || isSubmitting}
+              >
+                {step === 3
+                  ? isSubmitting
+                    ? "Abriendo portal..."
+                    : "Pagar"
+                  : t("common.continue")}
               </button>
             </div>
           </section>
 
           <aside className="cart-summary">
             <h2>{t("common.total")}</h2>
-            <div className="cart-summary-line"><span>{t("common.subtotal")}</span><strong>{formatPrice(subtotal)}</strong></div>
-            <div className="cart-summary-line"><span>IVA</span><strong>{formatPrice(tax)}</strong></div>
-            <div className="cart-summary-line"><span>{t("checkout.shipping")}</span><strong>{formatPrice(SHIPPING_PRICE)}</strong></div>
-            <div className="cart-summary-total"><span>{t("common.total")}</span><strong>{formatPrice(total)}</strong></div>
+            <div className="cart-summary-line">
+              <span>{t("common.subtotal")}</span>
+              <strong>{formatPrice(subtotal)}</strong>
+            </div>
+            <div className="cart-summary-line">
+              <span>IVA</span>
+              <strong>{formatPrice(tax)}</strong>
+            </div>
+            <div className="cart-summary-line">
+              <span>{t("checkout.shipping")}</span>
+              <strong>{formatPrice(SHIPPING_PRICE)}</strong>
+            </div>
+            <div className="cart-summary-total">
+              <span>{t("common.total")}</span>
+              <strong>{formatPrice(total)}</strong>
+            </div>
           </aside>
         </form>
       </main>

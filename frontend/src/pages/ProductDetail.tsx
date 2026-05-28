@@ -1,7 +1,12 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getFallbackProducts, getProducts, type Product } from "../services/api";
+import {
+  getFallbackProducts,
+  getProducts,
+  type Product,
+} from "../services/api";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { addCartItem } from "../services/cart";
 import { useLanguage } from "../i18n";
 
@@ -14,16 +19,23 @@ function formatPrice(price: number) {
 }
 
 function findFallbackProduct(id?: string) {
-  return getFallbackProducts().find((product) => String(product.id) === id) ?? null;
+  return (
+    getFallbackProducts().find((product) => String(product.id) === id) ?? null
+  );
 }
 
 export default function ProductDetail() {
   const { t } = useLanguage();
   const { id } = useParams();
   const location = useLocation();
-  const routeProduct = (location.state as { product?: Product } | null)?.product;
-  const [product, setProduct] = useState<Product | null>(() => routeProduct ?? findFallbackProduct(id));
-  const [hasResolvedProduct, setHasResolvedProduct] = useState(Boolean(routeProduct ?? findFallbackProduct(id)));
+  const routeProduct = (location.state as { product?: Product } | null)
+    ?.product;
+  const [product, setProduct] = useState<Product | null>(
+    () => routeProduct ?? findFallbackProduct(id),
+  );
+  const [hasResolvedProduct, setHasResolvedProduct] = useState(
+    Boolean(routeProduct ?? findFallbackProduct(id)),
+  );
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
@@ -55,10 +67,17 @@ export default function ProductDetail() {
     );
   }
 
-  const images = product.images && product.images.length > 0 ? product.images : [product.image];
+  const images =
+    product.images && product.images.length > 0
+      ? product.images
+      : [product.image];
   const currentImage = images[selectedImageIndex] ?? images[0];
-  const isQuoteProduct = product.availability === "Personalizado" || product.price === 0;
-  const isAvailable = product.availability !== "Agotado" && product.availability !== "Oculto" && !isQuoteProduct;
+  const isQuoteProduct =
+    product.availability === "Personalizado" || product.price === 0;
+  const isAvailable =
+    product.availability !== "Agotado" &&
+    product.availability !== "Oculto" &&
+    !isQuoteProduct;
 
   return (
     <>
@@ -72,7 +91,10 @@ export default function ProductDetail() {
             </div>
 
             {images.length > 1 && (
-              <div className="product-thumbnails" aria-label="Vistas del producto">
+              <div
+                className="product-thumbnails"
+                aria-label="Vistas del producto"
+              >
                 {images.map((img, index) => (
                   <button
                     type="button"
@@ -89,7 +111,9 @@ export default function ProductDetail() {
           </div>
 
           <aside className="product-purchase-card">
-            <span className="product-detail-kicker">{product.category || product.collection || t("nav.store")}</span>
+            <span className="product-detail-kicker">
+              {product.category || product.collection || t("nav.store")}
+            </span>
             <h1>{product.name}</h1>
             <p className="product-detail-price">
               {isQuoteProduct ? t("store.quote") : formatPrice(product.price)}
@@ -101,7 +125,9 @@ export default function ProductDetail() {
               </p>
             )}
             {product.availability && (
-              <p className="product-detail-availability">{product.availability}</p>
+              <p className="product-detail-availability">
+                {product.availability}
+              </p>
             )}
 
             {isQuoteProduct ? (
@@ -109,13 +135,19 @@ export default function ProductDetail() {
                 {t("account.requestQuote")}
               </Link>
             ) : (
-              <button type="button" className="product-add-button" onClick={() => addCartItem(product)} disabled={!isAvailable}>
+              <button
+                type="button"
+                className="product-add-button"
+                onClick={() => addCartItem(product)}
+                disabled={!isAvailable}
+              >
                 {t("product.addToCart")}
               </button>
             )}
           </aside>
         </section>
       </main>
+      <Footer />
     </>
   );
 }
