@@ -4968,6 +4968,45 @@ img {
   border-bottom: 1px solid rgba(27, 18, 12, 0.1);
 }
 
+.checkout-transfer-details {
+  padding: 18px;
+  border: 1px solid rgba(126, 63, 216, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.92);
+}
+
+.checkout-transfer-details > strong {
+  display: block;
+  margin-bottom: 12px;
+  color: #211814;
+  font-size: 16px;
+}
+
+.checkout-transfer-details dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.checkout-transfer-details div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.44fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.checkout-transfer-details dt {
+  color: #6d5c54;
+  font-weight: 900;
+}
+
+.checkout-transfer-details dd {
+  margin: 0;
+  color: #211814;
+  font-weight: 1000;
+  overflow-wrap: anywhere;
+}
+
 .checkout-actions {
   display: flex;
   justify-content: flex-end;
