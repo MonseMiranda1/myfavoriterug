@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState, type FormEvent } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
@@ -500,8 +501,10 @@ export default function Admin() {
       await refreshAdminProducts();
       setProductForm(emptyProductForm);
       setProductFormMessage("Producto subido y disponible en la tienda.");
-    } catch {
-      setProductFormMessage("No se pudo guardar. Prueba con menos imágenes o imágenes más livianas.");
+    } catch (error) {
+      const backendMessage = axios.isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : null;
+      const status = axios.isAxiosError(error) ? error.response?.status : null;
+      setProductFormMessage(backendMessage || (status ? `No se pudo guardar el producto. Error ${status}.` : "No se pudo guardar el producto."));
     }
   }
 
