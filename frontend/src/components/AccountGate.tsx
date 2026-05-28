@@ -24,7 +24,9 @@ export default function AccountGate({ children }: AccountGateProps) {
   const [user, setUser] = useState<AccountUser | null>(() => getAccountUser());
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [resetStep, setResetStep] = useState<"request" | "confirm" | "success" | "error">("request");
+  const [resetStep, setResetStep] = useState<
+    "request" | "confirm" | "success" | "error"
+  >("request");
   const [resetMessage, setResetMessage] = useState("");
   const [resetError, setResetError] = useState("");
   const [isResetSubmitting, setIsResetSubmitting] = useState(false);
@@ -32,7 +34,8 @@ export default function AccountGate({ children }: AccountGateProps) {
   const [resetEmail, setResetEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
   const [resetPassword, setResetPassword] = useState("");
-  const [resetPasswordConfirmation, setResetPasswordConfirmation] = useState("");
+  const [resetPasswordConfirmation, setResetPasswordConfirmation] =
+    useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [name, setName] = useState("");
@@ -72,18 +75,30 @@ export default function AccountGate({ children }: AccountGateProps) {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
-      setError(language === "en" ? "Enter your email and password to continue." : "Ingresa tu correo y contraseña para continuar.");
+      setError(
+        language === "en"
+          ? "Enter your email and password to continue."
+          : "Ingresa tu correo y contraseña para continuar.",
+      );
       return;
     }
 
     if (isCreatingAccount) {
       if (!name.trim() || !phone.trim() || !rut.trim() || !address.trim()) {
-        setError(language === "en" ? "Enter your name, phone, RUT, and address to create your account." : "Ingresa tu nombre, telefono, RUT y direccion para crear tu cuenta.");
+        setError(
+          language === "en"
+            ? "Enter your name, phone, RUT, and address to create your account."
+            : "Ingresa tu nombre, telefono, RUT y direccion para crear tu cuenta.",
+        );
         return;
       }
 
       if (password !== passwordConfirmation) {
-        setError(language === "en" ? "Passwords do not match." : "Las contraseñas no coinciden.");
+        setError(
+          language === "en"
+            ? "Passwords do not match."
+            : "Las contraseñas no coinciden.",
+        );
         return;
       }
     }
@@ -105,7 +120,13 @@ export default function AccountGate({ children }: AccountGateProps) {
       setPassword("");
       setPasswordConfirmation("");
     } catch (error) {
-      setError(error instanceof Error ? error.message : language === "en" ? "Could not sign in." : "No se pudo iniciar sesion.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : language === "en"
+            ? "Could not sign in."
+            : "No se pudo iniciar sesion.",
+      );
     }
   }
 
@@ -135,7 +156,9 @@ export default function AccountGate({ children }: AccountGateProps) {
     event.preventDefault();
 
     if (!resetEmail.trim()) {
-      setResetError(language === "en" ? "Enter your email." : "Ingresa tu correo.");
+      setResetError(
+        language === "en" ? "Enter your email." : "Ingresa tu correo.",
+      );
       return;
     }
 
@@ -145,9 +168,19 @@ export default function AccountGate({ children }: AccountGateProps) {
     try {
       await requestPasswordReset(resetEmail.trim());
       setResetStep("confirm");
-      setResetMessage(language === "en" ? "If the email exists, a recovery token was sent." : "Si el correo existe, enviamos un token de recuperacion.");
+      setResetMessage(
+        language === "en"
+          ? "If the email exists, a recovery token was sent."
+          : "Si el correo existe, enviamos un token de recuperacion.",
+      );
     } catch (error) {
-      setResetError(error instanceof Error ? error.message : language === "en" ? "Could not send the token." : "No se pudo enviar el token.");
+      setResetError(
+        error instanceof Error
+          ? error.message
+          : language === "en"
+            ? "Could not send the token."
+            : "No se pudo enviar el token.",
+      );
     } finally {
       setIsResetSubmitting(false);
     }
@@ -157,12 +190,20 @@ export default function AccountGate({ children }: AccountGateProps) {
     event.preventDefault();
 
     if (!resetEmail.trim() || !resetToken.trim() || !resetPassword.trim()) {
-      setResetError(language === "en" ? "Enter email, token, and new password." : "Ingresa correo, token y nueva contrasena.");
+      setResetError(
+        language === "en"
+          ? "Enter email, token, and new password."
+          : "Ingresa correo, token y nueva contrasena.",
+      );
       return;
     }
 
     if (resetPassword !== resetPasswordConfirmation) {
-      setResetError(language === "en" ? "Passwords do not match." : "Las contrasenas no coinciden.");
+      setResetError(
+        language === "en"
+          ? "Passwords do not match."
+          : "Las contrasenas no coinciden.",
+      );
       return;
     }
 
@@ -170,8 +211,16 @@ export default function AccountGate({ children }: AccountGateProps) {
     setResetError("");
 
     try {
-      await confirmPasswordReset(resetEmail.trim(), resetToken.trim(), resetPassword);
-      setResetMessage(language === "en" ? "Password updated. You can sign in now." : "Contrasena actualizada. Ya puedes iniciar sesion.");
+      await confirmPasswordReset(
+        resetEmail.trim(),
+        resetToken.trim(),
+        resetPassword,
+      );
+      setResetMessage(
+        language === "en"
+          ? "Password updated. You can sign in now."
+          : "Contrasena actualizada. Ya puedes iniciar sesion.",
+      );
       setEmail(resetEmail.trim());
       setPassword("");
       setResetToken("");
@@ -179,7 +228,13 @@ export default function AccountGate({ children }: AccountGateProps) {
       setResetPasswordConfirmation("");
       setResetStep("success");
     } catch (error) {
-      setResetError(error instanceof Error ? error.message : language === "en" ? "Could not reset your password." : "No se pudo restaurar la contrasena.");
+      setResetError(
+        error instanceof Error
+          ? error.message
+          : language === "en"
+            ? "Could not reset your password."
+            : "No se pudo restaurar la contrasena.",
+      );
       setResetStep("error");
     } finally {
       setIsResetSubmitting(false);
@@ -201,20 +256,45 @@ export default function AccountGate({ children }: AccountGateProps) {
       <Navbar />
 
       <main className="account-login-page">
-        <section className={isCreatingAccount ? "account-login-card account-login-card-create" : "account-login-card"}>
-          <span className="account-kicker">{language === "en" ? "Customer area" : "Área cliente"}</span>
-          <h1>{isCreatingAccount ? (language === "en" ? "Create account" : "Crea tu cuenta") : (language === "en" ? "Sign in" : "Inicia sesion")}</h1>
+        <section
+          className={
+            isCreatingAccount
+              ? "account-login-card account-login-card-create"
+              : "account-login-card"
+          }
+        >
+          <span className="account-kicker">
+            {language === "en" ? "Customer area" : "Área cliente"}
+          </span>
+          <h1>
+            {isCreatingAccount
+              ? language === "en"
+                ? "Create account"
+                : "Crea tu cuenta"
+              : language === "en"
+                ? "Sign in"
+                : "Inicia sesion"}
+          </h1>
           <p>
             {isCreatingAccount
-              ? (language === "en" ? "Create an account to save your details and review future orders." : "Crea una cuenta para guardar tus datos y revisar tus pedidos.")
-              : (language === "en" ? "Access your profile, orders, and quotes." : "Accede para revisar tu perfil, pedidos y cotizaciones.")}
+              ? language === "en"
+                ? "Create an account to save your details and review future orders."
+                : "Crea una cuenta para guardar tus datos y revisar tus pedidos."
+              : language === "en"
+                ? "Access your profile, orders, and quotes."
+                : "Accede para revisar tu perfil, pedidos y cotizaciones."}
           </p>
 
-          <form className={isCreatingAccount ? "account-create-form" : undefined} onSubmit={handleLogin}>
+          <form
+            className={isCreatingAccount ? "account-create-form" : undefined}
+            onSubmit={handleLogin}
+          >
             {isCreatingAccount && (
               <>
                 <label>
-                  <span>{language === "en" ? "Full name" : "Nombre completo"}</span>
+                  <span>
+                    {language === "en" ? "Full name" : "Nombre completo"}
+                  </span>
                   <input
                     type="text"
                     value={name}
@@ -275,18 +355,26 @@ export default function AccountGate({ children }: AccountGateProps) {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                autoComplete={isCreatingAccount ? "new-password" : "current-password"}
+                autoComplete={
+                  isCreatingAccount ? "new-password" : "current-password"
+                }
                 minLength={6}
                 required
               />
             </label>
             {isCreatingAccount && (
               <label>
-                <span>{language === "en" ? "Confirm password" : "Confirmar contraseña"}</span>
+                <span>
+                  {language === "en"
+                    ? "Confirm password"
+                    : "Confirmar contraseña"}
+                </span>
                 <input
                   type="password"
                   value={passwordConfirmation}
-                  onChange={(event) => setPasswordConfirmation(event.target.value)}
+                  onChange={(event) =>
+                    setPasswordConfirmation(event.target.value)
+                  }
                   autoComplete="new-password"
                   minLength={6}
                   required
@@ -302,28 +390,50 @@ export default function AccountGate({ children }: AccountGateProps) {
                   openResetModal();
                 }}
               >
-                {language === "en" ? "Forgot your password?" : "Recuperar contraseña"}
+                {language === "en"
+                  ? "Forgot your password?"
+                  : "Recuperar contraseña"}
               </a>
             )}
 
             {error && <strong className="account-login-error">{error}</strong>}
 
-            <button type="submit">{isCreatingAccount ? (language === "en" ? "Create account" : "Crear cuenta") : (language === "en" ? "Enter my account" : "Entrar a mi cuenta")}</button>
+            <button type="submit">
+              {isCreatingAccount
+                ? language === "en"
+                  ? "Create account"
+                  : "Crear cuenta"
+                : language === "en"
+                  ? "Enter my account"
+                  : "Entrar a mi cuenta"}
+            </button>
           </form>
 
           <div className="account-login-options">
             <button type="button" onClick={toggleAccountMode}>
               {isCreatingAccount
-                ? (language === "en" ? "I already have an account" : "Ya tengo cuenta")
-                : (language === "en" ? "Create account" : "Crear cuenta")}
+                ? language === "en"
+                  ? "I already have an account"
+                  : "Ya tengo cuenta"
+                : language === "en"
+                  ? "Create account"
+                  : "Crear cuenta"}
             </button>
-            <Link to="/checkout">{language === "en" ? "Checkout as guest" : "Comprar como invitado"}</Link>
+            <Link to="/checkout">
+              {language === "en"
+                ? "Checkout as guest"
+                : "Comprar como invitado"}
+            </Link>
           </div>
         </section>
       </main>
 
       {isResetModalOpen && (
-        <div className="account-modal-backdrop" role="presentation" onClick={closeResetModal}>
+        <div
+          className="account-modal-backdrop"
+          role="presentation"
+          onClick={closeResetModal}
+        >
           <section
             className="account-reset-modal"
             role="dialog"
@@ -331,11 +441,22 @@ export default function AccountGate({ children }: AccountGateProps) {
             aria-labelledby="account-reset-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <button className="account-modal-close" type="button" aria-label={language === "en" ? "Close" : "Cerrar"} onClick={closeResetModal}>
+            <button
+              className="account-modal-close"
+              type="button"
+              aria-label={language === "en" ? "Close" : "Cerrar"}
+              onClick={closeResetModal}
+            >
               ×
             </button>
-            <span className="account-kicker">{language === "en" ? "Password reset" : "Restaurar acceso"}</span>
-            <h2 id="account-reset-title">{language === "en" ? "Reset your password" : "Recuperar contraseña"}</h2>
+            <span className="account-kicker">
+              {language === "en" ? "Password reset" : "Restaurar acceso"}
+            </span>
+            <h2 id="account-reset-title">
+              {language === "en"
+                ? "Reset your password"
+                : "Recuperar contraseña"}
+            </h2>
             <p>
               {language === "en"
                 ? "Enter your email and we will send instructions to reset your password."
@@ -344,7 +465,11 @@ export default function AccountGate({ children }: AccountGateProps) {
 
             {resetStep === "success" && (
               <div className="account-reset-result" role="status">
-                <strong>{language === "en" ? "Password updated" : "Contrasena actualizada"}</strong>
+                <strong>
+                  {language === "en"
+                    ? "Password updated"
+                    : "Contrasena actualizada"}
+                </strong>
                 <p>{resetMessage}</p>
                 <button type="button" onClick={closeResetModal}>
                   {language === "en" ? "Sign in" : "Iniciar sesion"}
@@ -353,8 +478,15 @@ export default function AccountGate({ children }: AccountGateProps) {
             )}
 
             {resetStep === "error" && (
-              <div className="account-reset-result account-reset-result-error" role="alert">
-                <strong>{language === "en" ? "Could not update password" : "No se pudo actualizar la contrasena"}</strong>
+              <div
+                className="account-reset-result account-reset-result-error"
+                role="alert"
+              >
+                <strong>
+                  {language === "en"
+                    ? "Could not update password"
+                    : "No se pudo actualizar la contrasena"}
+                </strong>
                 <p>{resetError}</p>
                 <button type="button" onClick={returnToPasswordResetConfirm}>
                   {language === "en" ? "Try again" : "Intentar de nuevo"}
@@ -365,7 +497,9 @@ export default function AccountGate({ children }: AccountGateProps) {
             {resetStep === "request" ? (
               <form onSubmit={handlePasswordReset}>
                 <label>
-                  <span>{language === "en" ? "Email" : "Correo electrónico"}</span>
+                  <span>
+                    {language === "en" ? "Email" : "Correo electrónico"}
+                  </span>
                   <input
                     type="email"
                     value={resetEmail}
@@ -374,16 +508,30 @@ export default function AccountGate({ children }: AccountGateProps) {
                     required
                   />
                 </label>
-                {resetError && <strong className="account-login-error">{resetError}</strong>}
-                {resetMessage && <strong className="account-reset-message">{resetMessage}</strong>}
+                {resetError && (
+                  <strong className="account-login-error">{resetError}</strong>
+                )}
+                {resetMessage && (
+                  <strong className="account-reset-message">
+                    {resetMessage}
+                  </strong>
+                )}
                 <button type="submit" disabled={isResetSubmitting}>
-                  {isResetSubmitting ? (language === "en" ? "Sending..." : "Enviando...") : (language === "en" ? "Send token" : "Enviar token")}
+                  {isResetSubmitting
+                    ? language === "en"
+                      ? "Sending..."
+                      : "Enviando..."
+                    : language === "en"
+                      ? "Send token"
+                      : "Enviar token"}
                 </button>
               </form>
             ) : resetStep === "confirm" ? (
               <form onSubmit={handlePasswordResetConfirm}>
                 <label>
-                  <span>{language === "en" ? "Email" : "Correo electrónico"}</span>
+                  <span>
+                    {language === "en" ? "Email" : "Correo electrónico"}
+                  </span>
                   <input
                     type="email"
                     value={resetEmail}
@@ -403,7 +551,9 @@ export default function AccountGate({ children }: AccountGateProps) {
                   />
                 </label>
                 <label>
-                  <span>{language === "en" ? "New password" : "Nueva contrasena"}</span>
+                  <span>
+                    {language === "en" ? "New password" : "Nueva contrasena"}
+                  </span>
                   <input
                     type="password"
                     value={resetPassword}
@@ -414,22 +564,44 @@ export default function AccountGate({ children }: AccountGateProps) {
                   />
                 </label>
                 <label>
-                  <span>{language === "en" ? "Confirm password" : "Confirmar contrasena"}</span>
+                  <span>
+                    {language === "en"
+                      ? "Confirm password"
+                      : "Confirmar contrasena"}
+                  </span>
                   <input
                     type="password"
                     value={resetPasswordConfirmation}
-                    onChange={(event) => setResetPasswordConfirmation(event.target.value)}
+                    onChange={(event) =>
+                      setResetPasswordConfirmation(event.target.value)
+                    }
                     autoComplete="new-password"
                     minLength={6}
                     required
                   />
                 </label>
-                {resetError && <strong className="account-login-error">{resetError}</strong>}
-                {resetMessage && <strong className="account-reset-message">{resetMessage}</strong>}
+                {resetError && (
+                  <strong className="account-login-error">{resetError}</strong>
+                )}
+                {resetMessage && (
+                  <strong className="account-reset-message">
+                    {resetMessage}
+                  </strong>
+                )}
                 <button type="submit" disabled={isResetSubmitting}>
-                  {isResetSubmitting ? (language === "en" ? "Updating..." : "Actualizando...") : (language === "en" ? "Reset password" : "Restaurar contrasena")}
+                  {isResetSubmitting
+                    ? language === "en"
+                      ? "Updating..."
+                      : "Actualizando..."
+                    : language === "en"
+                      ? "Reset password"
+                      : "Restaurar contrasena"}
                 </button>
-                <button className="account-reset-secondary" type="button" onClick={() => setResetStep("request")}>
+                <button
+                  className="account-reset-secondary"
+                  type="button"
+                  onClick={() => setResetStep("request")}
+                >
                   {language === "en" ? "Send a new token" : "Enviar otro token"}
                 </button>
               </form>
