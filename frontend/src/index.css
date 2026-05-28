@@ -5327,26 +5327,29 @@ img {
 
 @media (max-width: 1040px) {
   .main-nav {
-    grid-template-columns: auto minmax(0, 1fr) minmax(132px, auto);
-    min-height: auto;
+    grid-template-columns: 116px minmax(0, 1fr) auto;
+    min-height: 96px;
+    gap: 14px 20px;
+    padding: 10px clamp(24px, 4vw, 42px);
   }
 
   .brand-logo {
-    width: 104px;
-    height: 76px;
+    width: 96px;
+    height: 70px;
   }
 
   .nav-links {
-    grid-column: 1 / -1;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 12px 24px;
+    gap: 10px 18px;
     overflow: visible;
     padding-bottom: 0;
+    font-size: 14px;
   }
 
   .nav-actions {
     justify-self: end;
+    gap: 10px;
   }
 
   .hero-bg {
@@ -5365,8 +5368,7 @@ img {
   .store-product-grid,
   .content-grid,
   .custom-builder,
-  .custom-info-grid,
-  .footer-main {
+  .custom-info-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -5403,13 +5405,34 @@ img {
   }
 
   .footer-benefits {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding-inline: clamp(22px, 4vw, 48px);
   }
 
   .footer-benefits article {
     width: 100%;
     justify-self: stretch;
+    grid-template-columns: 36px 1fr;
+    column-gap: 10px;
+  }
+
+  .footer-benefits span {
+    width: 36px;
+    height: 36px;
+  }
+
+  .footer-benefits span img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .footer-benefits strong {
+    font-size: 12px;
+  }
+
+  .footer-benefits small {
+    font-size: 11px;
   }
 
   .grid-cols-4 {
@@ -5909,6 +5932,10 @@ img {
   .custom-account-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .footer-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
