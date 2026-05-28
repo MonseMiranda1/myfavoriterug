@@ -24,6 +24,13 @@ spring:
       hibernate:
         format_sql: true
 
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  product-folder: ${CLOUDINARY_PRODUCT_FOLDER:myfavoriterug/products}
+  review-folder: ${CLOUDINARY_REVIEW_FOLDER:myfavoriterug/reviews}
+
 app:
   frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
   backend-base-url: ${BACKEND_BASE_URL:http://localhost:8080}

@@ -9,6 +9,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { addCartItem } from "../services/cart";
 import { useLanguage } from "../i18n";
+import fallbackProductImage from "../assets/banner.png";
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -87,7 +88,13 @@ export default function ProductDetail() {
         <section className="product-detail-shell">
           <div className="product-gallery">
             <div className="product-main-image">
-              <img src={currentImage} alt={product.name} />
+              <img
+                src={currentImage || fallbackProductImage}
+                alt={product.name}
+                onError={(event) => {
+                  event.currentTarget.src = fallbackProductImage;
+                }}
+              />
             </div>
 
             {images.length > 1 && (
@@ -103,7 +110,13 @@ export default function ProductDetail() {
                     className={selectedImageIndex === index ? "is-active" : ""}
                     aria-label={`Ver imagen ${index + 1}`}
                   >
-                    <img src={img} alt="" />
+                    <img
+                      src={img || fallbackProductImage}
+                      alt=""
+                      onError={(event) => {
+                        event.currentTarget.src = fallbackProductImage;
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -116,7 +129,14 @@ export default function ProductDetail() {
             </span>
             <h1>{product.name}</h1>
             <p className="product-detail-price">
-              {isQuoteProduct ? t("store.quote") : formatPrice(product.price)}
+              {isQuoteProduct ? (
+                t("store.quote")
+              ) : (
+                <>
+                  <span>{formatPrice(product.price)}</span>
+                  <small>{t("store.netPrice")}</small>
+                </>
+              )}
             </p>
             {product.size && (
               <p className="product-detail-size">
