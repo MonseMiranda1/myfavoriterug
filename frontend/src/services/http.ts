@@ -5,6 +5,16 @@ export const API = axios.create({
   timeout: 20000,
 });
 
+API.interceptors.request.use((config) => {
+  const token = window.sessionStorage.getItem("my-favorite-rug-admin-session");
+
+  if (token) {
+    config.headers.set("X-Admin-Token", token);
+  }
+
+  return config;
+});
+
 export function getApiErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
     return error.response?.data?.message || fallback;

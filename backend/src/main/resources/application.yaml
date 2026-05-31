@@ -36,6 +36,9 @@ app:
   backend-base-url: ${BACKEND_BASE_URL:http://localhost:8080}
   upload-dir: ${UPLOAD_DIR:uploads/product-images}
   review-upload-dir: ${REVIEW_UPLOAD_DIR:uploads/review-images}
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:change-me-before-production}
   flow:
     api-url: ${FLOW_API_URL:https://sandbox.flow.cl/api}
     api-key: ${FLOW_API_KEY:}
