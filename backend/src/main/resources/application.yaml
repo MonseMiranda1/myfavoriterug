@@ -4,6 +4,7 @@ spring:
 
   application:
     name: backend
+    
   servlet:
     multipart:
       max-file-size: 8MB
