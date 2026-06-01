@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState, type FormEvent } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
@@ -41,9 +42,7 @@ import {
   type PurchaseOrder,
 } from "../services/purchaseOrders";
 import { deleteQuoteRequest, getAdminQuoteRequests, type CustomQuoteRequest } from "../services/quotes";
-
-const adminUser = "admin";
-const adminPassword = "admin123";
+import { isAdminLoggedIn, loginAdmin, logoutAdmin } from "../services/adminAuth";
 
 const initialQuotes = [
   {
@@ -310,7 +309,7 @@ const sectionCopy: Record<AdminSection, { title: string; description: string }> 
 };
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem("admin-authenticated") === "true");
+  const [isLoggedIn, setIsLoggedIn] = useState(isAdminLoggedIn);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -343,12 +342,14 @@ export default function Admin() {
   const [isPurchaseOrderModalOpen, setIsPurchaseOrderModalOpen] = useState(false);
 
   useEffect(() => {
+    if (!isLoggedIn) return;
+
     refreshAdminProducts();
     refreshAdminQuotes();
     refreshAdminOrders();
     refreshPayments();
     refreshPurchaseOrders();
-  }, []);
+  }, [isLoggedIn]);
 
   async function refreshAdminOrders() {
     const response = await getBackendOrders();
@@ -381,22 +382,22 @@ export default function Admin() {
     setUploadedProducts(response.data);
   }
 
-  function handleLogin(event: FormEvent<HTMLFormElement>) {
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (username.trim() === adminUser && password === adminPassword) {
-      sessionStorage.setItem("admin-authenticated", "true");
+    try {
+      await loginAdmin(username, password);
       setIsLoggedIn(true);
       setPassword("");
       setError("");
       return;
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "Usuario o password incorrecto.");
     }
-
-    setError("Usuario o password incorrecto.");
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem("admin-authenticated");
+  async function handleLogout() {
+    await logoutAdmin();
     setIsLoggedIn(false);
     setUsername("");
     setPassword("");
@@ -500,8 +501,10 @@ export default function Admin() {
       await refreshAdminProducts();
       setProductForm(emptyProductForm);
       setProductFormMessage("Producto subido y disponible en la tienda.");
-    } catch {
-      setProductFormMessage("No se pudo guardar. Prueba con menos imágenes o imágenes más livianas.");
+    } catch (error) {
+      const backendMessage = axios.isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : null;
+      const status = axios.isAxiosError(error) ? error.response?.status : null;
+      setProductFormMessage(backendMessage || (status ? `No se pudo guardar el producto. Error ${status}.` : "No se pudo guardar el producto."));
     }
   }
 

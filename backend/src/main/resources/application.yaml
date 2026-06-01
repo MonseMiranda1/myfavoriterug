@@ -24,11 +24,21 @@ spring:
       hibernate:
         format_sql: true
 
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  product-folder: ${CLOUDINARY_PRODUCT_FOLDER:myfavoriterug/products}
+  review-folder: ${CLOUDINARY_REVIEW_FOLDER:myfavoriterug/reviews}
+
 app:
   frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
   backend-base-url: ${BACKEND_BASE_URL:http://localhost:8080}
   upload-dir: ${UPLOAD_DIR:uploads/product-images}
   review-upload-dir: ${REVIEW_UPLOAD_DIR:uploads/review-images}
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:change-me-before-production}
   flow:
     api-url: ${FLOW_API_URL:https://sandbox.flow.cl/api}
     api-key: ${FLOW_API_KEY:}

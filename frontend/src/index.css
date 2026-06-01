@@ -429,6 +429,21 @@ img {
   padding-left: 22px;
 }
 
+@media (max-width: 1024px) {
+  
+  /* Forzamos a que el tercer elemento (Envío Seguro) TAMBIÉN pierda la línea */
+  .benefit-strip article:nth-child(3) {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+  
+  /* Opcional: Si quieres restaurar la línea en el segundo elemento por si acaso */
+  .benefit-strip article:nth-child(2) {
+    border-left: 1px solid var(--line);
+    padding-left: 22px;
+  }
+}
+
 .benefit-icon {
   width: 52px;
   height: 52px;
@@ -919,7 +934,7 @@ img {
   display: inline-flex;
   margin-bottom: 10px;
   color: var(--purple);
-  font-size: 13px;
+  font-size: 40px;
   font-weight: 1000;
   text-transform: uppercase;
 }
@@ -1200,9 +1215,18 @@ img {
 
 .store-product-price {
   margin-top: auto;
+  display: grid;
+  gap: 2px;
   color: var(--orange);
   font-size: 18px;
   font-weight: 1000;
+}
+
+.store-product-price small,
+.product-detail-price small {
+  color: #6d5c54;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .store-product-availability {
@@ -1329,6 +1353,8 @@ img {
 
 .product-detail-price {
   margin: 16px 0 0;
+  display: grid;
+  gap: 2px;
   color: var(--orange);
   font-size: 22px;
   font-weight: 1000;
@@ -3926,8 +3952,7 @@ img {
 }
 
 .about-text-panel h2,
-.about-info-sections h2,
-.about-values h2 {
+.about-info-sections h2 {
   margin: 0;
   color: #0c0a0b;
   font-family: var(--display-font);
@@ -4110,8 +4135,7 @@ img {
   box-shadow: 0 14px 34px rgba(71, 48, 21, 0.1);
 }
 
-.about-info-sections p,
-.about-values p {
+.about-info-sections p {
   margin: 12px 0 0;
   color: #40342e;
   font-size: 14px;
@@ -4122,6 +4146,23 @@ img {
 .about-values article {
   min-height: 132px;
   padding: 24px;
+}
+
+.about-values strong {
+  display: block;
+  font-family: var(--display-font);
+  font-size: 21px;
+  line-height: 1;
+  font-weight: 1000;
+}
+
+.about-values span {
+  display: block;
+  margin-top: 12px;
+  color: #40342e;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 750;
 }
 
 .about-cta {
@@ -4936,6 +4977,45 @@ img {
   gap: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(27, 18, 12, 0.1);
+}
+
+.checkout-transfer-details {
+  padding: 18px;
+  border: 1px solid rgba(126, 63, 216, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.92);
+}
+
+.checkout-transfer-details > strong {
+  display: block;
+  margin-bottom: 12px;
+  color: #211814;
+  font-size: 16px;
+}
+
+.checkout-transfer-details dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.checkout-transfer-details div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.44fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.checkout-transfer-details dt {
+  color: #6d5c54;
+  font-weight: 900;
+}
+
+.checkout-transfer-details dd {
+  margin: 0;
+  color: #211814;
+  font-weight: 1000;
+  overflow-wrap: anywhere;
 }
 
 .checkout-actions {
