@@ -18,7 +18,6 @@ public class PasswordResetEmailService {
 
     private final String frontendBaseUrl;
 
-    // Mantenemos tu propiedad inyectada para saber la URL de Vercel en producción
     public PasswordResetEmailService(
             @Value("${app.frontend-base-url:http://localhost:5173}") String frontendBaseUrl) {
         this.frontendBaseUrl = frontendBaseUrl;
@@ -42,7 +41,7 @@ public class PasswordResetEmailService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
 
-        // 3. Redactar el mensaje en formato de texto plano / HTML legible
+        // 3. Redactar el mensaje en formato HTML
         String emailContent = """
                 <p>Hola %s,</p>
                 <p>Usa este token para restaurar tu contraseña:</p>
@@ -61,13 +60,22 @@ public class PasswordResetEmailService {
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-        // 5. Enviar de manera segura sin usar puertos SMTP bloqueados
+        // 5. Enviar usando la URL correcta de la API de Resend
         try {
-            restTemplate.postForEntity("https://resend.com", entity, String.class);
-            LOGGER.info("Correo de recuperación enviado exitosamente a: {}", user.getEmail());
+            // ✅ CORREGIDO: URL correcta de la API de Resend
+            String resendApiUrl = "https://api.resend.com/emails";
+            
+            var response = restTemplate.postForEntity(resendApiUrl, entity, String.class);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOGGER.info("Correo de recuperación enviado exitosamente a: {}", user.getEmail());
+            } else {
+                LOGGER.error("Resend respondió con error: {} - {}", response.getStatusCode(), response.getBody());
+                throw new IllegalArgumentException("Error al enviar el correo: " + response.getStatusCode());
+            }
         } catch (Exception e) {
             LOGGER.error("Error crítico al conectar con la API de Resend: {}", e.getMessage());
-            throw new IllegalArgumentException("El proveedor de correos rechazó la solicitud. Intente más tarde.");
+            throw new IllegalArgumentException("No se pudo enviar el token de recuperacion: " + e.getMessage());
         }
     }
 }
