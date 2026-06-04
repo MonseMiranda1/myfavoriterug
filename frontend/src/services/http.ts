@@ -17,7 +17,13 @@ API.interceptors.request.use((config) => {
 
 export function getApiErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError<{ message?: string }>(error)) {
-    return error.response?.data?.message || fallback;
+    if (error.response?.data?.message) {
+      return error.response.data.message;
+    }
+
+    if (!error.response) {
+      return "No se pudo conectar con el backend. Revisa VITE_API_URL y la configuracion CORS.";
+    }
   }
 
   return fallback;
