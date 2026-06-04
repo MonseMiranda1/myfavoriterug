@@ -10,6 +10,10 @@ export function isAdminLoggedIn() {
   return Boolean(getAdminToken());
 }
 
+export function clearAdminSession() {
+  window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+}
+
 export async function loginAdmin(username: string, password: string) {
   try {
     const response = await API.post<{ token: string }>("/admin/login", { username, password });
@@ -21,7 +25,7 @@ export async function loginAdmin(username: string, password: string) {
 
 export async function logoutAdmin() {
   const token = getAdminToken();
-  window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  clearAdminSession();
 
   if (token) {
     await API.post("/admin/logout", null, { headers: { "X-Admin-Token": token } }).catch(() => undefined);
