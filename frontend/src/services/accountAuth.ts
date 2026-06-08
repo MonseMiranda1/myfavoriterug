@@ -29,7 +29,7 @@ type RegisterAccountInput = {
   address: string;
 };
 
-type UpdateAccountUserInput = Pick<AccountUser, "name" | "phone" | "address">;
+type UpdateAccountUserInput = Pick<AccountUser, "name" | "phone" | "rut" | "address">;
 
 type AccountAuthState = {
   token: string | null;
@@ -126,6 +126,7 @@ export const useAccountAuthStore = create<AccountAuthState>()(
           const response = await API.patch<AccountUser>("/auth/me", {
             name: nextUser.name,
             phone: nextUser.phone,
+            rut: nextUser.rut,
             address: nextUser.address,
           }, { headers: authHeaders(token) });
           setSession(set, { token, user: response.data });
