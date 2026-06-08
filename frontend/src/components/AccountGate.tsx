@@ -2,13 +2,9 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n";
 import {
-  ACCOUNT_AUTH_EVENT,
   confirmPasswordReset,
-  getAccountUser,
-  loginAccount,
-  refreshAccountUser,
-  registerAccount,
   requestPasswordReset,
+  useAccountAuthStore,
   type AccountUser,
 } from "../services/accountAuth";
 import Footer from "./Footer";
@@ -21,7 +17,10 @@ type AccountGateProps = {
 export default function AccountGate({ children }: AccountGateProps) {
   const { language } = useLanguage();
   const [searchParams] = useSearchParams();
-  const [user, setUser] = useState<AccountUser | null>(() => getAccountUser());
+  const user = useAccountAuthStore((state) => state.user);
+  const loginAccount = useAccountAuthStore((state) => state.login);
+  const registerAccount = useAccountAuthStore((state) => state.register);
+  const refreshAccountUser = useAccountAuthStore((state) => state.refreshUser);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [resetStep, setResetStep] = useState<
@@ -45,17 +44,8 @@ export default function AccountGate({ children }: AccountGateProps) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const syncUser = () => setUser(getAccountUser());
-
-    window.addEventListener(ACCOUNT_AUTH_EVENT, syncUser);
-    window.addEventListener("storage", syncUser);
-    refreshAccountUser().then(setUser);
-
-    return () => {
-      window.removeEventListener(ACCOUNT_AUTH_EVENT, syncUser);
-      window.removeEventListener("storage", syncUser);
-    };
-  }, []);
+    void refreshAccountUser();
+  }, [refreshAccountUser]);
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get("resetToken");
@@ -106,17 +96,19 @@ export default function AccountGate({ children }: AccountGateProps) {
     setError("");
 
     try {
-      const nextUser = isCreatingAccount
-        ? await registerAccount({
-            name: name.trim(),
-            email: email.trim(),
-            password,
-            phone: phone.trim(),
-            rut: rut.trim(),
-            address: address.trim(),
-          })
-        : await loginAccount(email.trim(), password);
-      setUser(nextUser);
+      if (isCreatingAccount) {
+        await registerAccount({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          phone: phone.trim(),
+          rut: rut.trim(),
+          address: address.trim(),
+        });
+      } else {
+        await loginAccount(email.trim(), password);
+      }
+
       setPassword("");
       setPasswordConfirmation("");
     } catch (error) {
