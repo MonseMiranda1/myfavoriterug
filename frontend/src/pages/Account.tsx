@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { useState, type FormEvent } from "react";
-import AccountGate from "../components/AccountGate";
-import AccountSidebar, { BoxIcon } from "../components/AccountSidebar";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
+import AccountGate from "../components/AccountGate/AccountGate";
+import AccountSidebar, { BoxIcon } from "../components/AccountSidebar/AccountSidebar";
+import Footer from "../components/Footer/Footer";
+import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
 import { updateAccountUser, type AccountUser } from "../services/accountAuth";
 

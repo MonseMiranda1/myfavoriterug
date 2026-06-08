@@ -1,4 +1,5 @@
-﻿import { Link } from "react-router-dom";
+﻿import "./Footer.css";
+import { Link } from "react-router-dom";
 import adminIcon from "../assets/icons/admin.png";
 import compraIcon from "../assets/icons/compra.png";
 import envioIcon from "../assets/icons/envio.png";
@@ -6,7 +7,7 @@ import instagramIcon from "../assets/icons/instagram.png";
 import pagoIcon from "../assets/icons/pago.png";
 import tiktokIcon from "../assets/icons/tiktok.png";
 import webIcon from "../assets/icons/web.png";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../../i18n";
 
 export default function Footer() {
   const { t } = useLanguage();

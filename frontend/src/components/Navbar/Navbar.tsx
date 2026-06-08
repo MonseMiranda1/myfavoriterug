@@ -1,3 +1,4 @@
+import "./Navbar.css";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import buscarIcon from "../assets/icons/buscar.png";
@@ -6,8 +7,8 @@ import espanolIcon from "../assets/icons/espanol.png";
 import inglesIcon from "../assets/icons/ingles.png";
 import userIcon from "../assets/icons/user.png";
 import logo from "../assets/logo.png";
-import { useLanguage, type Language } from "../i18n";
-import { CART_UPDATED_EVENT, getCartQuantity } from "../services/cart";
+import { useLanguage, type Language } from "../../i18n";
+import { CART_UPDATED_EVENT, getCartQuantity } from "../../services/cart";
 
 function BrandLogo() {
   return (

@@ -1,6 +1,7 @@
+import "./AccountSidebar.css";
 import { Link } from "react-router-dom";
-import { useLanguage } from "../i18n";
-import { logoutAccount, type AccountUser } from "../services/accountAuth";
+import { useLanguage } from "../../i18n";
+import { logoutAccount, type AccountUser } from "../../services/accountAuth";
 
 type AccountSection = "profile" | "orders" | "quotes" | "wishlist" | "tracking";
 

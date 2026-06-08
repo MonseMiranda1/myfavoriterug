@@ -1,0 +1,341 @@
+.account-login-page {
+  min-height: calc(100vh - 96px);
+  padding: 54px clamp(16px, 6vw, 112px) 58px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 193, 7, 0.24), transparent 25%),
+    radial-gradient(circle at 86% 18%, rgba(161, 95, 224, 0.16), transparent 24%),
+    linear-gradient(180deg, #fff1cf 0%, #fff7e8 100%);
+  box-sizing: border-box;
+}
+
+.account-login-card {
+  width: 100%;
+  max-width: 480px;
+  padding: clamp(24px, 4vw, 38px);
+  background: rgba(255, 250, 240, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(71, 48, 21, 0.12);
+  box-sizing: border-box;
+  transition: max-width 0.3s ease;
+}
+
+.account-login-card-create {
+  max-width: 680px;
+}
+
+.account-login-card h1,
+.account-login-card p {
+  margin: 0;
+}
+
+.account-login-card h1 {
+  color: #0c0a0b;
+  font-family: var(--display-font);
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 0.95;
+  font-weight: 1000;
+}
+
+.account-login-card p {
+  margin-top: 12px;
+  color: #40342e;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.account-login-card form {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.account-login-card .account-create-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.account-form-wide,
+.account-create-form .account-login-error,
+.account-create-form button[type="submit"] {
+  grid-column: 1 / -1;
+}
+
+.account-login-card label {
+  display: grid;
+  gap: 8px;
+}
+
+.account-login-card label span {
+  color: #5a4a41;
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.account-login-card input {
+  width: 100%;
+  height: 52px;
+  min-width: 0;
+  padding: 0 16px;
+  color: #211814;
+  background: #fffaf0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+  font-weight: 850;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.account-forgot-link {
+  width: fit-content;
+  margin-top: -6px;
+  padding: 4px 0;
+  border: 0;
+  color: var(--purple);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.account-login-card form > button[type="submit"] {
+  min-height: 54px;
+  border: 0;
+  color: #fff;
+  background: linear-gradient(90deg, var(--purple), var(--lilac));
+  border-radius: 10px;
+  font-family: var(--display-font);
+  font-size: 16px;
+  font-weight: 1000;
+  cursor: pointer;
+  box-shadow: 0 14px 24px rgba(123, 63, 209, 0.22);
+}
+
+.account-login-options {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.account-login-options button,
+.account-login-options a {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0 16px;
+  border: 1px solid rgba(18, 13, 9, 0.14);
+  border-radius: 10px;
+  color: #211814;
+  background: rgba(255, 255, 255, 0.52);
+  font-family: var(--display-font);
+  font-size: 14px;
+  font-weight: 1000;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.account-login-options a {
+  color: #fff;
+  background: #211814;
+  border-color: #211814;
+}
+
+.account-login-error {
+  color: #d92d20;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(12, 10, 11, 0.48);
+  backdrop-filter: blur(4px);
+}
+
+.account-reset-modal {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  padding: 30px 24px;
+  background: #fffaf0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 24px 52px rgba(12, 10, 11, 0.24);
+  box-sizing: border-box;
+}
+
+.account-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(18, 13, 9, 0.12);
+  border-radius: 50%;
+  color: #211814;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.account-reset-modal h2,
+.account-reset-modal p {
+  margin: 0;
+}
+
+.account-reset-modal h2 {
+  margin-top: 4px;
+  color: #0c0a0b;
+  font-family: var(--display-font);
+  font-size: clamp(26px, 7vw, 36px);
+  line-height: 0.98;
+  font-weight: 1000;
+}
+
+.account-reset-modal p {
+  margin-top: 10px;
+  color: #40342e;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 750;
+}
+
+.account-reset-modal form {
+  margin-top: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.account-reset-modal label {
+  display: grid;
+  gap: 8px;
+}
+
+.account-reset-modal label span {
+  color: #5a4a41;
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.account-reset-modal input {
+  width: 100%;
+  height: 50px;
+  min-width: 0;
+  padding: 0 16px;
+  color: #211814;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+  font-weight: 850;
+  box-sizing: border-box;
+}
+
+.account-reset-modal form > button {
+  min-height: 50px;
+  border: 0;
+  color: #fff;
+  background: linear-gradient(90deg, var(--purple), var(--lilac));
+  border-radius: 10px;
+  font-family: var(--display-font);
+  font-size: 16px;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.account-reset-modal form > button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.account-reset-modal form > .account-reset-secondary {
+  color: #211814;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(18, 13, 9, 0.14);
+  box-shadow: none;
+}
+
+.account-reset-message {
+  color: #15803d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-reset-result {
+  margin-top: 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.account-reset-result strong {
+  color: #15803d;
+  font-size: 18px;
+  font-weight: 1000;
+}
+
+.account-reset-result p {
+  margin: 0;
+}
+
+.account-reset-result button {
+  min-height: 50px;
+  border: 0;
+  color: #fff;
+  background: linear-gradient(90deg, var(--purple), var(--lilac));
+  border-radius: 10px;
+  font-family: var(--display-font);
+  font-size: 16px;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.account-reset-result-error strong {
+  color: #d92d20;
+}
+
+.account-kicker {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: var(--purple);
+  font-size: 13px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 576px) {
+  .account-login-page {
+    padding: 30px 16px 42px;
+    align-items: start;
+  }
+
+  .account-login-card {
+    padding: 24px 18px;
+    border-radius: 12px;
+  }
+
+  .account-login-card .account-create-form {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .account-login-options button,
+  .account-login-options a {
+    font-size: 13.5px;
+  }
+}

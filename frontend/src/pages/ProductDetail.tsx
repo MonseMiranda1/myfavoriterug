@@ -5,8 +5,8 @@ import {
   getProducts,
   type Product,
 } from "../services/api";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../components/Navbar/Navbar";
+import Footer from "../components/Footer/Footer";
 import { addCartItem } from "../services/cart";
 import { useLanguage } from "../i18n";
 import fallbackProductImage from "../assets/banner.png";

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState, type FormEvent } from "react";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
+import Footer from "../components/Footer/Footer";
+import Navbar from "../components/Navbar/Navbar";
 import cajaIcon from "../assets/icons/caja.png";
 import carritoIcon from "../assets/icons/carrito.png";
 import compraIcon from "../assets/icons/compra.png";

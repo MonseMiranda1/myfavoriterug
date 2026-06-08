@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
-import HowItWorks from "../components/HowItWorks";
-import Footer from "../components/Footer";
+import Navbar from "../components/Navbar/Navbar";
+import Hero from "../components/Hero/Hero";
+import HowItWorks from "../components/HowItWorks/HowItWorks";
+import Footer from "../components/Footer/Footer";
 import { useLanguage } from "../i18n";
 import { createCustomerReview, getCustomerReviews, type CustomerReview } from "../services/reviews";
 

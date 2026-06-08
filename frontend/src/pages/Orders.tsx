@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import AccountGate from "../components/AccountGate";
-import AccountSidebar, { BoxIcon } from "../components/AccountSidebar";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
+import AccountGate from "../components/AccountGate/AccountGate";
+import AccountSidebar, { BoxIcon } from "../components/AccountSidebar/AccountSidebar";
+import Footer from "../components/Footer/Footer";
+import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
 
 function SearchIcon() {

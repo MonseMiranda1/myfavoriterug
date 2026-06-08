@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
+import Footer from "../components/Footer/Footer";
+import Navbar from "../components/Navbar/Navbar";
 import { type CartItem, getCartItems, saveCartItems } from "../services/cart";
 import { useMemo, useState } from "react";
 import { useLanguage } from "../i18n";

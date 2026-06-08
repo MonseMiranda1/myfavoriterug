@@ -8,8 +8,8 @@ import {
   type Category,
   type Product,
 } from "../services/api";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../components/Navbar/Navbar";
+import Footer from "../components/Footer/Footer";
 import { Link, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n";
 import fallbackProductImage from "../assets/banner.png";
