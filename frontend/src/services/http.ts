@@ -28,7 +28,8 @@ const apiBaseUrlIssue = getApiBaseUrlIssue(rawApiBaseUrl);
 
 export const API = axios.create({
   baseURL: rawApiBaseUrl,
-  timeout: 20000,
+  // Render can take longer than 20 seconds to wake a production service.
+  timeout: 60000,
 });
 
 API.interceptors.request.use((config) => {
@@ -56,11 +57,15 @@ export function getApiErrorMessage(error: unknown, fallback: string) {
     }
 
     if (!error.response) {
+      if (error.code === "ECONNABORTED" || error.message.toLowerCase().includes("timeout")) {
+        return "El backend esta demorando en responder. Espera unos segundos e intenta nuevamente.";
+      }
+
       if (error.message.includes("Unsupported protocol")) {
         return "VITE_API_URL debe empezar con http:// o https:// y apuntar al backend con /api.";
       }
 
-      return "No se pudo conectar con el backend. Revisa VITE_API_URL y la configuracion CORS.";
+      return "No se pudo conectar con el backend. Verifica tu conexion e intenta nuevamente.";
     }
   }
 
