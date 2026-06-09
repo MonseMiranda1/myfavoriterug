@@ -266,7 +266,7 @@ export default function Personaliza() {
             <div className="upload-preview">
               {preview ? (
                 <img
-                  className={previewMode === "cover" ? "is-cropped" : undefined}
+                  className={previewMode === "cover" ? "is-cropped" : "is-complete"}
                   src={preview}
                   alt="Vista previa de tu diseño"
                   style={

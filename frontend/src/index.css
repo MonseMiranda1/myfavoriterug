@@ -3088,14 +3088,21 @@ img {
 }
 
 .upload-preview > img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
   background: #fffaf0;
   transform-origin: center;
 }
 
+.upload-preview > img.is-complete {
+  width: auto;
+  height: auto;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  object-fit: contain;
+}
+
 .upload-preview > img.is-cropped {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
