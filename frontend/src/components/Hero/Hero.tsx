@@ -1,11 +1,11 @@
 ﻿import "./Hero.css";
 import { Link } from "react-router-dom";
-import banner from "../assets/banner.png";
-import corazonIcon from "../assets/icons/corazon.png";
-import envioIcon from "../assets/icons/envio.png";
-import manoIcon from "../assets/icons/mano.png";
-import pagarIcon from "../assets/icons/pagar.png";
-import paletaIcon from "../assets/icons/paleta.png";
+import banner from "../../assets/banner.png";
+import corazonIcon from "../../assets/icons/corazon.png";
+import envioIcon from "../../assets/icons/envio.png";
+import manoIcon from "../../assets/icons/mano.png";
+import pagarIcon from "../../assets/icons/pagar.png";
+import paletaIcon from "../../assets/icons/paleta.png";
 import { useLanguage } from "../../i18n";
 
 export default function Hero() {

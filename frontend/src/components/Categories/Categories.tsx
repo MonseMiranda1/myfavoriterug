@@ -1,5 +1,5 @@
-import "/src/components/Categories.css";
-import banner from "../assets/banner.png";
+import "./Categories.css";
+import banner from "../../assets/banner.png";
 import { useLanguage } from "../../i18n";
 
 export default function Categories() {
