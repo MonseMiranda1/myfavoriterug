@@ -1,9 +1,10 @@
+import "./HowItWorks.css";
 import { Link } from "react-router-dom";
-import bordadoIcon from "../assets/icons/bordado.png";
-import cajaIcon from "../assets/icons/caja.png";
-import imagenIcon from "../assets/icons/imagen.png";
-import subirIcon from "../assets/icons/subir.png";
-import { useLanguage } from "../i18n";
+import bordadoIcon from "../../assets/icons/bordado.png";
+import cajaIcon from "../../assets/icons/caja.png";
+import imagenIcon from "../../assets/icons/imagen.png";
+import subirIcon from "../../assets/icons/subir.png";
+import { useLanguage } from "../../i18n";
 
 export default function HowItWorks() {
   const { t } = useLanguage();

@@ -1,5 +1,6 @@
-import banner from "../assets/banner.png";
-import { useLanguage } from "../i18n";
+import "./Categories.css";
+import banner from "../../assets/banner.png";
+import { useLanguage } from "../../i18n";
 
 export default function Categories() {
   const { t } = useLanguage();

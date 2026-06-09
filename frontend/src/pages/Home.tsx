@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
-import HowItWorks from "../components/HowItWorks";
-import Footer from "../components/Footer";
+import Navbar from "../components/Navbar/Navbar";
+import Hero from "../components/Hero/Hero";
+import HowItWorks from "../components/HowItWorks/HowItWorks";
+import Footer from "../components/Footer/Footer";
+import Categories from "../components/Categories/Categories";
 import { useLanguage } from "../i18n";
 import { createCustomerReview, getCustomerReviews, type CustomerReview } from "../services/reviews";
 
@@ -37,36 +38,6 @@ function initialsFor(name: string) {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-}
-
-function HomeHighlights() {
-  const { t } = useLanguage();
-
-  return (
-    <section className="categories-section home-highlights" aria-label={t("homeHighlights.label")}>
-      <div className="promo-grid">
-        <article className="why-card">
-          <h3>{t("categories.why")}</h3>
-          <ul>
-            <li>{t("categories.quality")}</li>
-            <li>{t("categories.colors")}</li>
-            <li>{t("categories.custom")}</li>
-            <li>{t("categories.support")}</li>
-            <li>{t("categories.clients")}</li>
-          </ul>
-        </article>
-
-        <article className="community-card">
-          <div>
-            <h3>{t("categories.community")}</h3>
-            <p>{t("categories.communityText")}</p>
-            <a className="instagram-link" href="https://www.instagram.com/myfavoriterug/" target="_blank" rel="noreferrer">@myfavoriterug</a>
-          </div>
-          <span className="good-vibes">GOOD<br />VIBES</span>
-        </article>
-      </div>
-    </section>
-  );
 }
 
 function CustomerReviews() {
@@ -177,7 +148,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <HowItWorks />
-      <HomeHighlights />
+      <Categories />
       <CustomerReviews />
       <Footer />
     </>

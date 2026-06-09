@@ -1,14 +1,15 @@
-﻿import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+﻿import "./AccountGate.css";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../../i18n";
 import {
   confirmPasswordReset,
   requestPasswordReset,
   useAccountAuthStore,
   type AccountUser,
-} from "../services/accountAuth";
-import Footer from "./Footer";
-import Navbar from "./Navbar";
+} from "../../services/accountAuth";
+import Footer from "../Footer/Footer";
+import Navbar from "../Navbar/Navbar";
 
 type AccountGateProps = {
   children: (user: AccountUser) => ReactNode;

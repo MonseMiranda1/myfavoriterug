@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
+import Footer from "../components/Footer/Footer";
+import Navbar from "../components/Navbar/Navbar";
 import corazonIcon from "../assets/icons/corazon.png";
 import manoIcon from "../assets/icons/mano.png";
 import paletaIcon from "../assets/icons/paleta.png";
@@ -90,7 +90,7 @@ export default function About() {
           </article>
         </section>
 
-        <section className="about-values">
+        <section className="about-info-sections" aria-label="About tufting">
           <article id="Diseño Unico">
             <h2>{t("about.value1Title")}</h2>
             <p>{t("about.value1Text")}</p>

@@ -1,6 +1,7 @@
+import "./AccountSidebar.css";
 import { Link } from "react-router-dom";
-import { useLanguage } from "../i18n";
-import { useAccountAuthStore, type AccountUser } from "../services/accountAuth";
+import { useLanguage } from "../../i18n";
+import { useAccountAuthStore, type AccountUser } from "../../services/accountAuth";
 
 type AccountSection = "profile" | "orders" | "quotes" | "wishlist" | "tracking";
 
@@ -56,7 +57,7 @@ export { BoxIcon, QuoteIcon };
 
 export default function AccountSidebar({ activeSection, user }: { activeSection: AccountSection; user: AccountUser }) {
   const { t, language } = useLanguage();
-  const logoutAccount = useAccountAuthStore((state) => state.logout);
+  const logoutAccount = useAccountAuthStore((state:any) => state.logout);
 
   return (
     <aside className="account-sidebar">

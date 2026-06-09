@@ -1,8 +1,8 @@
 import { useMemo, useState, type FormEvent } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
+import Footer from "../components/Footer/Footer";
+import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
 import { getCartItems, saveCartItems } from "../services/cart";
 import {
