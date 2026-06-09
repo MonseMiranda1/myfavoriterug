@@ -126,7 +126,6 @@ export default function Personaliza() {
   const [contactAddress, setContactAddress] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState<"contain" | "cover">("contain");
   const [cropZoom, setCropZoom] = useState(1);
   const [cropX, setCropX] = useState(0);
   const [cropY, setCropY] = useState(0);
@@ -159,7 +158,6 @@ export default function Personaliza() {
     if (preview) URL.revokeObjectURL(preview);
 
     setPreview(URL.createObjectURL(file));
-    setPreviewMode("contain");
     resetCrop();
     setFileName(file.name);
     setSubmitMessage("");
@@ -228,14 +226,6 @@ export default function Personaliza() {
     setCropY(0);
   }
 
-  function handlePreviewModeChange(nextMode: "contain" | "cover") {
-    setPreviewMode(nextMode);
-
-    if (nextMode === "cover" && cropZoom < 1) {
-      setCropZoom(1);
-    }
-  }
-
   function handleContactSubmit() {
     if (!contactName.trim() || !contactEmail.trim() || !contactPhone.trim()) {
       setContactMessage("Ingresa nombre, correo y telefono.");
@@ -274,7 +264,7 @@ export default function Personaliza() {
             <div className="upload-preview">
               {preview ? (
                 <img
-                  className={previewMode === "cover" ? "is-cropped" : "is-complete"}
+                  className="is-complete"
                   src={preview}
                   alt="Vista previa de tu diseño"
                   style={{ transform: `translate(${cropX}%, ${cropY}%) scale(${cropZoom})` }}
@@ -289,23 +279,12 @@ export default function Personaliza() {
             </div>
 
             {preview && (
-              <div className="upload-preview-controls" aria-label="Modo de vista previa">
-                <button type="button" className={previewMode === "contain" ? "is-active" : ""} onClick={() => handlePreviewModeChange("contain")}>
-                  Completa
-                </button>
-                <button type="button" className={previewMode === "cover" ? "is-active" : ""} onClick={() => handlePreviewModeChange("cover")}>
-                  Recortar
-                </button>
-              </div>
-            )}
-
-            {preview && (
               <div className="upload-crop-controls">
                 <label>
                   <span>Tamaño: {Math.round(cropZoom * 100)}%</span>
                   <input
                     type="range"
-                    min={previewMode === "contain" ? "0.25" : "1"}
+                    min="0.25"
                     max="3"
                     step="0.05"
                     value={cropZoom}
