@@ -1,8 +1,10 @@
 package rug.backend.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import rug.backend.model.Product;
 import rug.backend.repository.ProductRepository;
@@ -23,12 +25,14 @@ public class ProductService {
         return productRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public Product createProduct(Product product) {
         product.setId(null);
-        normalizeImages(product);
+        validateAndNormalize(product);
         return productRepository.save(product);
     }
 
+    @Transactional
     public Product updateProduct(Long id, Product product) {
         Product currentProduct = getProduct(id);
 
@@ -36,11 +40,12 @@ public class ProductService {
             return null;
         }
 
-        normalizeImages(product);
+        validateAndNormalize(product);
         currentProduct.setName(product.getName());
         currentProduct.setPrice(product.getPrice());
         currentProduct.setImage(product.getImage());
-        currentProduct.setImages(product.getImages());
+        currentProduct.getImages().clear();
+        currentProduct.getImages().addAll(product.getImages());
         currentProduct.setSize(product.getSize());
         currentProduct.setAvailability(product.getAvailability());
         currentProduct.setCategory(product.getCategory());
@@ -48,7 +53,7 @@ public class ProductService {
         currentProduct.setBestSeller(product.getBestSeller());
         currentProduct.setNewArrival(product.getNewArrival());
 
-        return productRepository.save(currentProduct);
+        return currentProduct;
     }
 
     public boolean deleteProduct(Long id) {
@@ -60,7 +65,17 @@ public class ProductService {
         return true;
     }
 
-    private void normalizeImages(Product product) {
+    private void validateAndNormalize(Product product) {
+        if (product.getName() == null || product.getName().isBlank()) {
+            throw new IllegalArgumentException("El nombre del producto es obligatorio.");
+        }
+
+        if (product.getPrice() == null || product.getPrice() < 0) {
+            throw new IllegalArgumentException("El precio del producto no es valido.");
+        }
+
+        product.setName(product.getName().trim());
+
         List<String> images = product.getImages();
 
         if (images == null || images.isEmpty()) {
@@ -68,23 +83,28 @@ public class ProductService {
                 throw new IllegalArgumentException("El producto debe tener al menos una imagen.");
             }
 
-            product.setImages(List.of(product.getImage()));
+            product.setImages(new ArrayList<>(List.of(product.getImage().trim())));
             return;
         }
 
-        product.setImages(images.stream().filter(image -> image != null && !image.isBlank()).toList());
+        product.setImages(images.stream()
+            .filter(image -> image != null && !image.isBlank())
+            .map(String::trim)
+            .collect(java.util.stream.Collectors.toCollection(ArrayList::new)));
 
         if (product.getImages().isEmpty()) {
             if (product.getImage() == null || product.getImage().isBlank()) {
                 throw new IllegalArgumentException("El producto debe tener al menos una imagen.");
             }
 
-            product.setImages(List.of(product.getImage()));
+            product.setImages(new ArrayList<>(List.of(product.getImage().trim())));
             return;
         }
 
         if ((product.getImage() == null || product.getImage().isBlank()) && !product.getImages().isEmpty()) {
             product.setImage(product.getImages().get(0));
+        } else {
+            product.setImage(product.getImage().trim());
         }
     }
 }

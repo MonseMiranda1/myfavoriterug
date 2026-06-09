@@ -2,6 +2,9 @@ package rug.backend.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,6 +27,8 @@ import rug.backend.service.ProductService;
 @RequestMapping("/api/products")
 @CrossOrigin(origins = "http://localhost:5173")
 public class ProductController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductController.class);
+
     private final ProductService productService;
     private final ProductImageStorageService productImageStorageService;
 
@@ -54,6 +59,9 @@ public class ProductController {
             return ResponseEntity.ok(productService.createProduct(product));
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.badRequest().body(new ProductImageErrorResponse(exception.getMessage()));
+        } catch (DataAccessException exception) {
+            LOGGER.error("No se pudo crear el producto.", exception);
+            return persistenceError();
         }
     }
 
@@ -76,6 +84,9 @@ public class ProductController {
             updatedProduct = productService.updateProduct(id, product);
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.badRequest().body(new ProductImageErrorResponse(exception.getMessage()));
+        } catch (DataAccessException exception) {
+            LOGGER.error("No se pudo actualizar el producto {}.", id, exception);
+            return persistenceError();
         }
 
         if (updatedProduct == null) {
@@ -92,6 +103,11 @@ public class ProductController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    private ResponseEntity<ProductImageErrorResponse> persistenceError() {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new ProductImageErrorResponse("No se pudo guardar el producto. Revisa los logs del backend."));
     }
 
     public record ProductImageResponse(String url) {
