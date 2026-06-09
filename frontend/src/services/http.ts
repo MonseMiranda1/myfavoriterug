@@ -1,8 +1,16 @@
 import axios from "axios";
 
-const rawApiBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:8080/api").trim().replace(/\/+$/, "");
+const rawApiBaseUrl = (
+  import.meta.env.PROD
+    ? "/api"
+    : import.meta.env.VITE_API_URL || "http://localhost:8080/api"
+).trim().replace(/\/+$/, "");
 
 function getApiBaseUrlIssue(baseUrl: string) {
+  if (baseUrl === "/api") {
+    return "";
+  }
+
   if (baseUrl.includes("*")) {
     return "VITE_API_URL debe apuntar al backend, no puede usar comodines como *.vercel.app.";
   }
