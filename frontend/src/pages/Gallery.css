@@ -1,0 +1,343 @@
+.category-card h3,
+.category-card a,
+.promo-grid h3 {
+  margin: 0;
+}
+
+.content-page {
+  min-height: calc(100vh - 96px);
+  padding: 54px clamp(22px, 6vw, 112px) 58px;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255, 193, 7, 0.24), transparent 25%),
+    radial-gradient(circle at 88% 16%, rgba(161, 95, 224, 0.14), transparent 24%),
+    linear-gradient(180deg, #fff1cf 0%, #fff7e8 100%);
+  box-sizing: border-box;
+}
+
+.store-heading {
+  margin-bottom: 28px;
+}
+
+.store-heading h1,
+.store-heading p {
+  margin: 0;
+}
+
+.store-heading h1 {
+  color: #0c0a0b;
+  font-family: var(--display-font);
+  font-size: clamp(38px, 6vw, 70px);
+  line-height: 0.9;
+  font-weight: 1000;
+}
+
+.store-heading p {
+  max-width: 620px;
+  margin-top: 12px;
+  color: #40342e;
+  font-size: clamp(15px, 2vw, 20px);
+  line-height: 1.35;
+  font-weight: 750;
+}
+
+.store-kicker {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: var(--purple);
+  font-size: 13px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.filter-tabs button,
+.filter-tabs a {
+  min-height: 42px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: #2d241f;
+  background: rgba(255, 250, 240, 0.82);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.filter-tabs button:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.filter-tabs button.is-open-tab {
+  color: #fff !important;
+  background: var(--purple) !important;
+  border-color: var(--purple);
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.content-card {
+  background: rgba(255, 250, 240, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(71, 48, 21, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.content-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(71, 48, 21, 0.15);
+}
+
+.card-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 210px;
+  background-color: #f3f4f6;
+}
+
+.card-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 26px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.content-card:hover .play-overlay {
+  opacity: 1;
+  font-size: 30px;
+}
+
+.card-badge,
+.content-card h2,
+.content-card p {
+  margin-left: 18px;
+  margin-right: 18px;
+}
+
+.card-badge {
+  display: inline-flex;
+  margin-top: 18px;
+  color: var(--purple);
+  font-size: 11px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.content-card h2 {
+  color: #0c0a0b;
+  font-family: var(--display-font);
+  font-weight: 1000;
+  line-height: 1.1;
+  min-height: 56px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: 22px;
+}
+
+.content-card p {
+  margin-top: 8px;
+  margin-bottom: 22px;
+  color: #40342e;
+  line-height: 1.4;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.gallery-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200; 
+  background-color: rgba(12, 10, 11, 0.85);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  animation: galleryFadeIn 0.2s ease-out;
+}
+
+.gallery-modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 52px rgba(0, 0, 0, 0.35);
+  animation: galleryScaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.gallery-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  z-index: 210;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.gallery-modal-close:hover {
+  transform: scale(1.1);
+}
+
+.gallery-modal-media {
+  width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+  display: block;
+  background-color: #000000;
+}
+
+
+.instagram-reel-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+.instagram-reel-container iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  border: none;
+  display: block;
+}
+
+.gallery-modal-content:has(.instagram-reel-container) {
+  width: 90vw;
+  max-width: 500px;
+  height: auto;
+}
+
+.gallery-modal-content:has(.instagram-reel-container) .instagram-reel-container {
+  padding: 12px 16px;
+}
+
+
+.video-embed-container {
+  position: relative;
+  width: 100%;
+  padding-top: 125%; 
+  background: #000000;
+}
+
+.video-embed-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+
+.instagram-error {
+  padding: 40px 20px;
+  text-align: center;
+  color: #d92d20;
+  background: #fff5f5;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.gallery-modal-caption {
+  padding: 18px 22px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--line);
+}
+
+.gallery-modal-caption h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 1000;
+  color: #111;
+}
+
+@keyframes galleryFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes galleryScaleIn {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+
+@media (max-width: 1040px) {
+  .content-grid {
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 20px;
+  }
+}
+
+@media (max-width: 680px) {
+  .content-page {
+    padding: 30px 16px 42px;
+  }
+
+  .store-heading {
+    margin-bottom: 22px;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    max-width: 340px;
+    margin-inline: auto;
+    gap: 24px;
+  }
+
+  .card-image-wrapper {
+    height: 220px;
+  }
+
+  .gallery-modal-content {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .video-embed-container {
+    padding-top: 130%;
+  }
+}
