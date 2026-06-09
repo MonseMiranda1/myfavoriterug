@@ -228,6 +228,14 @@ export default function Personaliza() {
     setCropY(0);
   }
 
+  function handlePreviewModeChange(nextMode: "contain" | "cover") {
+    setPreviewMode(nextMode);
+
+    if (nextMode === "cover" && cropZoom < 1) {
+      setCropZoom(1);
+    }
+  }
+
   function handleContactSubmit() {
     if (!contactName.trim() || !contactEmail.trim() || !contactPhone.trim()) {
       setContactMessage("Ingresa nombre, correo y telefono.");
@@ -269,13 +277,7 @@ export default function Personaliza() {
                   className={previewMode === "cover" ? "is-cropped" : "is-complete"}
                   src={preview}
                   alt="Vista previa de tu diseño"
-                  style={
-                    previewMode === "cover"
-                      ? {
-                          transform: `translate(${cropX}%, ${cropY}%) scale(${cropZoom})`,
-                        }
-                      : undefined
-                  }
+                  style={{ transform: `translate(${cropX}%, ${cropY}%) scale(${cropZoom})` }}
                 />
               ) : (
                 <div className="upload-empty">
@@ -288,22 +290,22 @@ export default function Personaliza() {
 
             {preview && (
               <div className="upload-preview-controls" aria-label="Modo de vista previa">
-                <button type="button" className={previewMode === "contain" ? "is-active" : ""} onClick={() => setPreviewMode("contain")}>
+                <button type="button" className={previewMode === "contain" ? "is-active" : ""} onClick={() => handlePreviewModeChange("contain")}>
                   Completa
                 </button>
-                <button type="button" className={previewMode === "cover" ? "is-active" : ""} onClick={() => setPreviewMode("cover")}>
+                <button type="button" className={previewMode === "cover" ? "is-active" : ""} onClick={() => handlePreviewModeChange("cover")}>
                   Recortar
                 </button>
               </div>
             )}
 
-            {preview && previewMode === "cover" && (
+            {preview && (
               <div className="upload-crop-controls">
                 <label>
-                  <span>Zoom</span>
+                  <span>Tamaño: {Math.round(cropZoom * 100)}%</span>
                   <input
                     type="range"
-                    min="1"
+                    min={previewMode === "contain" ? "0.25" : "1"}
                     max="3"
                     step="0.05"
                     value={cropZoom}
@@ -333,7 +335,7 @@ export default function Personaliza() {
                   />
                 </label>
                 <button type="button" onClick={resetCrop}>
-                  Centrar
+                  Restablecer posición y tamaño
                 </button>
               </div>
             )}
