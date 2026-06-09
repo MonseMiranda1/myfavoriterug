@@ -1,9 +1,17 @@
 import { Link } from "react-router-dom";
+<<<<<<< HEAD
 import { useState, type FormEvent } from "react";
 import AccountGate from "../components/AccountGate/AccountGate";
 import AccountSidebar, { BoxIcon } from "../components/AccountSidebar/AccountSidebar";
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
+=======
+import { useEffect, useState, type FormEvent } from "react";
+import AccountGate from "../components/AccountGate";
+import AccountSidebar, { BoxIcon } from "../components/AccountSidebar";
+import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
+>>>>>>> upstream/main
 import { useLanguage } from "../i18n";
 import { updateAccountUser, type AccountUser } from "../services/accountAuth";
 
@@ -19,6 +27,13 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
   const [isEditing, setIsEditing] = useState(false);
   const [formUser, setFormUser] = useState(user);
   const [message, setMessage] = useState("");
+  const hasRut = Boolean(user.rut?.trim());
+
+  useEffect(() => {
+    if (!isEditing) {
+      setFormUser(user);
+    }
+  }, [isEditing, user]);
 
   function updateField(field: keyof AccountUser, value: string) {
     setFormUser((current) => ({ ...current, [field]: value }));
@@ -26,6 +41,11 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!hasRut && !formUser.rut.trim()) {
+      setMessage("Ingresa tu RUT para completar el perfil.");
+      return;
+    }
 
     try {
       const savedUser = await updateAccountUser(formUser);
@@ -70,7 +90,14 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
           </label>
           <label>
             <span>RUT</span>
-            <input value={user.rut} readOnly aria-readonly="true" className="account-locked-input" />
+            <input
+              value={hasRut ? user.rut : formUser.rut}
+              onChange={(event) => updateField("rut", event.target.value)}
+              readOnly={hasRut}
+              aria-readonly={hasRut}
+              className={hasRut ? "account-locked-input" : undefined}
+              required={!hasRut}
+            />
           </label>
           <label>
             <span>{t("account.address")}</span>
@@ -101,7 +128,7 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
           </div>
           <div>
             <span>RUT</span>
-            <strong>{user.rut}</strong>
+            <strong>{hasRut ? user.rut : "Pendiente por completar"}</strong>
           </div>
           <div>
             <span>{t("account.address")}</span>

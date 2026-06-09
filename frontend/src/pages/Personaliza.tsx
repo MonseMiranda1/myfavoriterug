@@ -6,7 +6,7 @@ import paletaIcon from "../assets/icons/paleta.png";
 import subirIcon from "../assets/icons/subir.png";
 import { useLanguage } from "../i18n";
 import { saveQuoteRequest } from "../services/quotes";
-import { ACCOUNT_AUTH_EVENT, getAccountUser, type AccountUser } from "../services/accountAuth";
+import { useAccountAuthStore } from "../services/accountAuth";
 
 type Currency = "CLP" | "USD" | "EUR";
 type PricingShape = "round" | "square" | "rectangular";
@@ -117,7 +117,7 @@ function getSizeOptions(shape: PricingShape): SizeOption[] {
 
 export default function Personaliza() {
   const { t } = useLanguage();
-  const [accountUser, setAccountUser] = useState<AccountUser | null>(() => getAccountUser());
+  const accountUser = useAccountAuthStore((state) => state.user);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -150,18 +150,6 @@ export default function Personaliza() {
       if (preview) URL.revokeObjectURL(preview);
     };
   }, [preview]);
-
-  useEffect(() => {
-    const syncAccountUser = () => setAccountUser(getAccountUser());
-
-    window.addEventListener(ACCOUNT_AUTH_EVENT, syncAccountUser);
-    window.addEventListener("storage", syncAccountUser);
-
-    return () => {
-      window.removeEventListener(ACCOUNT_AUTH_EVENT, syncAccountUser);
-      window.removeEventListener("storage", syncAccountUser);
-    };
-  }, []);
 
   function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -537,4 +525,3 @@ export default function Personaliza() {
     </>
   );
 }
-

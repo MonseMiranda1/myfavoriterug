@@ -33,6 +33,7 @@ cloudinary:
 
 app:
   frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
+  frontend-allowed-origin-patterns: ${FRONTEND_ALLOWED_ORIGIN_PATTERNS:}
   backend-base-url: ${BACKEND_BASE_URL:http://localhost:8080}
   upload-dir: ${UPLOAD_DIR:uploads/product-images}
   review-upload-dir: ${REVIEW_UPLOAD_DIR:uploads/review-images}

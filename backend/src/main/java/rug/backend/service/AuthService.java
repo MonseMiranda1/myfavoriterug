@@ -160,7 +160,15 @@ public class AuthService {
             throw new IllegalArgumentException("El correo no se puede modificar.");
         }
 
-        if (input.rut() != null && !sameRut(user.getRut(), input.rut())) {
+        if ((user.getRut() == null || user.getRut().isBlank()) && input.rut() != null && !input.rut().isBlank()) {
+            String rut = normalizeRut(input.rut());
+
+            if (accountUserRepository.existsByRutCanonical(canonicalRut(rut))) {
+                throw new IllegalArgumentException("Ya existe una cuenta con ese RUT.");
+            }
+
+            user.setRut(rut);
+        } else if (input.rut() != null && !sameRut(user.getRut(), input.rut())) {
             throw new IllegalArgumentException("El RUT no se puede modificar.");
         }
 

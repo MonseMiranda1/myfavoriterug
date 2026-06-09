@@ -42,7 +42,7 @@ import {
   type PurchaseOrder,
 } from "../services/purchaseOrders";
 import { deleteQuoteRequest, getAdminQuoteRequests, type CustomQuoteRequest } from "../services/quotes";
-import { isAdminLoggedIn, loginAdmin, logoutAdmin } from "../services/adminAuth";
+import { clearAdminSession, isAdminLoggedIn, loginAdmin, logoutAdmin } from "../services/adminAuth";
 
 const initialQuotes = [
   {
@@ -289,6 +289,23 @@ function fileToProductImage(file: File) {
   });
 }
 
+function getAxiosStatus(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    return error.response?.status;
+  }
+
+  if (error instanceof Error && axios.isAxiosError(error.cause)) {
+    return error.cause.response?.status;
+  }
+
+  return null;
+}
+
+function isAdminAccessError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  return getAxiosStatus(error) === 401 || message.includes("Acceso admin requerido");
+}
+
 function formatClp(value: number) {
   return new Intl.NumberFormat("es-CL", {
     style: "currency",
@@ -344,11 +361,33 @@ export default function Admin() {
   useEffect(() => {
     if (!isLoggedIn) return;
 
-    refreshAdminProducts();
-    refreshAdminQuotes();
-    refreshAdminOrders();
-    refreshPayments();
-    refreshPurchaseOrders();
+    let isMounted = true;
+
+    async function refreshAdminData() {
+      try {
+        await Promise.all([
+          refreshAdminProducts(),
+          refreshAdminQuotes(),
+          refreshAdminOrders(),
+          refreshPayments(),
+          refreshPurchaseOrders(),
+        ]);
+      } catch (error) {
+        if (!isMounted) return;
+
+        if (isAdminAccessError(error)) {
+          clearAdminSession();
+          setIsLoggedIn(false);
+          setError("Tu sesion admin expiro. Ingresa nuevamente.");
+        }
+      }
+    }
+
+    void refreshAdminData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [isLoggedIn]);
 
   async function refreshAdminOrders() {
