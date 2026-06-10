@@ -1,9 +1,19 @@
 import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import AccountGate from "../components/AccountGate/AccountGate";
 import AccountSidebar, { BoxIcon } from "../components/AccountSidebar/AccountSidebar";
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
+import { getAccountOrders, type Order } from "../services/orders";
+
+function formatPrice(price: number) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
 
 function SearchIcon() {
   return (
@@ -16,6 +26,27 @@ function SearchIcon() {
 
 export default function Orders() {
   const { t } = useLanguage();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    getAccountOrders()
+      .then(setOrders)
+      .catch(() => setLoadError("No pudimos cargar tus pedidos. Intenta nuevamente."))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const filteredOrders = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return orders;
+
+    return orders.filter((order) =>
+      [order.orderNumber, order.id, order.status, order.shippingStatus]
+        .some((value) => String(value ?? "").toLowerCase().includes(query)),
+    );
+  }, [orders, search]);
 
   return (
     <AccountGate>
@@ -35,10 +66,35 @@ export default function Orders() {
                 </header>
 
                 <label className="account-list-search">
-                  <input type="search" placeholder={t("account.ordersSearch")} />
+                  <input
+                    type="search"
+                    placeholder={t("account.ordersSearch")}
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
                   <SearchIcon />
                 </label>
 
+                {isLoading ? (
+                  <section className="account-list-empty">
+                    <p>Cargando tus pedidos...</p>
+                  </section>
+                ) : loadError ? (
+                  <section className="account-list-empty">
+                    <p>{loadError}</p>
+                  </section>
+                ) : filteredOrders.length > 0 ? (
+                  <div className="tracking-list">
+                    {filteredOrders.map((order) => (
+                      <article key={order.id}>
+                        <strong>{order.orderNumber ?? `Pedido #${order.id}`}</strong>
+                        <span>{order.shippingStatus || order.status}</span>
+                        <p>{new Date(order.createdAt).toLocaleString("es-CL")}</p>
+                        <p>{order.items.length} producto(s) · {formatPrice(order.total)}</p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
                 <section className="account-list-empty">
                   <span>
                     <BoxIcon />
@@ -47,6 +103,7 @@ export default function Orders() {
                   <p>{t("account.startShopping")}</p>
                   <Link to="/tienda">{t("cart.goStore")}</Link>
                 </section>
+                )}
               </section>
             </div>
           </main>

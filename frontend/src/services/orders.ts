@@ -1,4 +1,5 @@
 import type { CartItem } from "./cart";
+import { getAccountToken } from "./accountAuth";
 import { API } from "./http";
 
 export type Order = {
@@ -45,17 +46,10 @@ export function getOrders(): Order[] {
   }
 }
 
-export function saveOrder(order: Omit<Order, "id" | "createdAt" | "status">) {
-  const nextOrder: Order = {
-    ...order,
-    id: `MFR-${Date.now().toString().slice(-6)}`,
-    createdAt: new Date().toISOString(),
-    status: "Confirmado",
-  };
-
-  window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify([nextOrder, ...getOrders()]));
+export function saveOrder(order: Order) {
+  window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify([order, ...getOrders()]));
   window.dispatchEvent(new Event(ORDERS_UPDATED_EVENT));
-  return nextOrder;
+  return order;
 }
 
 function toBackendItems(items: CartItem[]) {
@@ -70,9 +64,12 @@ function toBackendItems(items: CartItem[]) {
 }
 
 export async function createOrder(order: Omit<Order, "id" | "createdAt" | "status">) {
+  const token = getAccountToken();
   const response = await API.post<Order>("/orders", {
     ...order,
     items: toBackendItems(order.items),
+  }, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
   window.dispatchEvent(new Event(ORDERS_UPDATED_EVENT));
@@ -81,6 +78,17 @@ export async function createOrder(order: Omit<Order, "id" | "createdAt" | "statu
 
 export async function getBackendOrders() {
   const response = await API.get<Order[]>("/orders");
+  return response.data;
+}
+
+export async function getAccountOrders() {
+  const token = getAccountToken();
+
+  if (!token) return [];
+
+  const response = await API.get<Order[]>("/orders/mine", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data;
 }
 

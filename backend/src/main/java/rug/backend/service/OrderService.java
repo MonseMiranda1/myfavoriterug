@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import rug.backend.model.CustomerOrder;
 import rug.backend.model.OrderStatus;
+import rug.backend.model.AccountUser;
 import rug.backend.repository.OrderRepository;
 import rug.backend.repository.PaymentRepository;
 
@@ -30,7 +31,17 @@ public class OrderService {
         return orderRepository.findById(id).orElse(null);
     }
 
-    public CustomerOrder createOrder(CustomerOrder order) {
+    public List<CustomerOrder> getOrdersForUser(AccountUser user) {
+        return orderRepository.findAllByAccountUserOrderByCreatedAtDesc(user);
+    }
+
+    public CustomerOrder createOrder(CustomerOrder order, AccountUser user) {
+        if (user != null) {
+            order.setCustomerName(user.getName());
+            order.setEmail(user.getEmail());
+            order.setAccountUser(user);
+        }
+
         if ("Transferencia".equalsIgnoreCase(order.getPaymentMethod()) || "TRANSFERENCIA".equalsIgnoreCase(order.getPaymentMethod())) {
             order.setStatus(OrderStatus.CONFIRMED);
         }

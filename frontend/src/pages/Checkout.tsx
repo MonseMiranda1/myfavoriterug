@@ -5,6 +5,7 @@ import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
 import { getCartItems, saveCartItems } from "../services/cart";
+import { getAccountUser } from "../services/accountAuth";
 import {
   createOrder,
   createPaymentIntent,
@@ -33,9 +34,10 @@ export default function Checkout() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [customerName, setCustomerName] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
+  const accountUser = getAccountUser();
+  const [customerName, setCustomerName] = useState(accountUser?.name ?? "");
+  const [email, setEmail] = useState(accountUser?.email ?? "");
+  const [address, setAddress] = useState(accountUser?.address ?? "");
   const [shippingMethod, setShippingMethod] = useState("Chilexpress");
   const [paymentMethod, setPaymentMethod] = useState("FLOW");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +79,7 @@ export default function Checkout() {
       setIsSubmitting(true);
       const order = await createOrder(orderInput);
 
-      saveOrder(orderInput);
+      saveOrder(order);
       saveCartItems([]);
 
       if (paymentMethod === "TRANSFERENCIA") {

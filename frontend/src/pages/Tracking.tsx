@@ -3,16 +3,19 @@ import AccountSidebar from "../components/AccountSidebar/AccountSidebar";
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
-import { getOrders, ORDERS_UPDATED_EVENT } from "../services/orders";
+import { getAccountOrders, ORDERS_UPDATED_EVENT, type Order } from "../services/orders";
 import { useEffect, useState } from "react";
 
 export default function Tracking() {
   const { t } = useLanguage();
-  const [orders, setOrders] = useState(getOrders());
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const refreshOrders = () => setOrders(getOrders());
+    const refreshOrders = () => {
+      void getAccountOrders().then(setOrders).catch(() => setOrders([]));
+    };
 
+    refreshOrders();
     window.addEventListener(ORDERS_UPDATED_EVENT, refreshOrders);
     return () => window.removeEventListener(ORDERS_UPDATED_EVENT, refreshOrders);
   }, []);
