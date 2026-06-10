@@ -7,6 +7,7 @@ export type CustomerReview = {
   comment: string;
   productImage?: string;
   createdAt?: string;
+  approved: boolean;
 };
 
 export type CustomerReviewInput = {
@@ -82,4 +83,18 @@ export async function createCustomerReview(input: CustomerReviewInput) {
   });
 
   return normalizeReview(response.data);
+}
+
+export async function getAdminCustomerReviews() {
+  const response = await API.get<CustomerReview[]>("/reviews/admin");
+  return response.data.map(normalizeReview);
+}
+
+export async function setCustomerReviewApproval(id: number, approved: boolean) {
+  const response = await API.put<CustomerReview>(`/reviews/${id}/approval`, null, { params: { approved } });
+  return normalizeReview(response.data);
+}
+
+export async function deleteCustomerReview(id: number) {
+  await API.delete(`/reviews/${id}`);
 }

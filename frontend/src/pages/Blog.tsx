@@ -1,3 +1,4 @@
+import "./Blog.css"
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
@@ -10,6 +11,7 @@ const categories = [
   { labelKey: "blog.decor", to: "/blog/decoracion" },
   { labelKey: "blog.trends", to: "/blog/tendencias" },
   { labelKey: "blog.tutorials", to: "/blog/tutoriales" },
+  { labelKey: "Informative", to: "/blog/informativo" },
 ];
 
 export default function Blog() {

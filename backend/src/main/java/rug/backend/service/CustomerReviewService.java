@@ -19,6 +19,10 @@ public class CustomerReviewService {
     }
 
     public List<CustomerReview> getReviews() {
+        return customerReviewRepository.findAllByApprovedTrueOrderByCreatedAtDesc();
+    }
+
+    public List<CustomerReview> getAdminReviews() {
         return customerReviewRepository.findAllByOrderByCreatedAtDesc();
     }
 
@@ -39,7 +43,23 @@ public class CustomerReviewService {
         }
 
         String productImage = reviewImageStorageService.store(productPhoto);
-        CustomerReview review = new CustomerReview(cleanName, rating, cleanComment, productImage);
+        CustomerReview review = new CustomerReview(cleanName, rating, cleanComment, productImage, false);
         return customerReviewRepository.save(review);
+    }
+
+    public CustomerReview setApproval(Long id, Boolean approved) {
+        CustomerReview review = customerReviewRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Reseña no encontrada."));
+
+        review.setApproved(Boolean.TRUE.equals(approved));
+        return customerReviewRepository.save(review);
+    }
+
+    public void deleteReview(Long id) {
+        if (!customerReviewRepository.existsById(id)) {
+            throw new IllegalArgumentException("Reseña no encontrada.");
+        }
+
+        customerReviewRepository.deleteById(id);
     }
 }

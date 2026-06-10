@@ -1,13 +1,9 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import {
-  getFallbackProducts,
-  getProducts,
-  type Product,
-} from "../services/api";
+import { getProducts, type Product } from "../services/api";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
-import { addCartItem } from "../services/cart";
+import { addCartItem, getPriceWithTax } from "../services/cart";
 import { useLanguage } from "../i18n";
 import fallbackProductImage from "../assets/banner.png";
 
@@ -19,12 +15,6 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
-function findFallbackProduct(id?: string) {
-  return (
-    getFallbackProducts().find((product) => String(product.id) === id) ?? null
-  );
-}
-
 export default function ProductDetail() {
   const { t } = useLanguage();
   const { id } = useParams();
@@ -32,22 +22,31 @@ export default function ProductDetail() {
   const routeProduct = (location.state as { product?: Product } | null)
     ?.product;
   const [product, setProduct] = useState<Product | null>(
-    () => routeProduct ?? findFallbackProduct(id),
+    () => routeProduct ?? null,
   );
   const [hasResolvedProduct, setHasResolvedProduct] = useState(
-    Boolean(routeProduct ?? findFallbackProduct(id)),
+    Boolean(routeProduct),
   );
+  const [productError, setProductError] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     setSelectedImageIndex(0);
-    setProduct(routeProduct ?? findFallbackProduct(id));
-    setHasResolvedProduct(Boolean(routeProduct ?? findFallbackProduct(id)));
+    setProduct(routeProduct ?? null);
+    setHasResolvedProduct(Boolean(routeProduct));
+    setProductError("");
 
     getProducts()
       .then((res) => {
         const found = res.data.find((p) => String(p.id) === id);
-        setProduct(found ?? routeProduct ?? findFallbackProduct(id));
+        setProduct(found ?? routeProduct ?? null);
+      })
+      .catch((error) => {
+        setProductError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo cargar el producto.",
+        );
       })
       .finally(() => setHasResolvedProduct(true));
   }, [id, routeProduct]);
@@ -57,9 +56,13 @@ export default function ProductDetail() {
       <>
         <Navbar />
         <main className="product-detail-page">
-          {hasResolvedProduct && (
+          {!hasResolvedProduct ? (
             <section className="store-empty-result">
-              <p>{t("store.empty")}</p>
+              <p>{t("common.loading")}</p>
+            </section>
+          ) : (
+            <section className="store-empty-result">
+              <p>{productError || t("store.empty")}</p>
               <Link to="/tienda">{t("nav.store")}</Link>
             </section>
           )}
@@ -133,7 +136,7 @@ export default function ProductDetail() {
                 t("store.quote")
               ) : (
                 <>
-                  <span>{formatPrice(product.price)}</span>
+                  <span>{formatPrice(getPriceWithTax(product.price))}</span>
                   <small>{t("store.netPrice")}</small>
                 </>
               )}

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   CATEGORIES_UPDATED_EVENT,
   getCategories,
-  getFallbackProducts,
   getProducts,
   PRODUCTS_UPDATED_EVENT,
   type Category,
@@ -13,6 +12,9 @@ import Footer from "../components/Footer/Footer";
 import { Link, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n";
 import fallbackProductImage from "../assets/banner.png";
+import { getPriceWithTax } from "../services/cart";
+
+const PRODUCTS_PER_PAGE = 10;
 
 const sortOptions = [
   { value: "name-asc", labelKey: "store.nameAsc" },
@@ -30,10 +32,8 @@ function formatPrice(price: number) {
 }
 
 function getProductCategory(product: Product) {
-  if (product.newArrival) return "New Arrivals";
-  if (product.bestSeller) return "Best Sellers";
-  if (product.category) return product.category;
-  if (product.collection) return product.collection;
+  if (product.category?.trim()) return product.category.trim();
+  if (product.collection?.trim()) return product.collection.trim();
 
   const name = product.name.toLowerCase();
 
@@ -44,6 +44,28 @@ function getProductCategory(product: Product) {
   if (name.includes("minimal")) return "Minimal Collection";
 
   return "Custom Rugs";
+}
+
+function normalizeCategory(category: string) {
+  return category
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function productMatchesCategory(product: Product, selectedCategory: string) {
+  if (selectedCategory === "Todas") return true;
+  if (selectedCategory === "New Arrivals") return Boolean(product.newArrival);
+  if (selectedCategory === "Best Sellers") return Boolean(product.bestSeller);
+
+  const normalizedSelectedCategory = normalizeCategory(selectedCategory);
+
+  return [product.category, product.collection, getProductCategory(product)]
+    .filter((category): category is string => Boolean(category?.trim()))
+    .some(
+      (category) => normalizeCategory(category) === normalizedSelectedCategory,
+    );
 }
 
 function getCategoryLabel(
@@ -64,9 +86,9 @@ function getCategoryLabel(
 export default function Store() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>(() =>
-    getFallbackProducts(),
-  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState("");
   const [categories, setCategories] = useState<Category[]>(() =>
     getCategories(),
   );
@@ -75,6 +97,7 @@ export default function Store() {
   const [purchaseType, setPurchaseType] = useState("Todos");
   const [sortBy, setSortBy] = useState("name-asc");
   const [showFilters, setShowFilters] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const searchParamValue = searchParams.get("buscar") ?? "";
   const searchTerm = searchParams.get("buscar")?.trim().toLowerCase() ?? "";
   const query = activeSearch.trim().toLowerCase() || searchTerm;
@@ -99,10 +122,7 @@ export default function Store() {
             String(product.id).toLowerCase().includes(query)
           : true;
         const matchesCategory =
-          selectedCategory === "Todas" ||
-          getProductCategory(product) === selectedCategory ||
-          (selectedCategory === "New Arrivals" && product.newArrival) ||
-          (selectedCategory === "Best Sellers" && product.bestSeller);
+          productMatchesCategory(product, selectedCategory);
         const isQuoteProduct =
           product.availability === "Personalizado" || product.price === 0;
         const matchesType =
@@ -120,10 +140,38 @@ export default function Store() {
         return a.name.localeCompare(b.name);
       });
   }, [products, purchaseType, query, selectedCategory, sortBy]);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE),
+  );
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
+  }, [currentPage, filteredProducts]);
 
   useEffect(() => {
-    const refreshProducts = () =>
-      getProducts().then((res) => setProducts(res.data));
+    setCurrentPage(1);
+  }, [products, purchaseType, query, selectedCategory, sortBy]);
+
+  useEffect(() => {
+    const refreshProducts = async () => {
+      setIsLoadingProducts(true);
+      setProductsError("");
+
+      try {
+        const response = await getProducts();
+        setProducts(response.data);
+      } catch (error) {
+        setProducts([]);
+        setProductsError(
+          error instanceof Error
+            ? error.message
+            : "No se pudieron cargar los productos de la tienda.",
+        );
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
     const refreshCategories = () => setCategories(getCategories());
 
     refreshProducts();
@@ -219,9 +267,6 @@ export default function Store() {
             </form>
 
             <div className="store-actions-row">
-              <Link to="/personaliza" className="store-catalog-button">
-                {t("store.catalog")}
-              </Link>
               <div className="store-sort">
                 <span>{t("store.sortBy")}</span>
                 <select
@@ -237,12 +282,14 @@ export default function Store() {
               </div>
             </div>
 
-            <p className="store-result-count">
-              {filteredProducts.length}{" "}
-              {filteredProducts.length === 1
-                ? t("store.productSingular")
-                : t("store.productPlural")}
-            </p>
+            {!isLoadingProducts && !productsError && (
+              <p className="store-result-count">
+                {filteredProducts.length}{" "}
+                {filteredProducts.length === 1
+                  ? t("store.productSingular")
+                  : t("store.productPlural")}
+              </p>
+            )}
 
             {query && (
               <p className="store-search-result">
@@ -251,49 +298,105 @@ export default function Store() {
               </p>
             )}
 
-            <div className="store-product-grid">
-              {filteredProducts.map((product) => (
-                <Link
-                  to={`/producto/${product.id}`}
-                  state={{ product }}
-                  className="store-product-card"
-                  key={product.id}
-                >
-                  <span className="store-product-image">
-                    <img
-                      src={product.image || fallbackProductImage}
-                      alt={product.name}
-                      onError={(event) => {
-                        event.currentTarget.src = fallbackProductImage;
-                      }}
-                    />
-                  </span>
-                  <span className="store-product-category">
-                    {getCategoryLabel(getProductCategory(product), t)}
-                  </span>
-                  <strong>{product.name}</strong>
-                  <span className="store-product-price">
-                    {product.availability === "Personalizado" || product.price === 0 ? (
-                      t("store.quote")
-                    ) : (
-                      <>
-                        <span>{formatPrice(product.price)}</span>
-                        <small>{t("store.netPrice")}</small>
-                      </>
-                    )}
-                  </span>
-                  {product.availability && (
-                    <span className="store-product-availability">
-                      {product.availability}
+            {!isLoadingProducts && !productsError && (
+              <div className="store-product-grid">
+                {paginatedProducts.map((product) => (
+                  <Link
+                    to={`/producto/${product.id}`}
+                    state={{ product }}
+                    className="store-product-card"
+                    key={product.id}
+                  >
+                    <span className="store-product-image">
+                      <img
+                        src={product.image || fallbackProductImage}
+                        alt={product.name}
+                        onError={(event) => {
+                          event.currentTarget.src = fallbackProductImage;
+                        }}
+                      />
                     </span>
-                  )}
-                </Link>
-              ))}
-            </div>
-
-            {filteredProducts.length === 0 && (
-              <p className="store-empty-result">{t("store.empty")}</p>
+                    <span className="store-product-category">
+                      {getCategoryLabel(getProductCategory(product), t)}
+                    </span>
+                    <strong>{product.name}</strong>
+                    <span className="store-product-price">
+                      {product.availability === "Personalizado" ||
+                      product.price === 0 ? (
+                        t("store.quote")
+                      ) : (
+                        <>
+                          <span>{formatPrice(getPriceWithTax(product.price))}</span>
+                          <small>{t("store.netPrice")}</small>
+                        </>
+                      )}
+                    </span>
+                    {product.availability && (
+                      <span className="store-product-availability">
+                        {product.availability}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
             )}
+
+            {!isLoadingProducts &&
+              !productsError &&
+              filteredProducts.length > 0 &&
+              totalPages > 1 && (
+                <nav
+                  className="store-pagination"
+                  aria-label={t("store.pagination")}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => page - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    {t("store.previous")}
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+
+                    return (
+                      <button
+                        type="button"
+                        key={page}
+                        className={currentPage === page ? "is-active" : ""}
+                        onClick={() => setCurrentPage(page)}
+                        aria-current={currentPage === page ? "page" : undefined}
+                        aria-label={`${t("store.page")} ${page}`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => page + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    {t("store.next")}
+                  </button>
+                </nav>
+              )}
+
+            {isLoadingProducts && (
+              <p className="store-empty-result">{t("common.loading")}</p>
+            )}
+
+            {!isLoadingProducts && productsError && (
+              <p className="store-empty-result">{productsError}</p>
+            )}
+
+            {!isLoadingProducts &&
+              !productsError &&
+              filteredProducts.length === 0 && (
+                <p className="store-empty-result">{t("store.empty")}</p>
+              )}
           </section>
         </div>
       </main>

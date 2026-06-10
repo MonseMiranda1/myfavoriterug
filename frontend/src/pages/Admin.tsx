@@ -43,6 +43,12 @@ import {
 } from "../services/purchaseOrders";
 import { deleteQuoteRequest, getAdminQuoteRequests, type CustomQuoteRequest } from "../services/quotes";
 import { clearAdminSession, isAdminLoggedIn, loginAdmin, logoutAdmin } from "../services/adminAuth";
+import {
+  deleteCustomerReview,
+  getAdminCustomerReviews,
+  setCustomerReviewApproval,
+  type CustomerReview,
+} from "../services/reviews";
 
 const initialQuotes = [
   {
@@ -183,6 +189,7 @@ const adminSections = [
   { id: "shipping", label: "Envíos", icon: envioIcon },
   { id: "products", label: "Productos", icon: cajaIcon },
   { id: "categories", label: "Categorías", icon: paletaIcon },
+  { id: "reviews", label: "Reseñas", icon: paletaIcon },
   { id: "upload", label: "Subir productos", icon: subirIcon },
 ] as const;
 
@@ -322,6 +329,7 @@ const sectionCopy: Record<AdminSection, { title: string; description: string }> 
   shipping: { title: "Envíos", description: "Organiza despachos nacionales e internacionales." },
   products: { title: "Productos", description: "Crea y edita alfombras disponibles en la tienda." },
   categories: { title: "Categorías", description: "Administra categorías visibles en la tienda." },
+  reviews: { title: "Reseñas", description: "Aprueba, oculta o elimina las reseñas enviadas desde el Home." },
   upload: { title: "Subir productos", description: "Carga productos temporales al catalogo." },
 };
 
@@ -357,6 +365,8 @@ export default function Admin() {
   const [purchaseOrderForm, setPurchaseOrderForm] = useState(emptyPurchaseOrderForm);
   const [purchaseOrderMessage, setPurchaseOrderMessage] = useState("");
   const [isPurchaseOrderModalOpen, setIsPurchaseOrderModalOpen] = useState(false);
+  const [customerReviews, setCustomerReviews] = useState<CustomerReview[]>([]);
+  const [reviewMessage, setReviewMessage] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -371,6 +381,7 @@ export default function Admin() {
           refreshAdminOrders(),
           refreshPayments(),
           refreshPurchaseOrders(),
+          refreshCustomerReviews(),
         ]);
       } catch (error) {
         if (!isMounted) return;
@@ -419,6 +430,24 @@ export default function Admin() {
 
     setAllProducts(response.data);
     setUploadedProducts(response.data);
+  }
+
+  async function refreshCustomerReviews() {
+    setCustomerReviews(await getAdminCustomerReviews());
+  }
+
+  async function handleReviewApproval(review: CustomerReview, approved: boolean) {
+    const updatedReview = await setCustomerReviewApproval(review.id, approved);
+    setCustomerReviews((currentReviews) =>
+      currentReviews.map((currentReview) => currentReview.id === review.id ? updatedReview : currentReview),
+    );
+    setReviewMessage(approved ? "Reseña aprobada y visible en el Home." : "Reseña ocultada del Home.");
+  }
+
+  async function handleDeleteReview(id: number) {
+    await deleteCustomerReview(id);
+    setCustomerReviews((currentReviews) => currentReviews.filter((review) => review.id !== id));
+    setReviewMessage("Reseña eliminada.");
   }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -941,7 +970,7 @@ export default function Admin() {
                     >
                       + Nuevo
                     </button>
-                  ) : activeSection === "shipping" || activeSection === "orders" ? null : activeSection === "products" ? null : (
+                  ) : activeSection === "shipping" || activeSection === "orders" ? null : activeSection === "products" || activeSection === "reviews" ? null : (
                     <button
                       type="button"
                       className="admin-add-button"
@@ -1787,6 +1816,57 @@ export default function Admin() {
                         )}
                       </tbody>
                     </table>
+                  ) : activeSection === "reviews" ? (
+                    <div className="admin-reviews-section">
+                      {reviewMessage && <p className="admin-review-message">{reviewMessage}</p>}
+                      <table className="admin-table admin-reviews-table">
+                        <thead>
+                          <tr>
+                            <th>Foto</th>
+                            <th>Cliente</th>
+                            <th>Calificación</th>
+                            <th>Reseña</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {customerReviews.length > 0 ? (
+                            customerReviews.map((review) => (
+                              <tr key={review.id}>
+                                <td>
+                                  {review.productImage
+                                    ? <img className="admin-review-image" src={review.productImage} alt="" />
+                                    : "-"}
+                                </td>
+                                <td>{review.name}</td>
+                                <td>{"★".repeat(review.rating)}</td>
+                                <td className="admin-review-comment">{review.comment}</td>
+                                <td>{review.createdAt ? new Intl.DateTimeFormat("es-CL").format(new Date(review.createdAt)) : "-"}</td>
+                                <td>
+                                  <span className={review.approved ? "admin-review-status is-approved" : "admin-review-status is-pending"}>
+                                    {review.approved ? "Aprobada" : "Pendiente"}
+                                  </span>
+                                </td>
+                                <td>
+                                  <button type="button" onClick={() => handleReviewApproval(review, !review.approved)}>
+                                    {review.approved ? "Ocultar" : "Aprobar"}
+                                  </button>
+                                  <button type="button" className="danger" onClick={() => handleDeleteReview(review.id)}>
+                                    Eliminar
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={7}>Aún no hay reseñas para moderar.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   ) : activeSection === "categories" ? (
                     <div className="admin-category-section">
                       <form className="admin-category-form" id="admin-category-form" onSubmit={handleSaveCategory}>
