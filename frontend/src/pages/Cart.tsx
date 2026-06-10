@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 import { useLanguage } from "../i18n";
 
 const MINIMUM_ORDER = 15000;
-const TAX_RATE = 0.19;
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -24,8 +23,7 @@ export default function Cart() {
   const { t } = useLanguage();
   const [items, setItems] = useState<CartItem[]>(getCartItems);
   const subtotal = useMemo(() => getSubtotal(items), [items]);
-  const tax = Math.round(subtotal * TAX_RATE);
-  const total = subtotal + tax;
+  const total = subtotal;
   const missingAmount = Math.max(MINIMUM_ORDER - total, 0);
 
   function updateItems(nextItems: CartItem[]) {
@@ -88,12 +86,8 @@ export default function Cart() {
                         <strong>{formatPrice(item.price)}</strong>
                       </div>
                       <div>
-                        <span>{t("cart.tax")}</span>
-                        <strong>{formatPrice(Math.round(item.price * TAX_RATE))}</strong>
-                      </div>
-                      <div>
                         <span>{t("common.total")}</span>
-                        <strong>{formatPrice(Math.round(item.price * (1 + TAX_RATE)) * item.quantity)}</strong>
+                        <strong>{formatPrice(item.price * item.quantity)}</strong>
                       </div>
                     </div>
                   </div>
@@ -135,10 +129,6 @@ export default function Cart() {
               <div className="cart-summary-line">
                 <span>{t("common.subtotal")}</span>
                 <strong>{formatPrice(subtotal)}</strong>
-              </div>
-              <div className="cart-summary-line">
-                <span>{t("cart.tax")}</span>
-                <strong>{formatPrice(tax)}</strong>
               </div>
               <div className="cart-summary-total">
                 <span>{t("common.total")}</span>

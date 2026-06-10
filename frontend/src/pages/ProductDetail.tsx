@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getProducts, type Product } from "../services/api";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
-import { addCartItem } from "../services/cart";
+import { addCartItem, getPriceWithTax } from "../services/cart";
 import { useLanguage } from "../i18n";
 import fallbackProductImage from "../assets/banner.png";
 
@@ -136,7 +136,7 @@ export default function ProductDetail() {
                 t("store.quote")
               ) : (
                 <>
-                  <span>{formatPrice(product.price)}</span>
+                  <span>{formatPrice(getPriceWithTax(product.price))}</span>
                   <small>{t("store.netPrice")}</small>
                 </>
               )}

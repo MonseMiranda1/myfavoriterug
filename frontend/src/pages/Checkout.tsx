@@ -11,7 +11,6 @@ import {
   saveOrder,
 } from "../services/orders";
 
-const TAX_RATE = 0.19;
 const SHIPPING_PRICE = 4500;
 const BANK_TRANSFER_DETAILS = [
   ["Titular", "Monserrat Francisca Miranda Medina"],
@@ -46,8 +45,7 @@ export default function Checkout() {
     (total, item) => total + item.price * item.quantity,
     0,
   );
-  const tax = Math.round(subtotal * TAX_RATE);
-  const total = subtotal + tax + SHIPPING_PRICE;
+  const total = subtotal + SHIPPING_PRICE;
   const steps = [
     t("checkout.stepsData"),
     t("checkout.stepsShipping"),
@@ -266,10 +264,6 @@ export default function Checkout() {
             <div className="cart-summary-line">
               <span>{t("common.subtotal")}</span>
               <strong>{formatPrice(subtotal)}</strong>
-            </div>
-            <div className="cart-summary-line">
-              <span>IVA</span>
-              <strong>{formatPrice(tax)}</strong>
             </div>
             <div className="cart-summary-line">
               <span>{t("checkout.shipping")}</span>

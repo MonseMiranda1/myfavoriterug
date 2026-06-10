@@ -12,6 +12,9 @@ import Footer from "../components/Footer/Footer";
 import { Link, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n";
 import fallbackProductImage from "../assets/banner.png";
+import { getPriceWithTax } from "../services/cart";
+
+const PRODUCTS_PER_PAGE = 10;
 
 const sortOptions = [
   { value: "name-asc", labelKey: "store.nameAsc" },
@@ -94,6 +97,7 @@ export default function Store() {
   const [purchaseType, setPurchaseType] = useState("Todos");
   const [sortBy, setSortBy] = useState("name-asc");
   const [showFilters, setShowFilters] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const searchParamValue = searchParams.get("buscar") ?? "";
   const searchTerm = searchParams.get("buscar")?.trim().toLowerCase() ?? "";
   const query = activeSearch.trim().toLowerCase() || searchTerm;
@@ -135,6 +139,18 @@ export default function Store() {
         if (sortBy === "price-desc") return b.price - a.price;
         return a.name.localeCompare(b.name);
       });
+  }, [products, purchaseType, query, selectedCategory, sortBy]);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE),
+  );
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
+  }, [currentPage, filteredProducts]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [products, purchaseType, query, selectedCategory, sortBy]);
 
   useEffect(() => {
@@ -287,7 +303,7 @@ export default function Store() {
 
             {!isLoadingProducts && !productsError && (
               <div className="store-product-grid">
-                {filteredProducts.map((product) => (
+                {paginatedProducts.map((product) => (
                   <Link
                     to={`/producto/${product.id}`}
                     state={{ product }}
@@ -313,7 +329,7 @@ export default function Store() {
                         t("store.quote")
                       ) : (
                         <>
-                          <span>{formatPrice(product.price)}</span>
+                          <span>{formatPrice(getPriceWithTax(product.price))}</span>
                           <small>{t("store.netPrice")}</small>
                         </>
                       )}
@@ -327,6 +343,49 @@ export default function Store() {
                 ))}
               </div>
             )}
+
+            {!isLoadingProducts &&
+              !productsError &&
+              filteredProducts.length > 0 &&
+              totalPages > 1 && (
+                <nav
+                  className="store-pagination"
+                  aria-label={t("store.pagination")}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => page - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    {t("store.previous")}
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+
+                    return (
+                      <button
+                        type="button"
+                        key={page}
+                        className={currentPage === page ? "is-active" : ""}
+                        onClick={() => setCurrentPage(page)}
+                        aria-current={currentPage === page ? "page" : undefined}
+                        aria-label={`${t("store.page")} ${page}`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => page + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    {t("store.next")}
+                  </button>
+                </nav>
+              )}
 
             {isLoadingProducts && (
               <p className="store-empty-result">{t("common.loading")}</p>
