@@ -1,0 +1,115 @@
+.content-page {
+  min-height: calc(100vh - 96px);
+  padding: 64px clamp(16px, 5vw, 112px) 68px;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255, 193, 7, 0.24), transparent 25%),
+    radial-gradient(circle at 88% 16%, rgba(161, 95, 224, 0.14), transparent 24%),
+    linear-gradient(180deg, #fff1cf 0%, #fff7e8 100%);
+  box-sizing: border-box;
+}
+
+.content-article {
+  max-width: 740px;
+  margin: 0 auto;
+  background: rgba(255, 250, 240, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(24px, 5vw, 54px);
+  box-shadow: 0 14px 34px rgba(71, 48, 21, 0.08);
+}
+
+.content-article .store-kicker {
+  display: inline-flex;
+  margin-bottom: 14px;
+  color: var(--purple);
+  font-size: 13px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.content-article h1 {
+  color: #0c0a0b;
+  font-family: var(--display-font);
+  font-size: clamp(28px, 4.5vw, 48px);
+  line-height: 1.1;
+  font-weight: 1000;
+  margin: 0 0 28px 0;
+}
+
+.content-article p {
+  color: #40342e;
+  font-size: clamp(15px, 1.8vw, 17px);
+  line-height: 1.65;
+  font-weight: 650;
+  margin-top: 0;
+  margin-bottom: 24px;
+  text-align: justify;
+}
+
+.content-article p:has(iframe) {
+  font-weight: 750;
+}
+
+.content-article p.blog-step-subtitle {
+  font-weight: 800;
+  color: #0c0a0b;
+  font-size: 18px;
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+
+.content-article .cart-secondary-link,
+.content-article .cart-primary-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.content-article .cart-secondary-link {
+  color: #2d241f;
+  background: rgba(255, 250, 240, 0.82);
+  border: 1px solid var(--line);
+}
+
+.content-article .cart-secondary-link:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateX(-4px);
+}
+
+.content-article .cart-primary-link {
+  color: #fff;
+  background: var(--purple);
+  border: 1px solid var(--purple);
+}
+
+.content-article .cart-primary-link:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 680px) {
+  .content-page {
+    padding: 24px 12px;
+  }
+
+  .content-article {
+    border-radius: 12px;
+    padding: 24px 18px;
+  }
+
+  .content-article h1 {
+    margin-bottom: 20px;
+  }
+  
+  .content-article p {
+    margin-bottom: 18px;
+    text-align: left;
+  }
+}

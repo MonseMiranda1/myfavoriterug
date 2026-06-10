@@ -911,8 +911,7 @@ img {
 }
 
 .cart-checkout-button,
-.cart-primary-link,
-.cart-secondary-link {
+.cart-primary-link {
   min-height: 56px;
   padding: 0 26px;
   display: inline-flex;
@@ -976,13 +975,6 @@ img {
 
 .cart-primary-link {
   background: linear-gradient(90deg, var(--orange), #ff5e00);
-}
-
-.cart-secondary-link {
-  color: #171211;
-  background: #fffaf0;
-  border: 2px solid #171211;
-  box-shadow: none;
 }
 
 .account-page {
