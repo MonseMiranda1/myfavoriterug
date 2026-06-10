@@ -267,9 +267,6 @@ export default function Store() {
             </form>
 
             <div className="store-actions-row">
-              <Link to="/personaliza" className="store-catalog-button">
-                {t("store.catalog")}
-              </Link>
               <div className="store-sort">
                 <span>{t("store.sortBy")}</span>
                 <select
