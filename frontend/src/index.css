@@ -394,6 +394,40 @@ img {
   gap: 22px;
 }
 
+.store-pagination {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.store-pagination button {
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid rgba(123, 63, 209, 0.24);
+  border-radius: 9px;
+  color: var(--purple);
+  background: rgba(255, 250, 240, 0.96);
+  font-family: var(--display-font);
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.store-pagination button:hover:not(:disabled),
+.store-pagination button.is-active {
+  color: #fff;
+  background: linear-gradient(90deg, var(--purple), var(--lilac));
+  border-color: transparent;
+}
+
+.store-pagination button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
 .store-product-card {
   min-width: 0;
   min-height: 312px;
