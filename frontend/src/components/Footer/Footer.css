@@ -73,31 +73,27 @@
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 36px clamp(24px, 8vw, 146px) 18px;
+  padding: 48px clamp(22px, 6vw, 112px) 24px; /* Sincronizado con los paddings de tu galería */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px 24px;
+  gap: 32px 40px; /* Un gap más generoso para que respire */
   align-items: start;
 }
 
 .footer-main > div {
   width: 100%;
   max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Fuerza a los elementos internos a alinearse a la izquierda */
+  text-align: left; /* Alineación de texto unificada */
 }
 
-.footer-main > div:first-child {
+.footer-main > div:first-child,
+.footer-main > div:nth-child(2),
+.footer-main > div:last-child {
   justify-self: start;
   text-align: left;
-}
-
-.footer-main > div:nth-child(2) {
-  justify-self: center;
-  text-align: center;
-}
-
-.footer-main > div:last-child {
-  justify-self: end;
-  text-align: right;
 }
 
 .footer h3 {
@@ -113,13 +109,12 @@
   font-size: 13px;
   line-height: 1.75;
 }
-
 .social-icons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start; /* 👈 Corregido: Ahora los iconos se alinean a la izquierda abajo de SÍGUENOS */
   align-items: center;
   gap: 16px;
-  margin-top: 14px;
+  margin-top: 4px; /* Ajustado para que calce con la altura de línea de los textos */
 }
 
 .social-icons a img {
@@ -127,6 +122,11 @@
   height: 24px;
   object-fit: contain;
   display: block;
+  transition: transform 0.2s ease;
+}
+
+.social-icons a:hover img {
+  transform: scale(1.1); /* Efecto pop sutil al pasar sobre las redes sociales */
 }
 
 .footer-bottom {
