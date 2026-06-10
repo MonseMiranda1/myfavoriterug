@@ -93,6 +93,8 @@ export default function Checkout() {
   const accountUser = getAccountUser();
   const [customerName, setCustomerName] = useState(accountUser?.name ?? "");
   const [email, setEmail] = useState(accountUser?.email ?? "");
+  const [phone, setPhone] = useState(accountUser?.phone ?? "");
+  const [rut, setRut] = useState(accountUser?.rut ?? "");
   const [address, setAddress] = useState(accountUser?.address ?? "");
   const [shippingMethod, setShippingMethod] = useState("Chilexpress");
   const [paymentMethod, setPaymentMethod] = useState("FLOW");
