@@ -3,7 +3,8 @@ import Navbar from "../components/Navbar/Navbar";
 import Hero from "../components/Hero/Hero";
 import HowItWorks from "../components/HowItWorks/HowItWorks";
 import Footer from "../components/Footer/Footer";
-import Categories from "../components/Categories/Categories";
+/* Se elimina categories del home */
+/*import Categories from "../components/Categories/Categories"; */ 
 import { useLanguage } from "../i18n";
 import { createCustomerReview, getCustomerReviews, type CustomerReview } from "../services/reviews";
 
@@ -124,7 +125,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <HowItWorks />
-      <Categories />
+      {/*<Categories />*/}
       <CustomerReviews />
       <Footer />
     </>
