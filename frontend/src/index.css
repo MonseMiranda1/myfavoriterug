@@ -202,8 +202,7 @@ img {
 }
 
 .store-filter-toggle,
-.store-search button,
-.store-catalog-button {
+.store-search button {
   min-height: 48px;
   display: inline-flex;
   align-items: center;
@@ -343,14 +342,9 @@ img {
 .store-actions-row {
   margin-top: 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 18px;
-}
-
-.store-catalog-button {
-  min-width: 132px;
-  padding: 0 20px;
 }
 
 .store-sort {
@@ -3826,7 +3820,6 @@ img {
   }
 
   .store-search button,
-  .store-catalog-button,
   .store-filter-toggle {
     width: 100%;
   }
