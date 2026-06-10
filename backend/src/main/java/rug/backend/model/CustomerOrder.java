@@ -14,8 +14,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "customer_orders")
@@ -51,6 +53,11 @@ public class CustomerOrder {
 
     private String trackingNumber;
     private String shippingStatus;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "account_user_id")
+    private AccountUser accountUser;
 
     @Column(nullable = false)
     private Instant createdAt;
@@ -147,6 +154,14 @@ public class CustomerOrder {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public AccountUser getAccountUser() {
+        return accountUser;
+    }
+
+    public void setAccountUser(AccountUser accountUser) {
+        this.accountUser = accountUser;
     }
 
     public List<OrderItem> getItems() {

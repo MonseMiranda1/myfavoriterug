@@ -6,6 +6,7 @@ import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
 import { getCartItems, saveCartItems } from "../services/cart";
+import { getAccountUser } from "../services/accountAuth";
 import {
   createOrder,
   createPaymentIntent,
@@ -89,11 +90,12 @@ export default function Checkout() {
   const user = useAccountAuthStore((state) => state.user);
 
   const [step, setStep] = useState(0);
-  const [customerName, setCustomerName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState(""); // 👈 Añadido
-  const [rut, setRut] = useState("");  
-  const [address, setAddress] = useState("");
+  const accountUser = getAccountUser();
+  const [customerName, setCustomerName] = useState(accountUser?.name ?? "");
+  const [email, setEmail] = useState(accountUser?.email ?? "");
+  const [phone, setPhone] = useState(accountUser?.phone ?? "");
+  const [rut, setRut] = useState(accountUser?.rut ?? "");
+  const [address, setAddress] = useState(accountUser?.address ?? "");
   const [shippingMethod, setShippingMethod] = useState("Chilexpress");
   const [paymentMethod, setPaymentMethod] = useState("FLOW");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -176,7 +178,7 @@ export default function Checkout() {
       setIsSubmitting(true);
       const order = await createOrder(orderInput);
 
-      saveOrder(orderInput);
+      saveOrder(order);
       saveCartItems([]);
 
       if (paymentMethod === "TRANSFERENCIA") {

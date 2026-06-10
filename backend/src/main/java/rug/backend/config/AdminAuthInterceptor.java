@@ -44,6 +44,10 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         }
 
         if (path.matches("^/api/orders(/.*)?$")) {
+            if (path.equals("/api/orders/mine") && HttpMethod.GET.matches(method)) {
+                return false;
+            }
+
             return !HttpMethod.POST.matches(method);
         }
 
