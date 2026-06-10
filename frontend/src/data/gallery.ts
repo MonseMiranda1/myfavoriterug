@@ -27,9 +27,9 @@ export const galleryItems: GalleryItem[] = [
 
   {
     id: 1,
-    title: "Alfombra de logo terminada",
-    titleEn: "Finished logo rug",
-    category: "Finished Rugs",
+    title: "Proceso de alfombra de Filou",
+    titleEn: "  Filou rug process",
+    category: "Video Process",
     type: "instagram",
     image: dog,
     videoUrl: "https://www.instagram.com/reel/DWB1t3lDeuK/", 
