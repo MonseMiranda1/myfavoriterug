@@ -29,17 +29,21 @@ public class CustomerReview {
     @Column(length = 4000)
     private String productImage;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean approved = true;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     public CustomerReview() {
     }
 
-    public CustomerReview(String name, Integer rating, String comment, String productImage) {
+    public CustomerReview(String name, Integer rating, String comment, String productImage, Boolean approved) {
         this.name = name;
         this.rating = rating;
         this.comment = comment;
         this.productImage = productImage;
+        this.approved = approved;
     }
 
     @PrePersist
@@ -87,6 +91,14 @@ public class CustomerReview {
 
     public void setProductImage(String productImage) {
         this.productImage = productImage;
+    }
+
+    public Boolean getApproved() {
+        return approved;
+    }
+
+    public void setApproved(Boolean approved) {
+        this.approved = approved;
     }
 
     public Instant getCreatedAt() {

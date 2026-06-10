@@ -75,6 +75,7 @@ const translations = {
     "reviews.productPhoto": "Foto del producto",
     "reviews.productPhotoAlt": "Foto del producto reseñado",
     "reviews.submitError": "No se pudo publicar la reseña. Inténtalo nuevamente.",
+    "reviews.submitSuccess": "Reseña enviada. La publicaremos después de revisarla.",
     "reviews.submit": "PUBLICAR RESEÑA",
 
     "footer.cardPayment": "PAGA CON TARJETA",
@@ -435,6 +436,7 @@ const translations = {
     "reviews.productPhoto": "Product photo",
     "reviews.productPhotoAlt": "Reviewed product photo",
     "reviews.submitError": "The review could not be posted. Please try again.",
+    "reviews.submitSuccess": "Review submitted. We will publish it after moderation.",
     "reviews.submit": "POST REVIEW",
 
     "footer.cardPayment": "PAY BY CARD",

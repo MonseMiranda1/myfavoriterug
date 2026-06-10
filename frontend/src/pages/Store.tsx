@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   CATEGORIES_UPDATED_EVENT,
   getCategories,
-  getFallbackProducts,
   getProducts,
   PRODUCTS_UPDATED_EVENT,
   type Category,
@@ -30,10 +29,8 @@ function formatPrice(price: number) {
 }
 
 function getProductCategory(product: Product) {
-  if (product.newArrival) return "New Arrivals";
-  if (product.bestSeller) return "Best Sellers";
-  if (product.category) return product.category;
-  if (product.collection) return product.collection;
+  if (product.category?.trim()) return product.category.trim();
+  if (product.collection?.trim()) return product.collection.trim();
 
   const name = product.name.toLowerCase();
 
@@ -44,6 +41,28 @@ function getProductCategory(product: Product) {
   if (name.includes("minimal")) return "Minimal Collection";
 
   return "Custom Rugs";
+}
+
+function normalizeCategory(category: string) {
+  return category
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function productMatchesCategory(product: Product, selectedCategory: string) {
+  if (selectedCategory === "Todas") return true;
+  if (selectedCategory === "New Arrivals") return Boolean(product.newArrival);
+  if (selectedCategory === "Best Sellers") return Boolean(product.bestSeller);
+
+  const normalizedSelectedCategory = normalizeCategory(selectedCategory);
+
+  return [product.category, product.collection, getProductCategory(product)]
+    .filter((category): category is string => Boolean(category?.trim()))
+    .some(
+      (category) => normalizeCategory(category) === normalizedSelectedCategory,
+    );
 }
 
 function getCategoryLabel(
@@ -64,9 +83,9 @@ function getCategoryLabel(
 export default function Store() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>(() =>
-    getFallbackProducts(),
-  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState("");
   const [categories, setCategories] = useState<Category[]>(() =>
     getCategories(),
   );
@@ -99,10 +118,7 @@ export default function Store() {
             String(product.id).toLowerCase().includes(query)
           : true;
         const matchesCategory =
-          selectedCategory === "Todas" ||
-          getProductCategory(product) === selectedCategory ||
-          (selectedCategory === "New Arrivals" && product.newArrival) ||
-          (selectedCategory === "Best Sellers" && product.bestSeller);
+          productMatchesCategory(product, selectedCategory);
         const isQuoteProduct =
           product.availability === "Personalizado" || product.price === 0;
         const matchesType =
@@ -122,8 +138,24 @@ export default function Store() {
   }, [products, purchaseType, query, selectedCategory, sortBy]);
 
   useEffect(() => {
-    const refreshProducts = () =>
-      getProducts().then((res) => setProducts(res.data));
+    const refreshProducts = async () => {
+      setIsLoadingProducts(true);
+      setProductsError("");
+
+      try {
+        const response = await getProducts();
+        setProducts(response.data);
+      } catch (error) {
+        setProducts([]);
+        setProductsError(
+          error instanceof Error
+            ? error.message
+            : "No se pudieron cargar los productos de la tienda.",
+        );
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
     const refreshCategories = () => setCategories(getCategories());
 
     refreshProducts();
@@ -237,12 +269,14 @@ export default function Store() {
               </div>
             </div>
 
-            <p className="store-result-count">
-              {filteredProducts.length}{" "}
-              {filteredProducts.length === 1
-                ? t("store.productSingular")
-                : t("store.productPlural")}
-            </p>
+            {!isLoadingProducts && !productsError && (
+              <p className="store-result-count">
+                {filteredProducts.length}{" "}
+                {filteredProducts.length === 1
+                  ? t("store.productSingular")
+                  : t("store.productPlural")}
+              </p>
+            )}
 
             {query && (
               <p className="store-search-result">
@@ -251,49 +285,62 @@ export default function Store() {
               </p>
             )}
 
-            <div className="store-product-grid">
-              {filteredProducts.map((product) => (
-                <Link
-                  to={`/producto/${product.id}`}
-                  state={{ product }}
-                  className="store-product-card"
-                  key={product.id}
-                >
-                  <span className="store-product-image">
-                    <img
-                      src={product.image || fallbackProductImage}
-                      alt={product.name}
-                      onError={(event) => {
-                        event.currentTarget.src = fallbackProductImage;
-                      }}
-                    />
-                  </span>
-                  <span className="store-product-category">
-                    {getCategoryLabel(getProductCategory(product), t)}
-                  </span>
-                  <strong>{product.name}</strong>
-                  <span className="store-product-price">
-                    {product.availability === "Personalizado" || product.price === 0 ? (
-                      t("store.quote")
-                    ) : (
-                      <>
-                        <span>{formatPrice(product.price)}</span>
-                        <small>{t("store.netPrice")}</small>
-                      </>
-                    )}
-                  </span>
-                  {product.availability && (
-                    <span className="store-product-availability">
-                      {product.availability}
+            {!isLoadingProducts && !productsError && (
+              <div className="store-product-grid">
+                {filteredProducts.map((product) => (
+                  <Link
+                    to={`/producto/${product.id}`}
+                    state={{ product }}
+                    className="store-product-card"
+                    key={product.id}
+                  >
+                    <span className="store-product-image">
+                      <img
+                        src={product.image || fallbackProductImage}
+                        alt={product.name}
+                        onError={(event) => {
+                          event.currentTarget.src = fallbackProductImage;
+                        }}
+                      />
                     </span>
-                  )}
-                </Link>
-              ))}
-            </div>
-
-            {filteredProducts.length === 0 && (
-              <p className="store-empty-result">{t("store.empty")}</p>
+                    <span className="store-product-category">
+                      {getCategoryLabel(getProductCategory(product), t)}
+                    </span>
+                    <strong>{product.name}</strong>
+                    <span className="store-product-price">
+                      {product.availability === "Personalizado" ||
+                      product.price === 0 ? (
+                        t("store.quote")
+                      ) : (
+                        <>
+                          <span>{formatPrice(product.price)}</span>
+                          <small>{t("store.netPrice")}</small>
+                        </>
+                      )}
+                    </span>
+                    {product.availability && (
+                      <span className="store-product-availability">
+                        {product.availability}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
             )}
+
+            {isLoadingProducts && (
+              <p className="store-empty-result">{t("common.loading")}</p>
+            )}
+
+            {!isLoadingProducts && productsError && (
+              <p className="store-empty-result">{productsError}</p>
+            )}
+
+            {!isLoadingProducts &&
+              !productsError &&
+              filteredProducts.length === 0 && (
+                <p className="store-empty-result">{t("store.empty")}</p>
+              )}
           </section>
         </div>
       </main>

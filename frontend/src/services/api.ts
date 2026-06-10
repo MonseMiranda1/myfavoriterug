@@ -1,5 +1,4 @@
-import { localProducts } from "../data/products";
-import { API } from "./http";
+import { API, getApiErrorMessage } from "./http";
 
 export type Product = {
   id: number | string;
@@ -171,11 +170,20 @@ export function deleteCategory(id: string) {
   saveCategories(getCategories().filter((category) => category.id !== id));
 }
 
-export function getFallbackProducts() {
-  return localProducts.map(normalizeProductImages);
+export async function getProducts() {
+  try {
+    const response = await API.get<Product[]>("/products");
+    return {
+      ...response,
+      data: response.data.map(normalizeProductImages),
+    };
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(
+        error,
+        "No se pudieron cargar los productos de la tienda.",
+      ),
+      { cause: error },
+    );
+  }
 }
-
-export const getProducts = () =>
-  API.get<Product[]>("/products")
-    .then((response) => ({ ...response, data: response.data.map(normalizeProductImages) }))
-    .catch(() => Promise.resolve({ data: getFallbackProducts() }));
