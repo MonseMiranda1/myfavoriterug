@@ -55,6 +55,14 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        if (path.equals("/api/reviews/admin")) {
+            return true;
+        }
+
+        if (path.matches("^/api/reviews/\\d+(/approval)?$")) {
+            return HttpMethod.PUT.matches(method) || HttpMethod.DELETE.matches(method);
+        }
+
         if (path.equals("/api/quotes")) {
             return HttpMethod.GET.matches(method);
         }

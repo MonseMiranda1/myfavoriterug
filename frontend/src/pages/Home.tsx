@@ -7,29 +7,6 @@ import Categories from "../components/Categories/Categories";
 import { useLanguage } from "../i18n";
 import { createCustomerReview, getCustomerReviews, type CustomerReview } from "../services/reviews";
 
-const REVIEWS_STORAGE_KEY = "my-favorite-rug-customer-reviews";
-
-const defaultReviews: CustomerReview[] = [
-  {
-    id: 1,
-    name: "Mariana G.",
-    rating: 5,
-    comment: "Mi alfombra quedó mejor de lo que imaginé, la calidad está increíble.",
-  },
-  {
-    id: 2,
-    name: "Camila R.",
-    rating: 5,
-    comment: "Me ayudaron con el diseño y llegó preciosa. Se nota el cariño en cada detalle.",
-  },
-];
-
-function clearLocalReviewTests() {
-  if (typeof window === "undefined") return;
-
-  window.localStorage.removeItem(REVIEWS_STORAGE_KEY);
-}
-
 function initialsFor(name: string) {
   return name
     .split(" ")
@@ -42,7 +19,7 @@ function initialsFor(name: string) {
 
 function CustomerReviews() {
   const { t } = useLanguage();
-  const [reviews, setReviews] = useState<CustomerReview[]>(defaultReviews);
+  const [reviews, setReviews] = useState<CustomerReview[]>([]);
   const [formMessage, setFormMessage] = useState("");
   const averageRating = useMemo(
     () => reviews.length > 0 ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length : 0,
@@ -50,10 +27,9 @@ function CustomerReviews() {
   );
 
   useEffect(() => {
-    clearLocalReviewTests();
     getCustomerReviews()
-      .then((backendReviews) => setReviews(backendReviews.length > 0 ? backendReviews : defaultReviews))
-      .catch(() => setReviews(defaultReviews));
+      .then(setReviews)
+      .catch(() => setReviews([]));
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -69,15 +45,15 @@ function CustomerReviews() {
 
     try {
       setFormMessage("");
-      const review = await createCustomerReview({
+      await createCustomerReview({
         name,
         rating,
         comment,
         productPhoto: productPhoto instanceof File && productPhoto.size > 0 ? productPhoto : undefined,
       });
 
-      setReviews((currentReviews) => [review, ...currentReviews]);
       form.reset();
+      setFormMessage(t("reviews.submitSuccess"));
     } catch {
       setFormMessage(t("reviews.submitError"));
     }

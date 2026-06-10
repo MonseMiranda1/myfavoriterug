@@ -8,4 +8,5 @@ import rug.backend.model.CustomerReview;
 
 public interface CustomerReviewRepository extends JpaRepository<CustomerReview, Long> {
     List<CustomerReview> findAllByOrderByCreatedAtDesc();
+    List<CustomerReview> findAllByApprovedTrueOrderByCreatedAtDesc();
 }
