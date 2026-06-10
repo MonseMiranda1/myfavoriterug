@@ -5,6 +5,7 @@ import AccountSidebar, { BoxIcon } from "../components/AccountSidebar/AccountSid
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
+import { getApiErrorMessage } from "../services/http";
 import { getAccountOrders, type Order } from "../services/orders";
 
 function formatPrice(price: number) {
@@ -34,7 +35,7 @@ export default function Orders() {
   useEffect(() => {
     getAccountOrders()
       .then(setOrders)
-      .catch(() => setLoadError("No pudimos cargar tus pedidos. Intenta nuevamente."))
+      .catch((error) => setLoadError(getApiErrorMessage(error, "No pudimos cargar tus pedidos. Intenta nuevamente.")))
       .finally(() => setIsLoading(false));
   }, []);
 

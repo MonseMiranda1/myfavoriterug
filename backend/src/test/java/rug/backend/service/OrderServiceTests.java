@@ -49,13 +49,21 @@ class OrderServiceTests {
     }
 
     @Test
-    void accountOrdersAreFilteredByAuthenticatedEmail() {
+    void accountOrdersIncludeAndAssociateHistoricalOrdersByAuthenticatedEmail() {
         AccountUser user = new AccountUser();
         user.setEmail("maria@example.com");
-        when(orderRepository.findAllByAccountUserOrderByCreatedAtDesc(user))
-                .thenReturn(List.of(new CustomerOrder()));
+        CustomerOrder accountOrder = new CustomerOrder();
+        CustomerOrder historicalOrder = new CustomerOrder();
 
-        assertThat(orderService.getOrdersForUser(user)).hasSize(1);
+        when(orderRepository.findAllByAccountUserOrderByCreatedAtDesc(user))
+                .thenReturn(new java.util.ArrayList<>(List.of(accountOrder)));
+        when(orderRepository.findAllByAccountUserIsNullAndEmailIgnoreCaseOrderByCreatedAtDesc(user.getEmail()))
+                .thenReturn(List.of(historicalOrder));
+
+        assertThat(orderService.getOrdersForUser(user)).containsExactly(accountOrder, historicalOrder);
+        assertThat(historicalOrder.getAccountUser()).isSameAs(user);
         verify(orderRepository).findAllByAccountUserOrderByCreatedAtDesc(user);
+        verify(orderRepository).findAllByAccountUserIsNullAndEmailIgnoreCaseOrderByCreatedAtDesc("maria@example.com");
+        verify(orderRepository).saveAll(List.of(historicalOrder));
     }
 }

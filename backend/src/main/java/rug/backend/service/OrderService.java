@@ -1,5 +1,7 @@
 package rug.backend.service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -31,8 +33,24 @@ public class OrderService {
         return orderRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public List<CustomerOrder> getOrdersForUser(AccountUser user) {
-        return orderRepository.findAllByAccountUserOrderByCreatedAtDesc(user);
+        List<CustomerOrder> accountOrders = new ArrayList<>(
+                orderRepository.findAllByAccountUserOrderByCreatedAtDesc(user));
+        List<CustomerOrder> historicalOrders = orderRepository
+                .findAllByAccountUserIsNullAndEmailIgnoreCaseOrderByCreatedAtDesc(user.getEmail());
+
+        historicalOrders.forEach(order -> order.setAccountUser(user));
+
+        if (!historicalOrders.isEmpty()) {
+            orderRepository.saveAll(historicalOrders);
+            accountOrders.addAll(historicalOrders);
+            accountOrders.sort(Comparator.comparing(
+                    CustomerOrder::getCreatedAt,
+                    Comparator.nullsLast(Comparator.reverseOrder())));
+        }
+
+        return accountOrders;
     }
 
     public CustomerOrder createOrder(CustomerOrder order, AccountUser user) {
