@@ -37,6 +37,8 @@ public class CorsConfig {
         Set<String> origins = new LinkedHashSet<>();
         addOrigins(origins, frontendBaseUrl);
         addOrigins(origins, frontendAllowedOriginPatterns);
+        origins.add("https://myfavoriterug.com");
+        origins.add("https://www.myfavoriterug.com");
         origins.add("https://*.vercel.app");
         origins.add("http://localhost:5173");
         origins.add("http://127.0.0.1:5173");
