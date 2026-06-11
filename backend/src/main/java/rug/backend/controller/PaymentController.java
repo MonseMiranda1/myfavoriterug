@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import rug.backend.model.Payment;
 import rug.backend.service.PaymentService;
@@ -57,7 +58,10 @@ public class PaymentController {
         Payment payment;
 
         try {
-            payment = paymentService.createPaymentIntent(request.orderId(), request.provider());
+            String publicBackendUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .build()
+                    .toUriString();
+            payment = paymentService.createPaymentIntent(request.orderId(), request.provider(), publicBackendUrl);
         } catch (IllegalStateException exception) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(new PaymentErrorResponse(exception.getMessage()));
         }

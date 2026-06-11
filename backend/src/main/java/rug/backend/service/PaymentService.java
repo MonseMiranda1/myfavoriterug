@@ -98,7 +98,7 @@ public class PaymentService {
         return normalizedUrl.isBlank() ? CANONICAL_FRONTEND_URL : normalizedUrl;
     }
 
-    public Payment createPaymentIntent(Long orderId, String provider) {
+    public Payment createPaymentIntent(Long orderId, String provider, String publicBackendUrl) {
         CustomerOrder order = orderService.getOrder(orderId);
 
         if (order == null) {
@@ -108,7 +108,7 @@ public class PaymentService {
         String normalizedProvider = provider == null || provider.isBlank() ? "manual" : provider.trim().toUpperCase();
 
         if ("FLOW".equals(normalizedProvider)) {
-            return createFlowPayment(order);
+            return createFlowPayment(order, publicBackendUrl);
         }
 
         if ("PAYPAL".equals(normalizedProvider)) {
@@ -189,7 +189,7 @@ public class PaymentService {
         paymentRepository.deleteById(paymentId);
     }
 
-    private Payment createFlowPayment(CustomerOrder order) {
+    private Payment createFlowPayment(CustomerOrder order, String publicBackendUrl) {
         if (flowApiKey == null || flowApiKey.isBlank() || flowSecretKey == null || flowSecretKey.isBlank()) {
             throw new IllegalStateException("FLOW_API_KEY y FLOW_SECRET_KEY son obligatorios para crear pagos con Flow.");
         }
@@ -202,8 +202,9 @@ public class PaymentService {
             params.put("currency", "CLP");
             params.put("amount", String.valueOf(order.getTotal()));
             params.put("email", order.getEmail());
-            params.put("urlConfirmation", backendBaseUrl + "/api/payments/flow/confirmation");
-            params.put("urlReturn", backendBaseUrl + "/api/payments/flow/return?orderId=" + order.getId());
+            String callbackBaseUrl = normalizeBackendBaseUrl(publicBackendUrl);
+            params.put("urlConfirmation", callbackBaseUrl + "/api/payments/flow/confirmation");
+            params.put("urlReturn", callbackBaseUrl + "/api/payments/flow/return?orderId=" + order.getId());
             params.put("s", sign(params));
 
             String responseBody = postForm(flowApiUrl + "/payment/create", params);
@@ -250,6 +251,11 @@ public class PaymentService {
         } catch (Exception exception) {
             throw new IllegalStateException("No se pudo firmar la solicitud de Flow.", exception);
         }
+    }
+
+    private String normalizeBackendBaseUrl(String requestBaseUrl) {
+        String normalizedUrl = requestBaseUrl == null ? "" : requestBaseUrl.trim().replaceAll("/+$", "");
+        return normalizedUrl.isBlank() ? backendBaseUrl.replaceAll("/+$", "") : normalizedUrl;
     }
 
     private String postForm(String url, Map<String, String> params) throws IOException, InterruptedException {
