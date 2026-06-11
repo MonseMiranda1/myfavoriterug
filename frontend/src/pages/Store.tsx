@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   CATEGORIES_UPDATED_EVENT,
   getCategories,
+  getCachedProducts,
   getProducts,
   PRODUCTS_UPDATED_EVENT,
   type Category,
@@ -86,8 +87,9 @@ function getCategoryLabel(
 export default function Store() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [products, setProducts] = useState<Product[]>(getCachedProducts);
+  const productsRef = useRef(products);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(() => getCachedProducts().length === 0);
   const [productsError, setProductsError] = useState("");
   const [categories, setCategories] = useState<Category[]>(() =>
     getCategories(),
@@ -160,14 +162,16 @@ export default function Store() {
 
       try {
         const response = await getProducts();
+        productsRef.current = response.data;
         setProducts(response.data);
       } catch (error) {
-        setProducts([]);
-        setProductsError(
-          error instanceof Error
-            ? error.message
-            : "No se pudieron cargar los productos de la tienda.",
-        );
+        if (productsRef.current.length === 0) {
+          setProductsError(
+            error instanceof Error
+              ? error.message
+              : "No se pudieron cargar los productos de la tienda.",
+          );
+        }
       } finally {
         setIsLoadingProducts(false);
       }
@@ -282,7 +286,7 @@ export default function Store() {
               </div>
             </div>
 
-            {!isLoadingProducts && !productsError && (
+            {!productsError && products.length > 0 && (
               <p className="store-result-count">
                 {filteredProducts.length}{" "}
                 {filteredProducts.length === 1
@@ -298,7 +302,7 @@ export default function Store() {
               </p>
             )}
 
-            {!isLoadingProducts && !productsError && (
+            {!productsError && products.length > 0 && (
               <div className="store-product-grid">
                 {paginatedProducts.map((product) => (
                   <Link
@@ -311,6 +315,8 @@ export default function Store() {
                       <img
                         src={product.image || fallbackProductImage}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
                         onError={(event) => {
                           event.currentTarget.src = fallbackProductImage;
                         }}
@@ -341,8 +347,8 @@ export default function Store() {
               </div>
             )}
 
-            {!isLoadingProducts &&
-              !productsError &&
+            {!productsError &&
+              products.length > 0 &&
               filteredProducts.length > 0 &&
               totalPages > 1 && (
                 <nav
@@ -384,16 +390,17 @@ export default function Store() {
                 </nav>
               )}
 
-            {isLoadingProducts && (
+            {isLoadingProducts && products.length === 0 && (
               <p className="store-empty-result">{t("common.loading")}</p>
             )}
 
-            {!isLoadingProducts && productsError && (
+            {!isLoadingProducts && productsError && products.length === 0 && (
               <p className="store-empty-result">{productsError}</p>
             )}
 
             {!isLoadingProducts &&
               !productsError &&
+              products.length > 0 &&
               filteredProducts.length === 0 && (
                 <p className="store-empty-result">{t("store.empty")}</p>
               )}

@@ -1,12 +1,16 @@
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
 import { useLanguage } from "../i18n";
+import creditIcon from "../assets/icons/credito.png";
+import debitIcon from "../assets/icons/debito.png";
+import paypalIcon from "../assets/icons/paypal.png";
+import transferIcon from "../assets/icons/transferencia.png";
 
 const paymentMethods = [
-  { id: "debit", symbol: "DB" },
-  { id: "credit", symbol: "CR" },
-  { id: "paypal", symbol: "PP" },
-  { id: "transfer", symbol: "TR" },
+  { id: "debit", icon: debitIcon },
+  { id: "credit", icon: creditIcon },
+  { id: "paypal", icon: paypalIcon },
+  { id: "transfer", icon: transferIcon },
 ] as const;
 
 export default function PaymentMethods() {
@@ -25,7 +29,9 @@ export default function PaymentMethods() {
         <section className="payment-methods-grid" aria-label={t("paymentMethods.title")}>
           {paymentMethods.map((method) => (
             <article className="payment-method-card" key={method.id}>
-              <span className="payment-method-icon" aria-hidden="true">{method.symbol}</span>
+              <span className="payment-method-icon" aria-hidden="true">
+                <img src={method.icon} alt="" />
+              </span>
               <h2>{t(`paymentMethods.${method.id}.title` as never)}</h2>
               <p>{t(`paymentMethods.${method.id}.description` as never)}</p>
             </article>

@@ -23,6 +23,7 @@ export type Category = {
 };
 
 const CATEGORIES_KEY = "my-favorite-rug-categories";
+const PRODUCTS_CACHE_KEY = "my-favorite-rug-products-cache";
 export const PRODUCTS_UPDATED_EVENT = "my-favorite-rug-products-updated";
 export const CATEGORIES_UPDATED_EVENT = "my-favorite-rug-categories-updated";
 
@@ -90,20 +91,53 @@ function normalizeProductImages(product: Product): Product {
   };
 }
 
+export function getCachedProducts(): Product[] {
+  if (!canUseStorage()) return [];
+
+  const cachedProducts = window.localStorage.getItem(PRODUCTS_CACHE_KEY);
+  if (!cachedProducts) return [];
+
+  try {
+    const parsed = JSON.parse(cachedProducts);
+    return Array.isArray(parsed) ? parsed.map(normalizeProductImages) : [];
+  } catch {
+    return [];
+  }
+}
+
+function cacheProducts(products: Product[]) {
+  if (!canUseStorage()) return;
+
+  try {
+    window.localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(products));
+  } catch {
+    window.localStorage.removeItem(PRODUCTS_CACHE_KEY);
+  }
+}
+
+function clearProductsCache() {
+  if (!canUseStorage()) return;
+
+  window.localStorage.removeItem(PRODUCTS_CACHE_KEY);
+}
+
 export async function saveUploadedProduct(product: ProductInput) {
   const response = await API.post<Product>("/products", product);
+  clearProductsCache();
   window.dispatchEvent(new Event(PRODUCTS_UPDATED_EVENT));
   return normalizeProductImages(response.data);
 }
 
 export async function updateUploadedProduct(id: Product["id"], product: ProductInput) {
   const response = await API.put<Product>(`/products/${id}`, product);
+  clearProductsCache();
   window.dispatchEvent(new Event(PRODUCTS_UPDATED_EVENT));
   return normalizeProductImages(response.data);
 }
 
 export async function deleteUploadedProduct(id: Product["id"]) {
   await API.delete(`/products/${id}`);
+  clearProductsCache();
   window.dispatchEvent(new Event(PRODUCTS_UPDATED_EVENT));
 }
 
@@ -173,9 +207,12 @@ export function deleteCategory(id: string) {
 export async function getProducts() {
   try {
     const response = await API.get<Product[]>("/products");
+    const products = response.data.map(normalizeProductImages);
+    cacheProducts(products);
+
     return {
       ...response,
-      data: response.data.map(normalizeProductImages),
+      data: products,
     };
   } catch (error) {
     throw new Error(
