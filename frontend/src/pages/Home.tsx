@@ -5,6 +5,7 @@ import HowItWorks from "../components/HowItWorks/HowItWorks";
 import Footer from "../components/Footer/Footer";
 import { useLanguage } from "../i18n";
 import { getCustomerReviews, type CustomerReview } from "../services/reviews";
+import fallbackProductImage from "../assets/banner.png";
 
 function initialsFor(name: string) {
   return name
@@ -41,17 +42,26 @@ function CustomerReviews() {
       </div>
 
       <div className="customer-reviews-shell">
-        <div className="customer-review-list" style={{ gridTemplateColumns: '1fr', width: '100%' }}>
+        <div className="customer-review-list">
           {reviews.slice(0, 4).map((review) => (
             <article className="customer-review-card" key={review.id}>
               {review.productImage && (
-                <img className="customer-review-product-image" src={review.productImage} alt={t("reviews.productPhotoAlt")} />
+                <img
+                  className="customer-review-product-image"
+                  src={review.productImage}
+                  alt={t("reviews.productPhotoAlt")}
+                  onError={(event) => {
+                    event.currentTarget.src = fallbackProductImage;
+                  }}
+                />
               )}
-              <div className="review-avatar">{initialsFor(review.name)}</div>
-              <div>
-                <strong>{"*".repeat(review.rating)}</strong>
-                <p>{review.comment}</p>
-                <span>- {review.name}</span>
+              <div className="customer-review-body">
+                <div className="review-avatar">{initialsFor(review.name)}</div>
+                <div>
+                  <strong>{"*".repeat(review.rating)}</strong>
+                  <p>{review.comment}</p>
+                  <span>- {review.name}</span>
+                </div>
               </div>
             </article>
           ))}
