@@ -4031,6 +4031,12 @@ img {
   box-shadow: 4px 4px 0 var(--yellow);
 }
 
+.payment-method-icon img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
 .payment-method-card h2 {
   margin: 20px 0 8px;
   color: #0c0a0b;
