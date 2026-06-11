@@ -40,6 +40,23 @@ function ReviewModal({ isOpen, onClose, customerName, orderId, productName, onSu
   const { t } = useLanguage();
   const [formMessage, setFormMessage] = useState("");
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -75,11 +92,17 @@ function ReviewModal({ isOpen, onClose, customerName, orderId, productName, onSu
   }
 
   return (
-    <div className="gallery-modal-backdrop" style={{ zIndex: 300 }}>
-      <div className="gallery-modal-content" style={{ padding: "24px", background: "#fff", maxWidth: "450px" }}>
-        <button type="button" className="gallery-modal-close" onClick={onClose}>×</button>
-        <form className="customer-review-form" onSubmit={handleSubmit} style={{ display: "grid", gap: "14px" }}>
-          <h3 style={{ margin: 0, color: "#0c0a0b" }}>Opinar sobre {productName}</h3>
+    <div className="review-modal-backdrop" onClick={onClose}>
+      <div
+        className="review-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="review-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button type="button" className="review-modal-close" onClick={onClose} aria-label="Cerrar modal">×</button>
+        <form className="customer-review-form review-modal-form" onSubmit={handleSubmit}>
+          <h3 id="review-modal-title" style={{ margin: 0, color: "#0c0a0b" }}>Opinar sobre {productName}</h3>
           <p style={{ fontSize: "12px", color: "#6d5c54", margin: 0 }}>Pedido N°: {orderId}</p>
           
           <label style={{ display: "grid", gap: "4px", fontSize: "13px", fontWeight: "bold" }}>
