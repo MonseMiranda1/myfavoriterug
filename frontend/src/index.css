@@ -3808,6 +3808,7 @@ img {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+  align-items: start;
 }
 
 .customer-review-card {
@@ -3817,28 +3818,26 @@ img {
 }
 
 .customer-review-card {
-  min-height: 220px;
   display: flex;
   flex-direction: column;
-  padding: 22px;
+  padding: 16px;
   background: rgba(255, 250, 240, 0.96);
 }
 
 .customer-review-product-image {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 150px;
   object-fit: cover;
   border-radius: 8px;
-  border: 2px solid rgba(17, 17, 17, 0.12);
+  border: 1px solid rgba(17, 17, 17, 0.12);
 }
 
 .customer-review-body {
-  flex: 1;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .customer-review-card:not(:has(.customer-review-product-image)) .customer-review-body {
@@ -3846,9 +3845,9 @@ img {
 }
 
 .customer-review-card .review-avatar {
-  width: 68px;
-  height: 68px;
-  font-size: 14px;
+  width: 52px;
+  height: 52px;
+  font-size: 12px;
 }
 
 .customer-review-card strong {
@@ -3859,16 +3858,16 @@ img {
 }
 
 .customer-review-card p {
-  margin-top: 8px;
+  margin-top: 6px;
   color: #17120f;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.4;
   font-weight: 750;
 }
 
 .customer-review-card span {
   display: block;
-  margin-top: 10px;
+  margin-top: 7px;
   color: #5a4e45;
   font-size: 13px;
   font-weight: 900;
