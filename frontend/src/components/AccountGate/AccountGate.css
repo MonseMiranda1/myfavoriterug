@@ -153,6 +153,14 @@
   font-weight: 700;
 }
 
+.account-login-success {
+  display: block;
+  margin-bottom: 16px;
+  color: #2e7d32;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .account-modal-backdrop {
   position: fixed;
   inset: 0;
