@@ -29,19 +29,28 @@ public class PasswordResetEmailService {
         // 1. Traer la API Key de las variables de entorno de Render
         String apiKey = System.getenv("RESEND_API_KEY");
         
-        // Si estás en local y no configuraste Resend, te lo muestra en la terminal para desarrollo rápido
+        // 2. Modo desarrollo: si no hay API key, solo muestra el token en logs
         if (apiKey == null || apiKey.isBlank()) {
             LOGGER.warn("[MODO DESARROLLO] Token para {}: {} ({})", user.getEmail(), token, resetUrl);
             return;
         }
 
-        // 2. Configurar la petición HTTP
+        // 3. TEMPORAL: Solo permite enviar a tu email para pruebas
+        // Eliminar esta validación cuando el dominio esté verificado en Resend
+        String allowedEmail = "fernando.cuevas@hotmail.cl";
+        if (!user.getEmail().equals(allowedEmail)) {
+            LOGGER.warn("Modo prueba: Solo se permite enviar a {}. Destinatario: {}", allowedEmail, user.getEmail());
+            LOGGER.info("[SIMULACION] Token para {}: {}", user.getEmail(), token);
+            return;
+        }
+
+        // 4. Configurar la petición HTTP
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
 
-        // 3. Redactar el mensaje en formato HTML
+        // 5. Redactar el mensaje en formato HTML
         String emailContent = """
                 <p>Hola %s,</p>
                 <p>Usa este token para restaurar tu contraseña:</p>
@@ -51,18 +60,18 @@ public class PasswordResetEmailService {
                 <p>El token expira en 30 minutos. Si no pediste este cambio, puedes ignorar este correo de forma segura.</p>
                 """.formatted(user.getName(), token, resetUrl);
 
-        // 4. Armar el JSON requerido por la API de Resend
+        // 6. Armar el JSON requerido por la API de Resend
         Map<String, Object> body = new HashMap<>();
-        body.put("from", "onboarding@resend.dev"); // Remitente gratuito obligatorio de Resend
+        // CAMBIAR cuando el dominio esté verificado: "noreply@myfavouriterug.com"
+        body.put("from", "onboarding@resend.dev");
         body.put("to", user.getEmail());
         body.put("subject", "Recuperacion de contrasena - My Favorite Rug");
         body.put("html", emailContent);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-        // 5. Enviar usando la URL correcta de la API de Resend
+        // 7. Enviar usando la API de Resend
         try {
-            // ✅ CORREGIDO: URL correcta de la API de Resend
             String resendApiUrl = "https://api.resend.com/emails";
             
             var response = restTemplate.postForEntity(resendApiUrl, entity, String.class);
