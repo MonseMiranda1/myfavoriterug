@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "../../i18n";
 import { useAccountAuthStore, type AccountUser } from "../../services/accountAuth";
 
-type AccountSection = "profile" | "orders" | "quotes" | "wishlist" | "tracking";
+type AccountSection = "profile" | "orders" | "quotes" | "tracking";
 
 function AccountIcon() {
   return (
@@ -94,7 +94,7 @@ export default function AccountSidebar({ activeSection, user }: { activeSection:
             <ChevronIcon />
           </strong>
         </Link>
-        <Link to="/cuenta/wishlist" className={activeSection === "wishlist" ? "is-active" : ""}>
+        {/*<Link to="/cuenta/wishlist" className={activeSection === "wishlist" ? "is-active" : ""}>
           <span className="account-icon">
             <QuoteIcon />
           </span>
@@ -102,7 +102,7 @@ export default function AccountSidebar({ activeSection, user }: { activeSection:
           <strong className="account-chevron">
             <ChevronIcon />
           </strong>
-        </Link>
+        </Link>*/}
         <Link to="/cuenta/seguimiento" className={activeSection === "tracking" ? "is-active" : ""}>
           <span className="account-icon">
             <BoxIcon />

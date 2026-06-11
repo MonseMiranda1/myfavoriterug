@@ -1228,9 +1228,9 @@ export default function Admin() {
                                 <td>{order.shippingStatus || order.status}</td>
                                 <td>{formatClp(order.total)}</td>
                                 <td>
-                                  <button type="button" className="success" onClick={() => handleViewShipping(order)}>Ver</button>
                                   <button
                                     type="button"
+                                    className="success"
                                     onClick={() => {
                                       if (String(order.id) === selectedOrderId) {
                                         setSelectedOrderId(null);
@@ -1240,7 +1240,7 @@ export default function Admin() {
                                       handleViewShipping(order);
                                     }}
                                   >
-                                    {String(order.id) === selectedOrderId ? "Ocultar" : "Editar"}
+                                    {String(order.id) === selectedOrderId ? "Ocultar" : "Ver / Editar"}
                                   </button>
                                   <button
                                     type="button"

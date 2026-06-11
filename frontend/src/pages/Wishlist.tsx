@@ -1,4 +1,4 @@
-import AccountGate from "../components/AccountGate/AccountGate";
+/* import AccountGate from "../components/AccountGate/AccountGate";
 import AccountSidebar from "../components/AccountSidebar/AccountSidebar";
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
@@ -27,3 +27,4 @@ export default function Wishlist() {
     </AccountGate>
   );
 }
+*/
