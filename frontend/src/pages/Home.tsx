@@ -45,6 +45,14 @@ function CustomerReviews() {
         <div className="customer-review-list">
           {reviews.slice(0, 4).map((review) => (
             <article className="customer-review-card" key={review.id}>
+              <header className="customer-review-header">
+                <div className="review-avatar">{initialsFor(review.name)}</div>
+                <div>
+                  <span>{review.name}</span>
+                  <strong>{"*".repeat(review.rating)}</strong>
+                </div>
+              </header>
+              <p>{review.comment}</p>
               {review.productImage && (
                 <img
                   className="customer-review-product-image"
@@ -55,14 +63,6 @@ function CustomerReviews() {
                   }}
                 />
               )}
-              <div className="customer-review-body">
-                <div className="review-avatar">{initialsFor(review.name)}</div>
-                <div>
-                  <strong>{"*".repeat(review.rating)}</strong>
-                  <p>{review.comment}</p>
-                  <span>- {review.name}</span>
-                </div>
-              </div>
             </article>
           ))}
         </div>
