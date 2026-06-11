@@ -8,6 +8,8 @@ export type AccountUser = {
   phone: string;
   rut: string;
   address: string;
+  country: string;
+  cityState: string;
 };
 
 type AccountSession = {
@@ -29,7 +31,7 @@ type RegisterAccountInput = {
   address: string;
 };
 
-type UpdateAccountUserInput = Pick<AccountUser, "name" | "phone" | "rut" | "address">;
+type UpdateAccountUserInput = Pick<AccountUser, "name" | "phone" | "rut" | "address" | "country" | "cityState">;
 
 type AccountAuthState = {
   token: string | null;
@@ -128,6 +130,8 @@ export const useAccountAuthStore = create<AccountAuthState>()(
             phone: nextUser.phone,
             rut: nextUser.rut,
             address: nextUser.address,
+            country: nextUser.country,
+            cityState: nextUser.cityState,
           }, { headers: authHeaders(token) });
           setSession(set, { token, user: response.data });
           return response.data;

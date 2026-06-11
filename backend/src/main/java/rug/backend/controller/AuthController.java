@@ -91,7 +91,9 @@ public class AuthController {
                                 request.email(),
                                 request.phone(),
                                 request.rut(),
-                                request.address()))));
+                                request.address(),
+                                request.country(),
+                                request.cityState()))));
                     } catch (IllegalArgumentException exception) {
                         return ResponseEntity.badRequest().body(new ErrorResponse(exception.getMessage()));
                     }
@@ -118,7 +120,14 @@ public class AuthController {
     }
 
     private UserResponse toUserResponse(AccountUser user) {
-        return new UserResponse(user.getName(), user.getEmail(), user.getPhone(), user.getRut(), user.getAddress());
+        return new UserResponse(
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRut(),
+                user.getAddress(),
+                user.getCountry(),
+                user.getCityState());
     }
 
     public record LoginRequest(String email, String password) {
@@ -133,10 +142,10 @@ public class AuthController {
     public record PasswordResetConfirmRequest(String email, String token, String password) {
     }
 
-    public record ProfileRequest(String name, String email, String phone, String rut, String address) {
+    public record ProfileRequest(String name, String email, String phone, String rut, String address, String country, String cityState) {
     }
 
-    public record UserResponse(String name, String email, String phone, String rut, String address) {
+    public record UserResponse(String name, String email, String phone, String rut, String address, String country, String cityState) {
     }
 
     public record AuthResponse(String token, UserResponse user) {

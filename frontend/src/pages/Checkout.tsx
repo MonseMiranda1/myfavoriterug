@@ -65,11 +65,11 @@ function validarRutOPasaporte(input: string): { isValid: boolean; isRut: boolean
     // Si coincide el dígito, es un RUT chileno auténtico
     if (dvIngresado === dvEsperado) {
       return { isValid: true, isRut: true };
-    } else {
-      // ⚠️ ¡CRÍTICO!: Si tiene formato de RUT pero la matemática falló, es un RUT falso.
-      // Lo rechazamos de inmediato y NO permitimos que intente pasar como pasaporte.
-      return { isValid: false, isRut: true };
     }
+
+    // Un DNI numérico puede coincidir con la estructura de un RUT sin compartir
+    // su dígito verificador, por lo que se acepta como documento internacional.
+    return { isValid: true, isRut: false };
   }
 
   // 2. Si no tiene forma de RUT chileno, comprobamos si calza como pasaporte internacional
@@ -151,7 +151,7 @@ export default function Checkout() {
       // 🛡️ Validación inteligente de RUT / Pasaporte
       const chequeoDocumento = validarRutOPasaporte(rut);
       if (!chequeoDocumento.isValid) {
-        setSubmitError("El RUT chileno o Pasaporte ingresado no es válido. Por favor, verifícalo.");
+        setSubmitError("El RUT, DNI o Pasaporte ingresado no es válido. Por favor, verifícalo.");
         return;
       }
     }

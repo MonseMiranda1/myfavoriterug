@@ -63,7 +63,7 @@ public class AuthService {
         String rut = normalizeRut(input.rut());
 
         if (accountUserRepository.existsByRutCanonical(canonicalRut(rut))) {
-            throw new IllegalArgumentException("Ya existe una cuenta con ese RUT.");
+            throw new IllegalArgumentException("Ya existe una cuenta con ese RUT o DNI.");
         }
 
         AccountUser user = new AccountUser();
@@ -77,7 +77,7 @@ public class AuthService {
         try {
             return createSession(accountUserRepository.save(user));
         } catch (DataIntegrityViolationException exception) {
-            throw new IllegalArgumentException("Ya existe una cuenta con ese correo o RUT.", exception);
+            throw new IllegalArgumentException("Ya existe una cuenta con ese correo, RUT o DNI.", exception);
         }
     }
 
@@ -164,15 +164,17 @@ public class AuthService {
             String rut = normalizeRut(input.rut());
 
             if (accountUserRepository.existsByRutCanonical(canonicalRut(rut))) {
-                throw new IllegalArgumentException("Ya existe una cuenta con ese RUT.");
+                throw new IllegalArgumentException("Ya existe una cuenta con ese RUT o DNI.");
             }
 
             user.setRut(rut);
         } else if (input.rut() != null && !sameRut(user.getRut(), input.rut())) {
-            throw new IllegalArgumentException("El RUT no se puede modificar.");
+            throw new IllegalArgumentException("El RUT o DNI no se puede modificar.");
         }
 
         user.setAddress(defaultText(input.address(), ""));
+        user.setCountry(defaultText(input.country(), ""));
+        user.setCityState(defaultText(input.cityState(), ""));
 
         return accountUserRepository.save(user);
     }
@@ -251,7 +253,7 @@ public class AuthService {
     }
 
     private String normalizeRut(String rut) {
-        return requireText(rut, "El RUT es obligatorio.").trim();
+        return requireText(rut, "El RUT o DNI es obligatorio.").trim();
     }
 
     private boolean sameRut(String firstRut, String secondRut) {
@@ -281,7 +283,10 @@ public class AuthService {
     public record RegisterInput(String name, String email, String password, String phone, String rut, String address) {
     }
 
-    public record ProfileInput(String name, String email, String phone, String rut, String address) {
+    public record ProfileInput(String name, String email, String phone, String rut, String address, String country, String cityState) {
+        public ProfileInput(String name, String email, String phone, String rut, String address) {
+            this(name, email, phone, rut, address, null, null);
+        }
     }
 
     public record AuthResult(String token, AccountUser user) {
