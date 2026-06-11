@@ -29,6 +29,7 @@ import rug.backend.repository.PaymentRepository;
 @Service
 public class PaymentService {
     private static final String CANONICAL_FRONTEND_URL = "https://myfavoriterug.com";
+    private static final String CANONICAL_BACKEND_URL = "https://myfavoriterug.onrender.com";
 
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
@@ -255,7 +256,19 @@ public class PaymentService {
 
     private String normalizeBackendBaseUrl(String requestBaseUrl) {
         String normalizedUrl = requestBaseUrl == null ? "" : requestBaseUrl.trim().replaceAll("/+$", "");
-        return normalizedUrl.isBlank() ? backendBaseUrl.replaceAll("/+$", "") : normalizedUrl;
+
+        if (normalizedUrl.isBlank() || isLocalUrl(normalizedUrl)) {
+            String configuredBackendUrl = backendBaseUrl == null ? "" : backendBaseUrl.trim().replaceAll("/+$", "");
+            return configuredBackendUrl.isBlank() || isLocalUrl(configuredBackendUrl)
+                    ? CANONICAL_BACKEND_URL
+                    : configuredBackendUrl;
+        }
+
+        return normalizedUrl;
+    }
+
+    private boolean isLocalUrl(String url) {
+        return url.contains("localhost") || url.contains("127.0.0.1");
     }
 
     private String postForm(String url, Map<String, String> params) throws IOException, InterruptedException {
