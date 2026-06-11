@@ -60,6 +60,14 @@ public class OrderService {
             order.setAccountUser(user);
         }
 
+        if (isCoordinatedPickup(order.getShippingMethod()) && order.getItems() != null) {
+            int subtotal = order.getItems().stream()
+                    .filter(item -> item.getPrice() != null && item.getQuantity() != null)
+                    .mapToInt(item -> item.getPrice() * item.getQuantity())
+                    .sum();
+            order.setTotal(subtotal);
+        }
+
         if ("Transferencia".equalsIgnoreCase(order.getPaymentMethod()) || "TRANSFERENCIA".equalsIgnoreCase(order.getPaymentMethod())) {
             order.setStatus(OrderStatus.CONFIRMED);
         }
@@ -75,6 +83,11 @@ public class OrderService {
         }
 
         return orderRepository.save(order);
+    }
+
+    private boolean isCoordinatedPickup(String shippingMethod) {
+        return "Retiro coordinado".equalsIgnoreCase(shippingMethod)
+                || "Coordinated pickup".equalsIgnoreCase(shippingMethod);
     }
 
     public CustomerOrder updateShipping(Long id, String trackingNumber, String shippingStatus) {

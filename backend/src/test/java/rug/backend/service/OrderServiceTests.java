@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import rug.backend.model.AccountUser;
 import rug.backend.model.CustomerOrder;
+import rug.backend.model.OrderItem;
 import rug.backend.repository.OrderRepository;
 import rug.backend.repository.PaymentRepository;
 
@@ -46,6 +47,25 @@ class OrderServiceTests {
         assertThat(saved.getCustomerName()).isEqualTo("Maria");
         assertThat(saved.getEmail()).isEqualTo("maria@example.com");
         assertThat(saved.getAccountUser()).isSameAs(user);
+    }
+
+    @Test
+    void coordinatedPickupDoesNotIncludeShippingInTotal() {
+        OrderItem item = new OrderItem();
+        item.setPrice(12000);
+        item.setQuantity(2);
+
+        CustomerOrder order = new CustomerOrder();
+        order.setShippingMethod("Retiro coordinado");
+        order.setPaymentMethod("FLOW");
+        order.setItems(List.of(item));
+        order.setTotal(28500);
+
+        when(orderRepository.save(order)).thenReturn(order);
+
+        CustomerOrder saved = orderService.createOrder(order, null);
+
+        assertThat(saved.getTotal()).isEqualTo(24000);
     }
 
     @Test

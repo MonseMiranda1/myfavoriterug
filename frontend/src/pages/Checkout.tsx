@@ -16,6 +16,7 @@ import {
 import { useAccountAuthStore } from "../services/accountAuth"; 
 
 const SHIPPING_PRICE = 4500;
+const PICKUP_METHODS = ["Retiro coordinado", "Coordinated pickup"];
 const BANK_TRANSFER_DETAILS = [
   ["Titular", "Monserrat Francisca Miranda Medina"],
   ["RUT", "18.621.981-3"],
@@ -105,7 +106,8 @@ export default function Checkout() {
     (total, item) => total + item.price * item.quantity,
     0,
   );
-  const total = subtotal + SHIPPING_PRICE;
+  const shippingPrice = PICKUP_METHODS.includes(shippingMethod) ? 0 : SHIPPING_PRICE;
+  const total = subtotal + shippingPrice;
   const steps = [
     t("checkout.stepsData"),
     t("checkout.stepsShipping"),
@@ -419,7 +421,7 @@ export default function Checkout() {
             </div>
             <div className="cart-summary-line">
               <span>{t("checkout.shipping")}</span>
-              <strong>{formatPrice(SHIPPING_PRICE)}</strong>
+              <strong>{formatPrice(shippingPrice)}</strong>
             </div>
             <div className="cart-summary-total">
               <span>{t("common.total")}</span>
