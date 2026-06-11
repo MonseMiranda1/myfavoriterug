@@ -184,7 +184,7 @@ export default function Checkout() {
       saveCartItems([]);
 
       if (paymentMethod === "TRANSFERENCIA") {
-        navigate("/orden-confirmada");
+        navigate(`/orden-confirmada?orderId=${order.id}`);
         return;
       }
 
@@ -195,7 +195,7 @@ export default function Checkout() {
         return;
       }
 
-      navigate("/orden-confirmada");
+      navigate(`/orden-confirmada?orderId=${order.id}`);
     } catch (error) {
       if (
         axios.isAxiosError<{ message?: string }>(error) &&

@@ -52,7 +52,10 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         }
 
         if (path.matches("^/api/payments(/.*)?$")) {
-            return !path.equals("/api/payments/intent") && !path.equals("/api/payments/flow/confirmation");
+            return !path.equals("/api/payments/intent")
+                    && !path.equals("/api/payments/flow/confirmation")
+                    && !path.equals("/api/payments/flow/return")
+                    && !path.matches("^/api/payments/order/\\d+/confirmation$");
         }
 
         if (path.matches("^/api/purchase-orders(/.*)?$")) {

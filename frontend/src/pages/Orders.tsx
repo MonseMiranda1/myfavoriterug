@@ -34,6 +34,7 @@ function getOrderStatusLabel(status: string | undefined, t: ReturnType<typeof us
   const normalizedStatus = status?.trim().toLowerCase().replaceAll(" ", "_");
   const statusKeys: Record<string, string> = {
     pending_payment: "account.statusPendingPayment",
+    paid: "account.statusPaid",
     confirmed: "account.statusConfirmed",
     in_production: "account.statusInProduction",
     shipped: "account.statusShipped",

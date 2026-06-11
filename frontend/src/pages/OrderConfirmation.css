@@ -46,6 +46,14 @@
   stroke-linejoin: round;
 }
 
+.order-confirmation-icon.is-pending {
+  background: linear-gradient(145deg, #e39a13, #ffc107);
+}
+
+.order-confirmation-icon.is-failed {
+  background: linear-gradient(145deg, #b42318, #e5484d);
+}
+
 .order-confirmation-copy {
   max-width: 760px;
 }
@@ -80,12 +88,18 @@
 .order-confirmation-summary {
   width: min(100%, 820px);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   margin-top: 34px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.54);
   border: 1px solid rgba(66, 38, 9, 0.1);
   border-radius: 16px;
+}
+
+.order-confirmation-error {
+  margin-top: 24px;
+  color: #b42318;
+  font-weight: 850;
 }
 
 .order-confirmation-summary div {

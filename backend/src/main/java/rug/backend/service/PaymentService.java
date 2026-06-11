@@ -62,6 +62,30 @@ public class PaymentService {
         return paymentRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    public OrderConfirmation getOrderConfirmation(Long orderId) {
+        CustomerOrder order = orderService.getOrder(orderId);
+
+        if (order == null) {
+            return null;
+        }
+
+        Payment payment = paymentRepository.findFirstByOrderIdOrderByCreatedAtDesc(orderId).orElse(null);
+
+        return new OrderConfirmation(
+            order.getId(),
+            order.getOrderNumber(),
+            order.getTotal(),
+            order.getStatus().name(),
+            payment == null ? null : payment.getStatus().name(),
+            order.getPaymentMethod(),
+            order.getShippingMethod()
+        );
+    }
+
+    public String getOrderConfirmationUrl(Long orderId) {
+        return frontendBaseUrl + "/orden-confirmada?orderId=" + orderId;
+    }
+
     public Payment createPaymentIntent(Long orderId, String provider) {
         CustomerOrder order = orderService.getOrder(orderId);
 
@@ -100,7 +124,7 @@ public class PaymentService {
 
         payment.setStatus(PaymentStatus.PAID);
         payment.setPaidAt(Instant.now());
-        orderService.updateStatus(payment.getOrder().getId(), OrderStatus.CONFIRMED);
+        orderService.updateStatus(payment.getOrder().getId(), OrderStatus.PAID);
 
         return paymentRepository.save(payment);
     }
@@ -122,7 +146,7 @@ public class PaymentService {
             if (flowStatus == 2) {
                 payment.setStatus(PaymentStatus.PAID);
                 payment.setPaidAt(Instant.now());
-                orderService.updateStatus(payment.getOrder().getId(), OrderStatus.CONFIRMED);
+                orderService.updateStatus(payment.getOrder().getId(), OrderStatus.PAID);
             } else if (flowStatus == 3 || flowStatus == 4) {
                 payment.setStatus(PaymentStatus.FAILED);
             } else {
@@ -167,7 +191,7 @@ public class PaymentService {
             params.put("amount", String.valueOf(order.getTotal()));
             params.put("email", order.getEmail());
             params.put("urlConfirmation", backendBaseUrl + "/api/payments/flow/confirmation");
-            params.put("urlReturn", frontendBaseUrl + "/orden-confirmada?orderId=" + order.getId());
+            params.put("urlReturn", backendBaseUrl + "/api/payments/flow/return?orderId=" + order.getId());
             params.put("s", sign(params));
 
             String responseBody = postForm(flowApiUrl + "/payment/create", params);
@@ -320,5 +344,16 @@ public class PaymentService {
         } catch (NumberFormatException exception) {
             throw new IllegalStateException("Flow respondio un valor invalido para '" + fieldName + "': " + value, exception);
         }
+    }
+
+    public record OrderConfirmation(
+        Long orderId,
+        String orderNumber,
+        Integer total,
+        String orderStatus,
+        String paymentStatus,
+        String paymentMethod,
+        String shippingMethod
+    ) {
     }
 }
