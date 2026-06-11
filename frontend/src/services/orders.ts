@@ -30,6 +30,16 @@ export type Payment = {
   paidAt?: string;
 };
 
+export type OrderConfirmation = {
+  orderId: number;
+  orderNumber: string;
+  total: number;
+  orderStatus: string;
+  paymentStatus?: string | null;
+  paymentMethod: string;
+  shippingMethod: string;
+};
+
 const ORDERS_STORAGE_KEY = "my-favorite-rug-orders";
 export const ORDERS_UPDATED_EVENT = "my-favorite-rug-orders-updated";
 
@@ -98,6 +108,11 @@ export async function createPaymentIntent(orderId: Order["id"], provider: string
     provider,
   });
 
+  return response.data;
+}
+
+export async function getOrderConfirmation(orderId: Order["id"]) {
+  const response = await API.get<OrderConfirmation>(`/payments/order/${orderId}/confirmation`);
   return response.data;
 }
 
