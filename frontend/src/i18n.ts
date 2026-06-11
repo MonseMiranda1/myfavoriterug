@@ -245,9 +245,6 @@ const translations = {
     "cart.clear": "Vaciar carrito",
     "cart.keepShopping": "Seguir comprando",
     "cart.summary": "Resumen",
-    "cart.minimum": "Mínimo de compra:",
-    "cart.missing": "Te faltan",
-    "cart.toContinue": "para continuar.",
     "cart.checkout": "Continuar con el pedido",
     "cart.note": "Los valores son referenciales. El total definitivo puede variar por despacho o detalles de personalización.",
 
@@ -648,9 +645,6 @@ const translations = {
     "cart.clear": "Clear cart",
     "cart.keepShopping": "Keep shopping",
     "cart.summary": "Summary",
-    "cart.minimum": "Minimum order:",
-    "cart.missing": "You need",
-    "cart.toContinue": "to continue.",
     "cart.checkout": "Continue to checkout",
     "cart.note": "Values are referential. The final total may vary due to shipping or customization details.",
 
