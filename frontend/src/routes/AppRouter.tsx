@@ -17,7 +17,7 @@ const Blog = lazy(() => import("../pages/Blog"));
 const Contact = lazy(() => import("../pages/Contact"));
 const Shipping = lazy(() => import("../pages/Shipping"));
 const Terms = lazy(() => import("../pages/Terms"));
-const Wishlist = lazy(() => import("../pages/Wishlist"));
+/*const Wishlist = lazy(() => import("../pages/Wishlist"));*/
 const Tracking = lazy(() => import("../pages/Tracking"));
 const BlogPost = lazy(() => import("../pages/BlogPost"));
 const OrderConfirmation = lazy(() => import("../pages/OrderConfirmation"));
@@ -37,7 +37,7 @@ export default function AppRouter() {
           <Route path="/cuenta" element={<Account />} />
           <Route path="/cuenta/pedidos" element={<Orders />} />
           <Route path="/cuenta/cotizaciones" element={<Quotes />} />
-          <Route path="/cuenta/wishlist" element={<Wishlist />} />
+          {/*<Route path="/cuenta/wishlist" element={<Wishlist />} />*/}
           <Route path="/cuenta/seguimiento" element={<Tracking />} />
           <Route path="/galeria" element={<Gallery />} />
           <Route

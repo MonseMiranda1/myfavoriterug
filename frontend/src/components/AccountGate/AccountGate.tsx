@@ -278,7 +278,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                 : "Accede para revisar tu perfil, pedidos y cotizaciones."}
           </p>
 
-          <form
+           <form
             className={isCreatingAccount ? "account-create-form" : undefined}
             onSubmit={handleLogin}
           >
@@ -293,6 +293,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     autoComplete="name"
+                    placeholder={language === "en" ? "e.g. John Doe" : "Ej: Matias Chañillao Alfaro"} // 👈 Añadido
                     required
                   />
                 </label>
@@ -303,6 +304,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
                     autoComplete="tel"
+                    placeholder={language === "en" ? "e.g. +1 555 123 4567" : "Ej: +56 9 1234 5678"} // 👈 Añadido
                     required
                   />
                 </label>
@@ -315,6 +317,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 autoComplete="email"
+                placeholder={language === "en" ? "e.g. john@example.com" : "Ej: alonso.miranda@correo.cl"} // 👈 Añadido
                 required
               />
             </label>
@@ -326,6 +329,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                   value={rut}
                   onChange={(event) => setRut(event.target.value)}
                   autoComplete="off"
+                  placeholder={language === "en" ? "ID or Passport number" : "Ej: 12.345.678-9 o Pasaporte"} // 👈 Añadido
                   required
                 />
               </label>
@@ -338,6 +342,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                   value={address}
                   onChange={(event) => setAddress(event.target.value)}
                   autoComplete="street-address"
+                  placeholder={language === "en" ? "e.g. 123 Main St, New York, United States" : "Ej: Av. Cuevas 1234, Rancagua, Chile"} // 👈 Añadido
                   required
                 />
               </label>
@@ -352,6 +357,7 @@ export default function AccountGate({ children }: AccountGateProps) {
                   isCreatingAccount ? "new-password" : "current-password"
                 }
                 minLength={6}
+                placeholder={language === "en" ? "Min. 6 characters" : "Mínimo 6 caracteres"} // 👈 Añadido
                 required
               />
             </label>
@@ -370,10 +376,12 @@ export default function AccountGate({ children }: AccountGateProps) {
                   }
                   autoComplete="new-password"
                   minLength={6}
+                  placeholder={language === "en" ? "Repeat password" : "Repite tu contraseña"} // 👈 Añadido
                   required
                 />
               </label>
             )}
+
             {!isCreatingAccount && (
               <a
                 className="account-forgot-link"
