@@ -5,8 +5,6 @@ import { type CartItem, getCartItems, saveCartItems } from "../services/cart";
 import { useMemo, useState } from "react";
 import { useLanguage } from "../i18n";
 
-const MINIMUM_ORDER = 15000;
-
 function formatPrice(price: number) {
   return new Intl.NumberFormat("es-CL", {
     style: "currency",
@@ -24,7 +22,6 @@ export default function Cart() {
   const [items, setItems] = useState<CartItem[]>(getCartItems);
   const subtotal = useMemo(() => getSubtotal(items), [items]);
   const total = subtotal;
-  const missingAmount = Math.max(MINIMUM_ORDER - total, 0);
 
   function updateItems(nextItems: CartItem[]) {
     setItems(nextItems);
@@ -135,13 +132,7 @@ export default function Cart() {
                 <strong>{formatPrice(total)}</strong>
               </div>
 
-              {missingAmount > 0 && (
-                <p className="cart-minimum-alert">
-                  <strong>{t("cart.minimum")}</strong> {t("cart.missing")} {formatPrice(missingAmount)} {t("cart.toContinue")}
-                </p>
-              )}
-
-              <Link to="/checkout" className={`cart-checkout-button${missingAmount > 0 ? " is-disabled" : ""}`} aria-disabled={missingAmount > 0}>
+              <Link to="/checkout" className="cart-checkout-button">
                 {t("cart.checkout")}
               </Link>
 

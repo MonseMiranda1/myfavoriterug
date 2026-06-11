@@ -1,161 +1,243 @@
 # My Favorite Rug
 
-Proyecto web para una tienda de alfombras personalizadas. La idea es que una persona pueda entrar a la pagina, ver productos, revisar el detalle de una alfombra, agregarla al carrito y avanzar al pago.
+Aplicacion web full stack para una tienda de alfombras personalizadas. Incluye catalogo, personalizacion y cotizaciones, carrito, checkout, pagos, portal de clientes, reseñas y un panel administrativo.
 
-El proyecto esta separado en dos partes:
+## Funcionalidades
 
-- `frontend`: la pagina que ve el usuario.
-- `backend`: la API que deberia entregar los datos de productos y conectarse a la base de datos.
+### Tienda y contenido
 
-## Estado actual
+- Inicio con categorias, proceso de trabajo, contenido multimedia y reseñas aprobadas.
+- Catalogo con busqueda, filtros, ordenamiento, paginacion y cache local.
+- Detalle de productos con galeria de imagenes.
+- Carrito persistente en el navegador.
+- Paginas de galeria, blog, contacto, envios, terminos y metodos de pago.
+- Interfaz disponible en español e ingles.
+- Carga diferida de rutas e imagenes para mejorar el rendimiento.
 
-El frontend ya tiene las pantallas principales y consume el backend en:
+### Personalizacion y ventas
 
-```txt
-http://localhost:8080/api
-```
+- Formulario para solicitar una alfombra personalizada.
+- Carga y vista previa de una imagen de referencia.
+- Seleccion de tamaño, lana, colores y comentarios.
+- Generacion y seguimiento de cotizaciones.
+- Checkout con informacion de despacho y resumen del pedido.
+- Metodos de pago mediante Flow, PayPal y transferencia bancaria.
+- Confirmacion de orden y seguimiento de estados.
 
-El backend ya tiene endpoints para productos, pedidos, pagos y autenticacion de clientes. La tienda puede pedir productos al backend, crear pedidos y manejar inicio de sesion de clientes con un token de sesion.
+### Portal de clientes
 
-## Tecnologias usadas
+- Registro, inicio y cierre de sesion.
+- Recuperacion de contraseña mediante token enviado por correo.
+- Perfil editable con nombre, telefono, RUT/DNI, direccion, pais y ciudad/estado.
+- Historial y seguimiento de pedidos.
+- Historial de cotizaciones.
+- Envio de reseñas con calificacion, comentario y foto desde pedidos entregados.
+
+### Panel administrativo
+
+- Autenticacion administrativa con sesion separada.
+- Gestion de productos, categorias e imagenes.
+- Gestion de pedidos y estados de despacho.
+- Gestion de cotizaciones y clientes.
+- Gestion de pagos y ordenes de compra.
+- Moderacion y eliminacion de reseñas.
+
+## Tecnologias
 
 ### Frontend
 
-- React
+- React 19
 - TypeScript
 - Vite
 - React Router
 - Axios
-- Tailwind CSS
+- Zustand
+- CSS y PostCSS
 
 ### Backend
 
 - Java 21
-- Spring Boot
-- Maven
+- Spring Boot 4
 - Spring Web MVC
 - Spring Data JPA
 - PostgreSQL
+- Maven Wrapper
+- Cloudinary para imagenes en produccion
+- Resend para recuperacion de contraseña
+- Flow para pagos
+- Docker
 
-## Estructura del proyecto
+## Estructura
 
-```txt
+```text
 myfavoriterug/
-+-- backend/
-+-- frontend/
-+-- .vscode/
-+-- .gitignore
+|-- backend/
+|   |-- Dockerfile
+|   |-- pom.xml
+|   `-- src/
+|       |-- main/java/rug/backend/
+|       |   |-- config/
+|       |   |-- controller/
+|       |   |-- model/
+|       |   |-- repository/
+|       |   `-- service/
+|       |-- main/resources/application.yaml
+|       `-- test/
+|-- frontend/
+|   |-- public/
+|   |-- src/
+|   |   |-- assets/
+|   |   |-- components/
+|   |   |-- data/
+|   |   |-- pages/
+|   |   |-- routes/
+|   |   `-- services/
+|   |-- .env.example
+|   |-- package.json
+|   `-- vite.config.ts
 `-- README.md
 ```
 
-### `backend/`
+## Rutas del frontend
 
-Contiene el servidor hecho con Spring Boot. Esta parte se encarga de la logica del negocio, la conexion con la base de datos y los endpoints que consume el frontend.
+| Ruta | Descripcion |
+| --- | --- |
+| `/` | Inicio y reseñas de clientes |
+| `/tienda` | Catalogo de productos |
+| `/producto/:id` | Detalle de producto |
+| `/personaliza` | Solicitud de alfombra personalizada |
+| `/carrito` | Carrito de compras |
+| `/checkout` | Datos de despacho y pago |
+| `/orden-confirmada` | Confirmacion del pedido |
+| `/cuenta` | Perfil, registro e inicio de sesion |
+| `/cuenta/pedidos` | Historial de pedidos y envio de reseñas |
+| `/cuenta/cotizaciones` | Historial de cotizaciones |
+| `/cuenta/seguimiento` | Seguimiento de pedidos |
+| `/galeria` | Galeria de trabajos |
+| `/blog` | Guias y publicaciones |
+| `/sobre-nosotros` | Informacion del proyecto |
+| `/contacto` | Contacto |
+| `/envios` | Informacion de envios |
+| `/terminos` | Terminos y condiciones |
+| `/metodos-de-pago` | Metodos de pago disponibles |
+| `/admin` | Panel administrativo |
 
-Archivos y carpetas importantes:
+Las rutas secundarias se cargan con `React.lazy` para reducir la carga inicial.
 
-```txt
-backend/
-+-- pom.xml
-+-- mvnw
-+-- mvnw.cmd
-`-- src/
-    +-- main/
-    |   +-- java/rug/backend/
-    |   |   +-- BackendApplication.java
-    |   |   +-- controller/
-    |   |   +-- model/
-    |   |   +-- repository/
-    |   |   `-- service/
-    |   `-- resources/
-    |       `-- application.yaml
-    `-- test/
+## API del backend
+
+La API utiliza el prefijo `/api`.
+
+| Recurso | Endpoints principales |
+| --- | --- |
+| Autenticacion | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/logout` |
+| Recuperacion | `/auth/password-reset/request`, `/auth/password-reset/confirm` |
+| Administracion | `/admin/login`, `/admin/logout` |
+| Productos | `/products`, `/products/{id}`, `/products/images` |
+| Pedidos | `/orders`, `/orders/mine`, `/orders/{id}` |
+| Pagos | `/payments`, `/payments/intent`, `/payments/flow/confirmation` |
+| Cotizaciones | `/quotes`, `/quotes/me` |
+| Reseñas | `/reviews`, `/reviews/admin`, `/reviews/{id}/approval` |
+| Ordenes de compra | `/purchase-orders` |
+
+Los endpoints protegidos de clientes reciben:
+
+```text
+Authorization: Bearer <token>
 ```
 
-- `pom.xml`: define las dependencias del backend, como Spring Boot, JPA y PostgreSQL.
-- `mvnw` y `mvnw.cmd`: permiten ejecutar Maven sin instalarlo globalmente.
-- `BackendApplication.java`: archivo principal que inicia el backend.
-- `controller/`: rutas de la API, por ejemplo `/api/products`, `/api/orders`, `/api/payments` y `/api/auth`.
-- `model/`: entidades JPA que representan datos de la base de datos, como `Product`, `CustomerOrder`, `Payment` y `AccountUser`.
-- `repository/`: interfaces de Spring Data JPA para consultar y guardar datos.
-- `service/`: logica del negocio antes de responder al frontend.
-- `application.yaml`: configuracion del backend, incluyendo la conexion a PostgreSQL.
-- `test/`: pruebas automaticas del backend.
+El cliente Axios compartido esta en `frontend/src/services/http.ts`. Lee `VITE_API_URL`, agrega la sesion administrativa cuando corresponde y normaliza mensajes de error.
 
-### `frontend/`
+## Estados principales
 
-Contiene la aplicacion visual hecha con React. Es lo que abre el usuario en el navegador.
+Pedidos:
 
-Archivos y carpetas importantes:
-
-```txt
-frontend/
-+-- package.json
-+-- vite.config.ts
-+-- index.html
-+-- public/
-`-- src/
-    +-- assets/
-    +-- components/
-    +-- pages/
-    +-- routes/
-    +-- services/
-    +-- App.tsx
-    +-- main.tsx
-    +-- App.css
-    `-- index.css
+```text
+PENDING_PAYMENT
+CONFIRMED
+IN_PRODUCTION
+SHIPPED
+DELIVERED
+CANCELLED
 ```
 
-- `package.json`: define dependencias y comandos del frontend.
-- `vite.config.ts`: configuracion de Vite.
-- `index.html`: HTML base donde se monta React.
-- `public/`: archivos publicos como iconos o favicon.
-- `src/assets/`: imagenes, logos, tipografias e iconos usados por la interfaz.
-- `src/components/`: partes reutilizables de la pagina, como `Navbar`, `Footer`, `Hero`, `Categories` y `HowItWorks`.
-- `src/pages/`: pantallas completas de la aplicacion.
-- `src/routes/`: configuracion de rutas de React Router.
-- `src/services/`: funciones para comunicarse con el backend.
-- `src/main.tsx`: punto de entrada de React.
-- `src/App.tsx`: componente base de la aplicacion.
-- `src/index.css` y `src/App.css`: estilos generales.
+Pagos:
 
-## Paginas del frontend
+```text
+PENDING
+AUTHORIZED
+PAID
+FAILED
+CANCELLED
+```
 
-- `/`: pagina de inicio. Muestra navbar, banner principal, seccion de funcionamiento, categorias y footer.
-- `/tienda`: lista productos pedidos al backend.
-- `/producto/:id`: muestra el detalle de un producto segun su `id`.
-- `/carrito`: pantalla del carrito. Actualmente tiene contenido base.
-- `/checkout`: pantalla de pago. Actualmente tiene contenido base.
+## Configuracion local
 
-## Como ejecutar el proyecto
+### Requisitos
 
-Se recomienda abrir dos terminales: una para el backend y otra para el frontend.
+- Node.js compatible con Vite 8
+- npm
+- Java 21
+- PostgreSQL
 
-### 1. Ejecutar el backend
+### Backend
 
-Desde la raiz del proyecto:
+Crear `backend/.env` con los valores necesarios:
+
+```dotenv
+DATABASE_URL=jdbc:postgresql://localhost:5432/myfavoriterug
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=postgres
+
+FRONTEND_BASE_URL=http://localhost:5173
+BACKEND_BASE_URL=http://localhost:8080
+FRONTEND_ALLOWED_ORIGIN_PATTERNS=
+
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=una-clave-segura
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+CLOUDINARY_PRODUCT_FOLDER=myfavoriterug/products
+CLOUDINARY_REVIEW_FOLDER=myfavoriterug/reviews
+
+FLOW_API_URL=https://sandbox.flow.cl/api
+FLOW_API_KEY=
+FLOW_SECRET_KEY=
+
+RESEND_API_KEY=
+```
+
+Las imagenes usan almacenamiento local cuando Cloudinary no esta configurado. Los archivos locales se guardan bajo `backend/uploads/`.
+
+Ejecutar el backend en Windows:
+
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+
+En macOS o Linux:
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-En Windows tambien se puede usar:
+El backend queda disponible por defecto en `http://localhost:8080`.
 
-```bash
-cd backend
-mvnw.cmd spring-boot:run
+### Frontend
+
+Crear `frontend/.env` a partir de `frontend/.env.example`:
+
+```dotenv
+VITE_API_URL=http://localhost:8080/api
 ```
 
-Por defecto deberia quedar disponible en:
+La URL debe apuntar al backend, comenzar con `http://` o `https://` y terminar en `/api`.
 
-```txt
-http://localhost:8080
-```
-
-### 2. Ejecutar el frontend
-
-Desde otra terminal:
+Ejecutar:
 
 ```bash
 cd frontend
@@ -163,17 +245,11 @@ npm install
 npm run dev
 ```
 
-Vite mostrara una URL parecida a:
-
-```txt
-http://localhost:5173
-```
-
-Esa es la pagina que se abre en el navegador.
+Vite queda disponible normalmente en `http://localhost:5173`.
 
 ## Comandos utiles
 
-### Frontend
+Frontend:
 
 ```bash
 npm run dev
@@ -182,231 +258,64 @@ npm run lint
 npm run preview
 ```
 
-- `npm run dev`: levanta el frontend en modo desarrollo.
-- `npm run build`: genera la version final para produccion.
-- `npm run lint`: revisa errores de estilo o codigo.
-- `npm run preview`: permite revisar localmente la version generada por `build`.
+Backend en Windows:
 
-### Backend
+```powershell
+.\mvnw.cmd spring-boot:run
+.\mvnw.cmd test
+.\mvnw.cmd package
+```
+
+Backend en macOS o Linux:
 
 ```bash
 ./mvnw spring-boot:run
 ./mvnw test
+./mvnw package
 ```
 
-- `spring-boot:run`: levanta el backend.
-- `test`: ejecuta las pruebas del backend.
+## Persistencia en el navegador
 
-En Windows, cambiar `./mvnw` por `mvnw.cmd`.
+- Zustand persiste la sesion del cliente en `localStorage`.
+- La sesion administrativa se guarda en `sessionStorage`.
+- El carrito, preferencias de idioma, categorias y cache del catalogo usan `localStorage`.
+- La tienda muestra el catalogo cacheado mientras actualiza los productos desde el backend.
 
-## Cliente Axios del frontend
+## Seguridad actual
 
-El frontend usa Axios para comunicarse con el backend. La instancia compartida esta en:
+- Las contraseñas de clientes se guardan con PBKDF2, salt y SHA-256.
+- Las sesiones de clientes se validan mediante tokens almacenados en la base de datos.
+- Los tokens de recuperacion tienen expiracion y se invalidan despues de usarse.
+- Las credenciales administrativas se leen desde variables de entorno.
+- CORS se configura mediante la URL y los patrones permitidos del frontend.
+- Los secretos y archivos `.env` no deben subirse al repositorio.
 
-```txt
-frontend/src/services/http.ts
-```
+Para produccion se recomienda usar cookies `HttpOnly` y `Secure` para sesiones, rotar secretos, restringir CORS y proteger todas las operaciones administrativas desde el backend.
 
-Ese archivo define:
+## Imagenes y archivos
 
-```ts
-export const API = axios.create({
-  baseURL: "http://localhost:8080/api",
-});
-```
+- Productos y reseñas admiten carga de imagenes.
+- En produccion se pueden almacenar en Cloudinary.
+- Sin Cloudinary, el backend sirve archivos desde las carpetas locales configuradas.
+- El backend limita cada archivo a `8 MB` y cada solicitud multipart a `32 MB`.
 
-Todos los servicios del frontend deben importar esa instancia en vez de crear otra:
+## Pagos
 
-```ts
-import { API } from "./http";
-```
+- Flow crea una intencion de pago y confirma el resultado mediante callback.
+- PayPal genera una intencion pendiente dentro del flujo actual.
+- Transferencia bancaria crea el pedido y muestra los datos necesarios para completar el pago manualmente.
+- El panel administrativo permite revisar y actualizar estados de pago.
 
-Esto evita repetir la URL base y deja un solo lugar para configurar headers, interceptores o cambios de ambiente.
+## Pruebas y despliegue
 
-Servicios que usan el cliente compartido:
+El backend incluye pruebas para la aplicacion, autenticacion, productos y pedidos. El frontend se valida mediante TypeScript, ESLint y el build de Vite.
 
-- `frontend/src/services/api.ts`: productos y categorias.
-- `frontend/src/services/orders.ts`: pedidos y pagos.
-- `frontend/src/services/accountAuth.ts`: login, registro, perfil y logout.
+El backend incluye un `Dockerfile` multi-stage basado en Java 21, preparado para servicios como Render. El frontend puede desplegarse como aplicacion estatica; en produccion debe configurarse `VITE_API_URL` con la URL publica del backend.
 
-`http.ts` tambien expone `getApiErrorMessage()`, que permite mostrar mensajes enviados por el backend en respuestas como:
+Antes de desplegar:
 
-```json
-{ "message": "Correo o contraseña incorrectos." }
-```
-
-## Autenticacion de clientes
-
-La autenticacion real ocurre en el backend. El frontend solo muestra el formulario y guarda la sesion devuelta por la API.
-
-Archivos principales del backend:
-
-- `backend/src/main/java/rug/backend/controller/AuthController.java`
-- `backend/src/main/java/rug/backend/service/AuthService.java`
-- `backend/src/main/java/rug/backend/model/AccountUser.java`
-- `backend/src/main/java/rug/backend/model/AccountSession.java`
-- `backend/src/main/java/rug/backend/repository/AccountUserRepository.java`
-- `backend/src/main/java/rug/backend/repository/AccountSessionRepository.java`
-
-Endpoints disponibles:
-
-```txt
-POST  /api/auth/register
-POST  /api/auth/login
-GET   /api/auth/me
-PATCH /api/auth/me
-POST  /api/auth/logout
-```
-
-### Registro
-
-`POST /api/auth/register`
-
-Body esperado:
-
-```json
-{
-  "name": "Cliente",
-  "email": "cliente@email.com",
-  "password": "secreto123",
-  "phone": "",
-  "rut": "",
-  "address": ""
-}
-```
-
-Respuesta:
-
-```json
-{
-  "token": "token-de-sesion",
-  "user": {
-    "name": "Cliente",
-    "email": "cliente@email.com",
-    "phone": "",
-    "rut": "",
-    "address": ""
-  }
-}
-```
-
-### Login
-
-`POST /api/auth/login`
-
-Body esperado:
-
-```json
-{
-  "email": "cliente@email.com",
-  "password": "secreto123"
-}
-```
-
-Si las credenciales son correctas, responde igual que registro: token y datos del usuario. Si son incorrectas, responde `401` con un mensaje de error.
-
-### Sesion actual
-
-`GET /api/auth/me`
-
-Debe enviarse el token en el header:
-
-```txt
-Authorization: Bearer token-de-sesion
-```
-
-Respuesta:
-
-```json
-{
-  "name": "Cliente",
-  "email": "cliente@email.com",
-  "phone": "",
-  "rut": "",
-  "address": ""
-}
-```
-
-### Actualizar perfil
-
-`PATCH /api/auth/me`
-
-Tambien requiere:
-
-```txt
-Authorization: Bearer token-de-sesion
-```
-
-Body esperado:
-
-```json
-{
-  "name": "Cliente actualizado",
-  "phone": "+56912345678",
-  "rut": "11111111-1",
-  "address": "Santiago, Chile"
-}
-```
-
-### Logout
-
-`POST /api/auth/logout`
-
-El backend elimina la sesion asociada al token. El frontend tambien borra la sesion guardada en `localStorage`.
-
-### Seguridad actual
-
-- La contraseña no se guarda en texto plano.
-- `AuthService` guarda un hash PBKDF2 con salt.
-- El navegador guarda el token y los datos del usuario en `localStorage`.
-- El token se envia como `Authorization: Bearer ...` para endpoints protegidos.
-
-Pendiente recomendado para produccion:
-
-- Mover el token a cookies `HttpOnly` y `Secure`.
-- Agregar expiracion de sesiones.
-- Agregar Spring Security o JWT si se necesita control de roles.
-- Mover el login admin al backend. Actualmente el panel admin todavia tiene credenciales hardcodeadas en frontend.
-
-## Flujo basico de datos
-
-1. El usuario abre el frontend.
-2. La pagina `/tienda` llama a `getProducts()`.
-3. `getProducts()` usa `API` desde `frontend/src/services/http.ts`.
-4. Axios pide datos a `http://localhost:8080/api/products`.
-5. El backend responde con una lista de productos.
-6. React muestra esos productos en la tienda.
-
-Flujo basico de login:
-
-1. El usuario escribe correo y contraseña en el frontend.
-2. `AccountGate` llama a `loginAccount()` o `registerAccount()`.
-3. `accountAuth.ts` envia la solicitud a `/api/auth/login` o `/api/auth/register`.
-4. El backend valida credenciales y devuelve token + usuario.
-5. El frontend guarda `{ token, user }` en `localStorage`.
-6. Para `/api/auth/me`, el frontend envia `Authorization: Bearer token`.
-
-El tipo de producto esperado por el frontend es:
-
-```ts
-type Product = {
-  id: number | string;
-  name: string;
-  price: number;
-  image: string;
-};
-```
-
-## Tareas pendientes recomendadas
-
-- Revisar la configuracion de CORS si el frontend no puede comunicarse con el backend.
-- Hacer que el boton "Agregar al carrito" guarde productos.
-- Completar la logica real del carrito y checkout.
-- Proteger endpoints admin desde backend.
-- Mover el login admin al backend.
-- Agregar expiracion de tokens de sesion.
-- Mover credenciales sensibles de `application.yaml` a variables de entorno antes de subir o compartir el proyecto.
-
-## Nota para el equipo
-
-Cuando agreguen una carpeta o archivo importante, actualicen este README. Asi todos pueden entender donde va cada cosa sin tener que revisar todo el codigo.
+1. Configurar PostgreSQL y todas las variables de entorno necesarias.
+2. Cambiar las credenciales administrativas por defecto.
+3. Configurar `FRONTEND_BASE_URL`, `BACKEND_BASE_URL` y CORS.
+4. Configurar Cloudinary para que las imagenes sobrevivan reinicios del servidor.
+5. Configurar Flow y Resend si se utilizaran pagos y recuperacion de contraseña.
