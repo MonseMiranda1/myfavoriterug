@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar/Navbar";
 import Hero from "../components/Hero/Hero";
 import HowItWorks from "../components/HowItWorks/HowItWorks";
 import Footer from "../components/Footer/Footer";
-/* Se elimina categories del home */
-/*import Categories from "../components/Categories/Categories"; */ 
 import { useLanguage } from "../i18n";
-import { createCustomerReview, getCustomerReviews, type CustomerReview } from "../services/reviews";
+import { getCustomerReviews, type CustomerReview } from "../services/reviews";
 
 function initialsFor(name: string) {
   return name
@@ -21,7 +19,6 @@ function initialsFor(name: string) {
 function CustomerReviews() {
   const { t } = useLanguage();
   const [reviews, setReviews] = useState<CustomerReview[]>([]);
-  const [formMessage, setFormMessage] = useState("");
   const averageRating = useMemo(
     () => reviews.length > 0 ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length : 0,
     [reviews],
@@ -32,33 +29,6 @@ function CustomerReviews() {
       .then(setReviews)
       .catch(() => setReviews([]));
   }, []);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const name = String(formData.get("name") ?? "").trim();
-    const comment = String(formData.get("comment") ?? "").trim();
-    const rating = Number(formData.get("rating") ?? 5);
-    const productPhoto = formData.get("productPhoto");
-
-    if (!name || !comment) return;
-
-    try {
-      setFormMessage("");
-      await createCustomerReview({
-        name,
-        rating,
-        comment,
-        productPhoto: productPhoto instanceof File && productPhoto.size > 0 ? productPhoto : undefined,
-      });
-
-      form.reset();
-      setFormMessage(t("reviews.submitSuccess"));
-    } catch {
-      setFormMessage(t("reviews.submitError"));
-    }
-  }
 
   return (
     <section className="customer-reviews-section" aria-labelledby="customer-reviews-title">
@@ -71,7 +41,7 @@ function CustomerReviews() {
       </div>
 
       <div className="customer-reviews-shell">
-        <div className="customer-review-list">
+        <div className="customer-review-list" style={{ gridTemplateColumns: '1fr', width: '100%' }}>
           {reviews.slice(0, 4).map((review) => (
             <article className="customer-review-card" key={review.id}>
               {review.productImage && (
@@ -86,34 +56,6 @@ function CustomerReviews() {
             </article>
           ))}
         </div>
-
-        <form className="customer-review-form" onSubmit={handleSubmit}>
-          <h3>{t("reviews.formTitle")}</h3>
-          <label>
-            <span>{t("reviews.name")}</span>
-            <input name="name" type="text" maxLength={40} required />
-          </label>
-          <label>
-            <span>{t("reviews.rating")}</span>
-            <select name="rating" defaultValue="5">
-              <option value="5">5</option>
-              <option value="4">4</option>
-              <option value="3">3</option>
-              <option value="2">2</option>
-              <option value="1">1</option>
-            </select>
-          </label>
-          <label>
-            <span>{t("reviews.comment")}</span>
-            <textarea name="comment" rows={4} maxLength={240} required />
-          </label>
-          <label>
-            <span>{t("reviews.productPhoto")}</span>
-            <input name="productPhoto" type="file" accept="image/*" />
-          </label>
-          {formMessage && <p className="customer-review-form-message">{formMessage}</p>}
-          <button type="submit">{t("reviews.submit")}</button>
-        </form>
       </div>
     </section>
   );
@@ -125,7 +67,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <HowItWorks />
-      {/*<Categories />*/}
+      {/* <Categories /> */}
       <CustomerReviews />
       <Footer />
     </>

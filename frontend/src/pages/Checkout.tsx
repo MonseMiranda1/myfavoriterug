@@ -229,46 +229,53 @@ export default function Checkout() {
           ))}
         </div>
 
-        <form className="checkout-shell" onSubmit={handleSubmit}>
+                 <form className="checkout-shell" onSubmit={handleSubmit}>
           <section className="checkout-panel">
             {step === 0 && (
               <>
                 <h2>{t("checkout.customerData")}</h2>
+                
+                {/* 👤 Campo Nombre Bilingüe */}
                 <label>
                   <span>{t("checkout.name")}</span>
                   <input
                     required
+                    placeholder={t("checkout.namePlaceholder")}
                     value={customerName}
                     onChange={(event) => setCustomerName(event.target.value)}
                   />
                 </label>
+
+                {/* ✉️ Campo Correo Bilingüe */}
                 <label>
                   <span>{t("checkout.email")}</span>
                   <input
                     required
                     type="email"
-                    placeholder="correo@correo.cl"
+                    placeholder={t("checkout.emailPlaceholder")}
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                   />
                 </label>
-                {/* 👈 NUEVO: Campo Teléfono */}
+
+                {/* 📞 Campo Teléfono Bilingüe */}
                 <label>
-                  <span>Teléfono</span>
+                  <span>{t("checkout.phone")}</span>
                   <input
                     required
                     type="tel"
-                    placeholder="+56912345678"
+                    placeholder={t("checkout.phonePlaceholder")}
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
                   />
                 </label>
-                {/* 👈 NUEVO: Campo RUT */}
+
+                {/* 🪪 Campo RUT / Pasaporte Bilingüe */}
                 <label>
-                  <span>RUT o Pasaporte (Extranjeros)</span>
+                  <span>{t("checkout.document")}</span>
                   <input
                     required
-                    placeholder="Ej: 12.345.678-9 o número de pasaporte (Passport Number)"
+                    placeholder={t("checkout.documentPlaceholder")}
                     value={rut}
                     onChange={(event) => setRut(event.target.value)}
                   />
@@ -283,7 +290,7 @@ export default function Checkout() {
                   <span>{t("checkout.address")}</span>
                   <input
                     required
-                    placeholder="Dirección #número, Comuna, Provincia"
+                    placeholder="Dirección, número, Comuna, Provincia, País"
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
                   />
@@ -307,16 +314,16 @@ export default function Checkout() {
               <>
                 <h2>{t("checkout.summary")}</h2>
                 
-                {/* 📋 Bloque completo de verificación de datos del cliente */}
-                <div className="checkout-customer-verification" style={{ marginBottom: '25px', padding: '20px', border: '1px solid #ddd', borderRadius: '6px', backgroundColor: '#f9f9f9' }}>
-                  <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Datos de la Orden</h3>
+                {/* 📋 Bloque bilingüe de verificación de datos del cliente */}
+                <div className="checkout-customer-verification" style={{ marginBottom: '25px', padding: '20px', border: '1px solid var(--line)', borderRadius: '6px', backgroundColor: '#f9f9f9' }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>{t("checkout.orderData")}</h3>
                   <div style={{ display: 'grid', gap: '8px', fontSize: '0.95rem' }}>
-                    <p style={{ margin: 0 }}>👤 <strong>Nombre:</strong> {customerName}</p>
-                    <p style={{ margin: 0 }}>🪪 <strong>RUT:</strong> {rut || "No ingresado"}</p>
-                    <p style={{ margin: 0 }}>✉️ <strong>Correo:</strong> {email}</p>
-                    <p style={{ margin: 0 }}>📞 <strong>Teléfono:</strong> {phone || "No ingresado"}</p>
-                    <p style={{ margin: 0 }}>📍 <strong>Dirección de Despacho:</strong> {address || "No ingresada"}</p>
-                    <p style={{ margin: 0 }}>🚚 <strong>Método de Despacho:</strong> {shippingMethod}</p>
+                    <p style={{ margin: 0 }}>👤 <strong>{t("checkout.name")}:</strong> {customerName}</p>
+                    <p style={{ margin: 0 }}>🪪 <strong>{t("checkout.document")?.split(" ")[0] || "RUT"}:</strong> {rut || "No ingresado"}</p>
+                    <p style={{ margin: 0 }}>✉️ <strong>{t("checkout.email")}:</strong> {email}</p>
+                    <p style={{ margin: 0 }}>📞 <strong>{t("checkout.phone")}:</strong> {phone || "No ingresado"}</p>
+                    <p style={{ margin: 0 }}>📍 <strong>{t("checkout.shippingAddress")}:</strong> {address || "No ingresada"}</p>
+                    <p style={{ margin: 0 }}>🚚 <strong>{t("checkout.shippingMethodLabel")}:</strong> {shippingMethod}</p>
                   </div>
                 </div>
 
@@ -369,8 +376,15 @@ export default function Checkout() {
                     </dl>
                   </div>
                 )}
-                {submitError && <p className="custom-submit-message error">{submitError}</p>}
+                {/* 🗑️ ELIMINAR DE AQUÍ: Borra la línea de submitError que estaba en este paso */}
               </>
+            )}
+
+            {/* 🚨 UBICACIÓN GLOBAL RECOMENDADA: El error ahora se renderiza fuera de los pasos condicionales */}
+            {submitError && (
+              <p className="custom-submit-message error" style={{ margin: "10px 0 0 0" }}>
+                {submitError}
+              </p>
             )}
 
             <div className="checkout-actions">

@@ -1,0 +1,215 @@
+.customer-review-form {
+  border: 1px solid rgba(66, 38, 9, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(71, 48, 21, 0.08);
+}
+
+.customer-review-form-message {
+  margin: 0;
+  color: #111;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.account-list-page {
+  min-height: 620px;
+  padding: 54px clamp(22px, 6vw, 112px) 58px;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255, 193, 7, 0.24), transparent 24%),
+    radial-gradient(circle at 92% 16%, rgba(161, 95, 224, 0.14), transparent 24%),
+    linear-gradient(180deg, #fff1cf 0%, #fff7e8 100%);
+}
+
+.account-content {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+@media (max-width: 1040px) {
+  .account-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.account-list-heading {
+  margin-bottom: 26px;
+}
+
+.account-list-heading span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: var(--purple);
+  font-size: 13px;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.account-list-heading h1,
+.account-list-heading p {
+  margin: 0;
+}
+
+
+.account-list-heading h1 {
+  color: #0c0a0b;
+  font-family: var(--display-font);
+  font-size: clamp(42px, 6vw, 70px);
+  line-height: 0.9;
+  font-weight: 1000;
+}
+
+.account-list-heading p {
+  margin-top: 12px;
+  color: #40342e;
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.35;
+  font-weight: 750;
+}
+
+
+.account-list-search {
+  width: 100%;
+  height: 52px;
+  margin-bottom: 22px;
+  display: grid;
+  grid-template-columns: 1fr 46px;
+  align-items: center;
+  overflow: hidden;
+  background: rgba(255, 250, 240, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(71, 48, 21, 0.08);
+}
+
+.account-list-search input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 18px;
+  border: 0;
+  color: #211814;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.account-list-search input::placeholder {
+  color: #9b8d80;
+}
+
+.account-list-search svg {
+  width: 22px;
+  height: 22px;
+  color: #8c7d72;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+.account-list-empty h2,
+.account-list-empty p {
+  margin: 0;
+}
+
+.account-list-empty {
+  min-height: 260px;
+  padding: 34px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  color: #40342e;
+  text-align: center;
+  background: rgba(255, 250, 240, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 14px 34px rgba(71, 48, 21, 0.1);
+}
+
+.account-list-empty > span {
+  width: 60px;
+  height: 60px;
+  padding: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--purple);
+}
+
+.account-list-empty svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.account-list-empty h2 {
+  color: #0c0a0b;
+  font-family: var(--display-font);
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 1000;
+}
+
+.account-list-empty p {
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.account-list-empty a {
+  min-height: 46px;
+  margin-top: 8px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(90deg, var(--orange), #ff5e00);
+  border-radius: 8px;
+  font-family: var(--display-font);
+  font-weight: 1000;
+  box-shadow: 0 12px 22px rgba(255, 106, 0, 0.2);
+}
+
+.tracking-list article {
+  background: rgba(255, 250, 240, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(71, 48, 21, 0.1);
+}
+
+.tracking-list p {
+  color: #40342e;
+  line-height: 1.55;
+  font-weight: 650;
+}
+
+
+.tracking-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.tracking-list article {
+  padding: 18px;
+}
+
+.tracking-list strong,
+.tracking-list span {
+  display: block;
+}
+
+.tracking-list span {
+  margin-top: 6px;
+  color: var(--purple);
+  font-weight: 1000;
+}
