@@ -37,7 +37,8 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
     try {
       const savedUser = await updateAccountUser(formUser);
       onUserUpdate(savedUser);
-      setMessage("");
+      setFormUser(savedUser);
+      setMessage("Información actualizada correctamente.");
       setIsEditing(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "No se pudo guardar.");
@@ -60,6 +61,8 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
           </button>
         )}
       </div>
+
+      {!isEditing && message && <strong className="account-login-success">{message}</strong>}
 
       {isEditing ? (
         <form className="account-edit-form" onSubmit={handleSubmit}>
@@ -148,6 +151,11 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
    ========================================================================== */
 function AccountContent({ sessionUser }: { sessionUser: AccountUser }) {
   const { t } = useLanguage();
+  const [currentUser, setCurrentUser] = useState(sessionUser);
+
+  useEffect(() => {
+    setCurrentUser(sessionUser);
+  }, [sessionUser]);
 
   return (
     <>
@@ -157,15 +165,15 @@ function AccountContent({ sessionUser }: { sessionUser: AccountUser }) {
           <span className="account-kicker">{t("account.area")}</span>
           <h1>{t("account.myAccount")}</h1>
           <p>
-            {t("account.welcome")} <strong>{sessionUser.name}</strong>
+            {t("account.welcome")} <strong>{currentUser.name}</strong>
           </p>
         </header>
 
         <div className="account-shell">
-          <AccountSidebar activeSection="profile" user={sessionUser} />
+          <AccountSidebar activeSection="profile" user={currentUser} />
 
           <section className="account-content">
-            <ProfileCard key={`${sessionUser.email}-${sessionUser.name}`} user={sessionUser} onUserUpdate={() => undefined} />
+            <ProfileCard user={currentUser} onUserUpdate={setCurrentUser} />
           </section>
         </div>
       </main>
