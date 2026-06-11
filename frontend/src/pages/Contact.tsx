@@ -15,7 +15,7 @@ export default function Contact() {
 
   //credenciales de EmailJS
   const SERVICE_ID = "service_0k7xjbt";
-  const TEMPLATE_ID = "template_wqr70fq";
+  const TEMPLATE_ID = "template_xr8uq9k";
   const PUBLIC_KEY = "ATFlcTAe7uju91qPd";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
