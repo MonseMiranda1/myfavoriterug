@@ -30,7 +30,7 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
     event.preventDefault();
 
     if (!hasRut && !formUser.rut.trim()) {
-      setMessage("Ingresa tu RUT para completar el perfil.");
+      setMessage("Ingresa tu RUT o DNI para completar el perfil.");
       return;
     }
 
@@ -76,7 +76,7 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
             <input value={formUser.phone} onChange={(event) => updateField("phone", event.target.value)} />
           </label>
           <label>
-            <span>RUT</span>
+            <span>RUT / DNI</span>
             <input
               value={hasRut ? user.rut : formUser.rut}
               onChange={(event) => updateField("rut", event.target.value)}
@@ -89,6 +89,14 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
           <label>
             <span>{t("account.address")}</span>
             <input value={formUser.address} onChange={(event) => updateField("address", event.target.value)} />
+          </label>
+          <label>
+            <span>{t("account.country")}</span>
+            <input value={formUser.country ?? ""} onChange={(event) => updateField("country", event.target.value)} />
+          </label>
+          <label>
+            <span>{t("account.cityState")}</span>
+            <input value={formUser.cityState ?? ""} onChange={(event) => updateField("cityState", event.target.value)} />
           </label>
 
           <div className="account-edit-actions">
@@ -114,12 +122,20 @@ function ProfileCard({ user, onUserUpdate }: { user: AccountUser; onUserUpdate: 
             <strong>{user.phone}</strong>
           </div>
           <div>
-            <span>RUT</span>
+            <span>RUT / DNI</span>
             <strong>{hasRut ? user.rut : "Pendiente por completar"}</strong>
           </div>
           <div>
             <span>{t("account.address")}</span>
             <strong>{user.address}</strong>
+          </div>
+          <div>
+            <span>{t("account.country")}</span>
+            <strong>{user.country || "Pendiente por completar"}</strong>
+          </div>
+          <div>
+            <span>{t("account.cityState")}</span>
+            <strong>{user.cityState || "Pendiente por completar"}</strong>
           </div>
         </div>
       )}

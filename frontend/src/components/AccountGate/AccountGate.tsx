@@ -78,8 +78,8 @@ export default function AccountGate({ children }: AccountGateProps) {
       if (!name.trim() || !phone.trim() || !rut.trim() || !address.trim()) {
         setError(
           language === "en"
-            ? "Enter your name, phone, RUT, and address to create your account."
-            : "Ingresa tu nombre, telefono, RUT y direccion para crear tu cuenta.",
+            ? "Enter your name, phone, RUT or DNI, and address to create your account."
+            : "Ingresa tu nombre, teléfono, RUT o DNI y dirección para crear tu cuenta.",
         );
         return;
       }
@@ -323,7 +323,7 @@ export default function AccountGate({ children }: AccountGateProps) {
             </label>
             {isCreatingAccount && (
               <label>
-                <span>{language === "en" ? "RUT" : "RUT"}</span>
+                <span>RUT / DNI</span>
                 <input
                   type="text"
                   value={rut}

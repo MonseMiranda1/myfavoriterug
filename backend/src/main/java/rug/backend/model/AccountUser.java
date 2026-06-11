@@ -31,6 +31,8 @@ public class AccountUser {
     private String rutCanonical;
 
     private String address;
+    private String country;
+    private String cityState;
 
     @Column(nullable = false)
     private String passwordHash;
@@ -96,6 +98,22 @@ public class AccountUser {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCityState() {
+        return cityState;
+    }
+
+    public void setCityState(String cityState) {
+        this.cityState = cityState;
     }
 
     public String getPasswordHash() {

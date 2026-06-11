@@ -466,7 +466,7 @@ export default function Personaliza() {
                   <input type="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} autoComplete="email" />
                 </label>
                 <label>
-                  <span>RUT</span>
+                  <span>RUT / DNI</span>
                   <input value={contactRut} onChange={(event) => setContactRut(event.target.value)} autoComplete="off" />
                 </label>
                 <label className="custom-account-wide">
