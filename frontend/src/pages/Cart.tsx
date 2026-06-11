@@ -63,7 +63,7 @@ export default function Cart() {
               <Link to="/tienda" className="cart-primary-link">
                 {t("cart.goStore")}
               </Link>
-              <Link to="/personaliza" className="cart-secondary-link">
+              <Link to="/personaliza" className="cart-customize-button">
                 {t("cart.customize")}
               </Link>
             </div>

@@ -50,7 +50,7 @@ export default function Footer() {
           <h3>{t("footer.help")}</h3>
           <Link to="/contacto">{t("footer.contact")}</Link>
           <Link to="/cuenta/seguimiento">{t("footer.tracking")}</Link>
-          <Link to="/checkout">{t("footer.paymentMethods")}</Link>
+          <Link to="/metodos-de-pago">{t("footer.paymentMethods")}</Link>
         </div>
 
         <div>

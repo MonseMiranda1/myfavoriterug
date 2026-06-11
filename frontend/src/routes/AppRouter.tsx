@@ -17,6 +17,7 @@ const Blog = lazy(() => import("../pages/Blog"));
 const Contact = lazy(() => import("../pages/Contact"));
 const Shipping = lazy(() => import("../pages/Shipping"));
 const Terms = lazy(() => import("../pages/Terms"));
+const PaymentMethods = lazy(() => import("../pages/PaymentMethods"));
 /*const Wishlist = lazy(() => import("../pages/Wishlist"));*/
 const Tracking = lazy(() => import("../pages/Tracking"));
 const BlogPost = lazy(() => import("../pages/BlogPost"));
@@ -57,6 +58,7 @@ export default function AppRouter() {
           <Route path="/contacto" element={<Contact />} />
           <Route path="/envios" element={<Shipping />} />
           <Route path="/terminos" element={<Terms />} />
+          <Route path="/metodos-de-pago" element={<PaymentMethods />} />
           <Route path="/orden-confirmada" element={<OrderConfirmation />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>

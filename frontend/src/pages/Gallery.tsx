@@ -14,14 +14,6 @@ interface ActiveModalItem {
   videoUrl?: string;
 }
 
-const filters: Array<GalleryCategory | "Todas"> = [
-  "Todas",
-  "Customer Photos",
-  "Behind The Scenes",
-  "Video Process",
-  "Finished Rugs",
-];
-
 function getCategoryLabel(category: GalleryCategory, t: ReturnType<typeof useLanguage>["t"]) {
   if (category === "Customer Photos") return t("gallery.customers");
   if (category === "Behind The Scenes") return t("gallery.behind");
@@ -31,12 +23,11 @@ function getCategoryLabel(category: GalleryCategory, t: ReturnType<typeof useLan
 
 export default function Gallery({ initialCategory = "Todas" }: { initialCategory?: GalleryCategory | "Todas" }) {
   const { language, t } = useLanguage();
-  const [activeFilter, setActiveFilter] = useState<GalleryCategory | "Todas">(initialCategory);
   const [modalItem, setModalItem] = useState<ActiveModalItem | null>(null);
 
   const items = useMemo(
-    () => galleryItems.filter((item) => activeFilter === "Todas" || item.category === activeFilter),
-    [activeFilter],
+    () => galleryItems.filter((item) => initialCategory === "Todas" || item.category === initialCategory),
+    [initialCategory],
   );
 
   const handleItemClick = (item: any) => {
@@ -63,19 +54,6 @@ export default function Gallery({ initialCategory = "Todas" }: { initialCategory
           <h1>{t("gallery.title")}</h1>
           <p>{t("gallery.subtitle")}</p>
         </header>
-
-        <div className="filter-tabs" aria-label={t("gallery.filters")}>
-          {filters.map((filter) => (
-            <button
-              type="button"
-              key={filter}
-              className={activeFilter === filter ? "is-open-tab" : ""}
-              onClick={() => setActiveFilter(filter)}
-            >
-              {filter === "Todas" ? t("gallery.all") : getCategoryLabel(filter, t)}
-            </button>
-          ))}
-        </div>
 
         <section className="content-grid">
           {items.map((item) => (

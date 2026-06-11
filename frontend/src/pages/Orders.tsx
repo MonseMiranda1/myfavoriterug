@@ -30,6 +30,26 @@ function SearchIcon() {
   );
 }
 
+function getOrderStatusLabel(status: string | undefined, t: ReturnType<typeof useLanguage>["t"]) {
+  const normalizedStatus = status?.trim().toLowerCase().replaceAll(" ", "_");
+  const statusKeys: Record<string, string> = {
+    pending_payment: "account.statusPendingPayment",
+    confirmed: "account.statusConfirmed",
+    in_production: "account.statusInProduction",
+    shipped: "account.statusShipped",
+    delivered: "account.delivered",
+    cancelled: "account.statusCancelled",
+    preparando: "account.statusPreparing",
+    enviado: "account.statusShipped",
+    entregado: "account.delivered",
+    retenido: "account.statusHeld",
+  };
+
+  return normalizedStatus && statusKeys[normalizedStatus]
+    ? t(statusKeys[normalizedStatus] as never)
+    : status ?? "";
+}
+
 /* ==========================================================================
    MODAL DE RESEÑA REUTILIZABLE
    ========================================================================== */
@@ -100,10 +120,10 @@ function ReviewModal({ isOpen, onClose, customerName, orderId, productName, onSu
         aria-labelledby="review-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" className="review-modal-close" onClick={onClose} aria-label="Cerrar modal">×</button>
+        <button type="button" className="review-modal-close" onClick={onClose} aria-label={t("common.close")}>×</button>
         <form className="customer-review-form review-modal-form" onSubmit={handleSubmit}>
-          <h3 id="review-modal-title" style={{ margin: 0, color: "#0c0a0b" }}>Opinar sobre {productName}</h3>
-          <p style={{ fontSize: "12px", color: "#6d5c54", margin: 0 }}>Pedido N°: {orderId}</p>
+          <h3 id="review-modal-title" style={{ margin: 0, color: "#0c0a0b" }}>{t("reviews.reviewProduct")} {productName}</h3>
+          <p style={{ fontSize: "12px", color: "#6d5c54", margin: 0 }}>{t("account.orderNumber")}: {orderId}</p>
           
           <label style={{ display: "grid", gap: "4px", fontSize: "13px", fontWeight: "bold" }}>
             <span>{t("reviews.rating") || "Calificación"}</span>
@@ -140,7 +160,7 @@ function ReviewModal({ isOpen, onClose, customerName, orderId, productName, onSu
    COMPONENTE PRINCIPAL
    ========================================================================== */
 export default function Orders() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -207,7 +227,7 @@ export default function Orders() {
 
                 {isLoading ? (
                   <section className="account-list-empty">
-                    <p>Cargando tus pedidos...</p>
+                    <p>{t("account.loadingOrders")}</p>
                   </section>
                 ) : loadError ? (
                   <section className="account-list-empty">
@@ -225,11 +245,11 @@ export default function Orders() {
 
                       const productNames = order.items && order.items.length > 0 
                         ? order.items.map((i: any) => i.name).join(", ") 
-                        : "Alfombra";
+                        : t("account.rug");
 
                       const mainProductName = order.items && order.items.length > 0 
                         ? order.items[0].name 
-                        : "Alfombra";
+                        : t("account.rug");
 
                       // 🚀 NUEVO: Declaramos la variable que le avisa a React si el pedido fue entregado
                       const isDelivered = 
@@ -262,7 +282,7 @@ export default function Orders() {
                             
                             {/* 1. N° Pedido Secuencial de Postgres */}
                             <strong style={{ fontSize: "15px", color: "#0c0a0b", margin: 0, fontWeight: "900" }}>
-                              N° Pedido #{order.id}
+                              {t("account.orderNumber")} #{order.id}
                             </strong>
                             
                             {/* 2. Código de Seguimiento Interno de la Tienda (MFR-XXXXXX) */}
@@ -277,7 +297,7 @@ export default function Orders() {
                             
                             {/* 4. Fecha de Compra */}
                             <p style={{ margin: 0, fontSize: "13px", color: "#6d5c54" }}>
-                              {new Date(order.createdAt).toLocaleString("es-CL")}
+                              {new Date(order.createdAt).toLocaleString(language === "en" ? "en-US" : "es-CL")}
                             </p>
                             
                             {/* 5. Unidades Traducidas Dinámicamente y Precio Final con IVA */}
@@ -289,20 +309,20 @@ export default function Orders() {
                           {/* 🔘 COLUMNA DERECHA: ESTADO O ACCIÓN DE RESEÑA */}
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "10px" }}>
                             <span style={{ fontWeight: "1000", fontSize: "13px", textTransform: "uppercase", color: isDelivered ? "#2e7d32" : "#ef6c00" }}>
-                              {order.shippingStatus || order.status}
+                              {getOrderStatusLabel(order.shippingStatus || order.status, t)}
                             </span>
                             
                             {/* Gatillador inteligente bilingüe si ya fue entregado */}
                             {isDelivered && (
                               yaFueResenado ? (
-                                <span style={{ color: "#2e7d32", fontWeight: "bold", fontSize: "13px" }}>✓ Reseña Enviada</span>
+                                <span style={{ color: "#2e7d32", fontWeight: "bold", fontSize: "13px" }}>✓ {t("account.reviewSent")}</span>
                               ) : (
                                 <button
                                   type="button"
                                   onClick={() => setSelectedOrder({ id: order.id, productName: mainProductName })}
                                   style={{ background: "var(--purple)", color: "#fff", border: "none", padding: "8px 14px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
                                 >
-                                  Dejar Reseña
+                                  {t("account.leaveReview")}
                                 </button>
                               )
                             )}
