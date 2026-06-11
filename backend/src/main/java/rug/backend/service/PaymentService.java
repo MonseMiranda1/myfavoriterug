@@ -28,6 +28,8 @@ import rug.backend.repository.PaymentRepository;
 
 @Service
 public class PaymentService {
+    private static final String CANONICAL_FRONTEND_URL = "https://myfavoriterug.com";
+
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
     private final String frontendBaseUrl;
@@ -47,7 +49,7 @@ public class PaymentService {
     ) {
         this.paymentRepository = paymentRepository;
         this.orderService = orderService;
-        this.frontendBaseUrl = frontendBaseUrl;
+        this.frontendBaseUrl = normalizeFrontendBaseUrl(frontendBaseUrl);
         this.backendBaseUrl = backendBaseUrl;
         this.flowApiUrl = flowApiUrl;
         this.flowApiKey = flowApiKey;
@@ -84,6 +86,16 @@ public class PaymentService {
 
     public String getOrderConfirmationUrl(Long orderId) {
         return frontendBaseUrl + "/orden-confirmada?orderId=" + orderId;
+    }
+
+    private String normalizeFrontendBaseUrl(String configuredUrl) {
+        String normalizedUrl = configuredUrl == null ? "" : configuredUrl.trim().replaceAll("/+$", "");
+
+        if (normalizedUrl.contains(".vercel.app")) {
+            return CANONICAL_FRONTEND_URL;
+        }
+
+        return normalizedUrl.isBlank() ? CANONICAL_FRONTEND_URL : normalizedUrl;
     }
 
     public Payment createPaymentIntent(Long orderId, String provider) {

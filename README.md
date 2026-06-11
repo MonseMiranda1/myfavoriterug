@@ -227,6 +227,8 @@ cd backend
 
 El backend queda disponible por defecto en `http://localhost:8080`.
 
+En produccion, configurar `FRONTEND_BASE_URL=https://myfavoriterug.com` para que los retornos de pagos y recuperacion de contraseña utilicen el dominio oficial.
+
 ### Frontend
 
 Crear `frontend/.env` a partir de `frontend/.env.example`:
