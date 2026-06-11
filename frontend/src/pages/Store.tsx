@@ -14,7 +14,7 @@ import { useLanguage } from "../i18n";
 import fallbackProductImage from "../assets/banner.png";
 import { getPriceWithTax } from "../services/cart";
 
-const PRODUCTS_PER_PAGE = 10;
+const PRODUCTS_PER_PAGE = 12;
 
 const sortOptions = [
   { value: "name-asc", labelKey: "store.nameAsc" },
