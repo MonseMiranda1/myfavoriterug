@@ -137,7 +137,7 @@ public class PaymentService {
 
         payment.setStatus(PaymentStatus.PAID);
         payment.setPaidAt(Instant.now());
-        orderService.updateStatus(payment.getOrder().getId(), OrderStatus.PAID);
+        orderService.updateStatus(payment.getOrder().getId(), OrderStatus.CONFIRMED);
 
         return paymentRepository.save(payment);
     }
@@ -159,7 +159,7 @@ public class PaymentService {
             if (flowStatus == 2) {
                 payment.setStatus(PaymentStatus.PAID);
                 payment.setPaidAt(Instant.now());
-                orderService.updateStatus(payment.getOrder().getId(), OrderStatus.PAID);
+                orderService.updateStatus(payment.getOrder().getId(), OrderStatus.CONFIRMED);
             } else if (flowStatus == 3 || flowStatus == 4) {
                 payment.setStatus(PaymentStatus.FAILED);
             } else {
