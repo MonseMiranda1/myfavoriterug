@@ -24,6 +24,11 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/payments/flow/**")
+                    .allowedOriginPatterns("https://flow.cl", "https://*.flow.cl")
+                    .allowedMethods("GET", "POST")
+                    .allowedHeaders("*");
+
                 registry.addMapping("/api/**")
                     .allowedOriginPatterns(allowedOriginPatterns())
                     .allowedMethods("*")
